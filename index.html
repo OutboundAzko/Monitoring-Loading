@@ -100,24 +100,17 @@ th, td {
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
 const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT1YwOyPQa1twBR3ms6LrmdxwMeGJ8K3xLmYsPkoO6g5ngC6F5ZhpJhwNPx8_cNhzbszqcIhAR-vGxf/pub?gid=1300627959&single=true&output=csv";
 
-fetch(url)
-  .then(res => res.text())
-  .then(csv => {
+Papa.parse(url, {
+  download: true,
+  header: true,
+  skipEmptyLines: true,
+  complete: function(results) {
 
-    const lines = csv.split("\n").filter(l => l.trim() !== "");
-    const headers = lines[0].split(",").map(h => h.trim());
-
-    const data = lines.slice(1).map(line => {
-      const cols = line.split(",");
-      let obj = {};
-      headers.forEach((h, i) => {
-        obj[h] = cols[i];
-      });
-      return obj;
-    });
+    const data = results.data;
 
     let total = 0, belum = 0, antri = 0, proses = 0, selesai = 0;
     let shiftData = {};
@@ -154,9 +147,7 @@ fetch(url)
       type: "doughnut",
       data: {
         labels: ["Belum", "Antri", "Proses", "Selesai"],
-        datasets: [{
-          data: [belum, antri, proses, selesai]
-        }]
+        datasets: [{ data: [belum, antri, proses, selesai] }]
       }
     });
 
@@ -175,11 +166,12 @@ fetch(url)
     document.getElementById("progressText").innerText =
       `${selesai} / ${total} selesai (${percent.toFixed(1)}%)`;
 
-  })
-  .catch(err => {
+  },
+  error: function(err) {
     console.error("ERROR:", err);
-    alert("Gagal load data. Cek console (F12)");
-  });
+    alert("Gagal load data");
+  }
+});
 </script>
 
 </body>
