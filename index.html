@@ -68,7 +68,6 @@ th, td {
 <div class="container">
 <h1>📊 Outbound Dashboard</h1>
 
-<!-- KPI -->
 <div class="cards">
   <div class="card total">Total<br><h2 id="total">0</h2></div>
   <div class="card belum">Belum Datang<br><h2 id="belum">0</h2></div>
@@ -77,12 +76,10 @@ th, td {
   <div class="card selesai">Selesai<br><h2 id="selesai">0</h2></div>
 </div>
 
-<!-- Chart -->
 <div class="section">
   <canvas id="chart"></canvas>
 </div>
 
-<!-- Summary Shift -->
 <div class="section">
   <h3>Summary Shift</h3>
   <table>
@@ -93,7 +90,6 @@ th, td {
   </table>
 </div>
 
-<!-- Progress -->
 <div class="section">
   <h3>Progress Penyelesaian</h3>
   <div class="progress-bar">
@@ -110,19 +106,20 @@ const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT1YwOyPQa1twBR3ms6
 fetch(url)
   .then(res => res.text())
   .then(csv => {
-    const rows = csv.split("\n").slice(1);
-    
-    let data = rows.map(r => r.split(","));
-      let cols = row.split(",");
+
+    const lines = csv.split("\n").filter(l => l.trim() !== "");
+    const headers = lines[0].split(",").map(h => h.trim());
+
+    const data = lines.slice(1).map(line => {
+      const cols = line.split(",");
       let obj = {};
       headers.forEach((h, i) => {
-        obj[h.trim()] = cols[i];
+        obj[h] = cols[i];
       });
       return obj;
-      });
-  
-    let total = 0, belum = 0, antri = 0, proses = 0, selesai = 0;
+    });
 
+    let total = 0, belum = 0, antri = 0, proses = 0, selesai = 0;
     let shiftData = {};
 
     data.forEach(row => {
@@ -147,14 +144,12 @@ fetch(url)
       else if (status === "SELESAI") selesai++;
     });
 
-    // KPI
     document.getElementById("total").innerText = total;
     document.getElementById("belum").innerText = belum;
     document.getElementById("antri").innerText = antri;
     document.getElementById("proses").innerText = proses;
     document.getElementById("selesai").innerText = selesai;
 
-    // Chart
     new Chart(document.getElementById("chart"), {
       type: "doughnut",
       data: {
@@ -165,7 +160,6 @@ fetch(url)
       }
     });
 
-    // Shift Table
     let html = "";
     for (let s in shiftData) {
       html += `<tr>
@@ -176,11 +170,15 @@ fetch(url)
     }
     document.getElementById("shiftTable").innerHTML = html;
 
-    // Progress
-    let percent = (selesai / total) * 100 || 0;
+    let percent = total ? (selesai / total) * 100 : 0;
     document.getElementById("progress").style.width = percent + "%";
     document.getElementById("progressText").innerText =
       `${selesai} / ${total} selesai (${percent.toFixed(1)}%)`;
+
+  })
+  .catch(err => {
+    console.error("ERROR:", err);
+    alert("Gagal load data. Cek console (F12)");
   });
 </script>
 
