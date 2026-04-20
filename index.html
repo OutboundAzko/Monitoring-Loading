@@ -291,6 +291,7 @@ async function loadData(){
       ld:parseFloat(row['%LD'])||0,
       shippingLine:(row['SHIPPINGLINE']||'').trim(),
       carrier:(row['CARRIERID']||'').trim(),
+      statusRaw:(row['STATUS']||'').trim(),
       status:normStatus(row['STATUS']||''),
       stuffingTime:(row['STUFFING TIME']||'').trim(),
       jenisArmada:(row['JENIS ARMADA']||'').trim(),
@@ -441,7 +442,12 @@ function renderTable(){
   const start=(currentPage-1)*PAGE_SIZE;
   const page=d.slice(start,start+PAGE_SIZE);
   const smap={'SELESAI':'sp-selesai','PROSES':'sp-proses','ANTRI':'sp-antri','BELUM DATANG':'sp-belum'};
-  const slbl={'SELESAI':'SELESAI','PROSES':'PROSES','ANTRI':'ANTRI','BELUM DATANG':'BELUM DATANG'};
+  const getStatusBadge=(r)=>{
+    const cls=smap[r.status]||'';
+    const raw=r.statusRaw||r.status;
+    const lbl=raw==='KELUAR DC'?'KELUAR DC':(r.status==='SELESAI'?'SELESAI':r.status==='PROSES'?'PROSES':r.status==='ANTRI'?'ANTRI':'BELUM DATANG');
+    return`<span class="status-pill ${cls}">${lbl}</span>`;
+  };
   document.getElementById('table-body').innerHTML=page.length===0
     ?'<tr class="no-data-row"><td colspan="11">Tidak ada data</td></tr>'
     :page.map(r=>`<tr>
@@ -450,7 +456,7 @@ function renderTable(){
       <td>${r.transno}</td>
       <td style="max-width:170px;overflow:hidden;text-overflow:ellipsis">${r.shippingLine}</td>
       <td>${r.carrier}</td>
-      <td><span class="status-pill ${smap[r.status]||''}">${slbl[r.status]||r.status}</span></td>
+      <td>${getStatusBadge(r)}</td>
       <td><span class="stuffing-val">${r.stuffingTime||'-'}</span></td>
       <td>${r.totalCBM.toFixed(2)}</td>
       <td>${r.pc>0?r.pc+'%':'-'}</td>
