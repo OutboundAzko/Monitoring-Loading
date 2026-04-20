@@ -432,10 +432,10 @@ function renderSummary(){
   const selesai=d.filter(r=>r.status==='SELESAI').length;
   const pct=total>0?Math.round(selesai/total*100):0;
   const batches=[
-    {label:'BATCH 1',cls:'b1'},
-    {label:'BATCH 2',cls:'b2'},
-    {label:'BATCH 3',cls:'b3'},
-    {label:'BATCH 4',cls:'b4'},
+    {label:'BATCH 1'},
+    {label:'BATCH 2'},
+    {label:'BATCH 3'},
+    {label:'BATCH 4'},
   ];
   document.getElementById('sum-tbody').innerHTML=batches.map(b=>{
     const bd=d.filter(r=>getBatch(r.stuffingTime)===b.label);
