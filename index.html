@@ -202,7 +202,7 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
     <div class="card">
       <div class="card-title">Summary Operasional</div>
       <table class="sum-table">
-        <thead><tr><th>Shift</th><th>Total Case ID</th><th>Total CBM</th></tr></thead>
+        <thead><tr><th>Shift</th><th>Total Armada</th><th>Total Case ID</th><th>Total CBM</th></tr></thead>
         <tbody id="sum-tbody"></tbody>
       </table>
       <div class="prog-block">
@@ -281,11 +281,15 @@ async function loadData(){
     const r=await fetch(CSV_URL+'&cb='+Date.now());
     if(!r.ok)throw new Error('HTTP '+r.status);
     const res=Papa.parse(await r.text(),{header:true,skipEmptyLines:true});
+    // Deteksi nama kolom stuffing time (bisa berbeda tergantung export)
+    const sampleKeys=res.data.length>0?Object.keys(res.data[0]):[];
+    const stuffKey=sampleKeys.find(k=>k.replace(/\s+/g,'').toUpperCase()==='STUFFINGTIME')||'STUFFING TIME';
     allData=res.data.map(row=>({
       tanggal:(row['TANGGAL MUAT']||'').trim(),
       shift:(row['PENYELESAIAN']||'').trim().toUpperCase(),
       transno:(row['TRANSNO']||'').trim(),
       caseid:(row['AKTUAL CASEID']||'').trim(),
+      caseIdNum:parseFloat((row['AKTUAL CASEID']||'').replace(/[^0-9.]/g,''))||0,
       totalCBM:parseFloat(row['TOTAL CBM'])||0,
       pc:parseFloat(row['%PC'])||0,
       ld:parseFloat(row['%LD'])||0,
@@ -293,7 +297,7 @@ async function loadData(){
       carrier:(row['CARRIERID']||'').trim(),
       statusRaw:(row['STATUS']||'').trim(),
       status:normStatus(row['STATUS']||''),
-      stuffingTime:(row['STUFFING TIME']||'').trim(),
+      stuffingTime:(row[stuffKey]||'').trim(),
       jenisArmada:(row['JENIS ARMADA']||'').trim(),
       area:(row['AREA']||'').trim(),
     }));
@@ -410,7 +414,15 @@ function renderSummary(){
   const pct=total>0?Math.round(selesai/total*100):0;
   document.getElementById('sum-tbody').innerHTML=['SHIFT 1','SHIFT 2'].map((sh,i)=>{
     const sd=d.filter(r=>r.shift===sh);
-    return`<tr><td><span class="shift-pill ${i===0?'s1':'s2'}">${sh}</span></td><td><strong>${sd.filter(r=>r.caseid).length}</strong></td><td><strong>${sd.reduce((a,r)=>a+r.totalCBM,0).toFixed(2)}</strong></td></tr>`;
+    const armadaCount=sd.filter(r=>r.transno).length;
+    const sumCaseId=sd.reduce((a,r)=>a+r.caseIdNum,0);
+    const sumCBM=sd.reduce((a,r)=>a+r.totalCBM,0);
+    return`<tr>
+      <td><span class="shift-pill ${i===0?'s1':'s2'}">${sh}</span></td>
+      <td><strong>${armadaCount}</strong></td>
+      <td><strong>${sumCaseId>0?Math.round(sumCaseId):'-'}</strong></td>
+      <td><strong>${sumCBM.toFixed(2)}</strong></td>
+    </tr>`;
   }).join('');
   document.getElementById('prog-pct-main').textContent=pct+'%';
   document.getElementById('prog-fill-main').style.width=pct+'%';
