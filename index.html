@@ -100,6 +100,10 @@ main{padding:20px 28px;max-width:1500px;margin:0 auto}
 .shift-pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700}
 .s1{background:#e8f0fe;color:#1a56db}
 .s2{background:#f3e8ff;color:#7c3aed}
+.b1{background:#e0f2fe;color:#0369a1}
+.b2{background:#fef9c3;color:#854d0e}
+.b3{background:#fee2e2;color:#991b1b}
+.b4{background:#f3e8ff;color:#6b21a8}
 .prog-block{}
 .prog-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
 .prog-head-label{font-size:13px;font-weight:600;color:var(--text)}
@@ -194,7 +198,7 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
       <div class="donut-footer">
         <span class="donut-footer-label" id="prog-mini-pct">0%</span>
         <div class="donut-footer-bar"><div class="donut-footer-fill" id="prog-mini-fill" style="width:0%"></div></div>
-        <span class="donut-footer-pct">66%</span>
+        <span class="donut-footer-pct" id="prog-mini-pct2">0%</span>
         <span class="donut-footer-box"></span>
       </div>
     </div>
@@ -202,7 +206,7 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
     <div class="card">
       <div class="card-title">Summary Operasional</div>
       <table class="sum-table">
-        <thead><tr><th>Shift</th><th>Total Armada</th><th>Total Case ID</th><th>Total CBM</th></tr></thead>
+        <thead><tr><th>Batch</th><th>Total Armada</th><th>Total Case ID</th><th>Total CBM</th></tr></thead>
         <tbody id="sum-tbody"></tbody>
       </table>
       <div class="prog-block">
@@ -400,6 +404,7 @@ function renderDonut(){
   const p=pct(selesai);
   document.getElementById('prog-mini-pct').textContent=p+'%';
   document.getElementById('prog-mini-fill').style.width=p+'%';
+  document.getElementById('prog-mini-pct2').textContent=p+'%';
   if(donutChart)donutChart.destroy();
   donutChart=new Chart(document.getElementById('donutChart').getContext('2d'),{
     type:'doughnut',
@@ -408,20 +413,40 @@ function renderDonut(){
   });
 }
 
+function getBatch(stuffingTime){
+  if(!stuffingTime)return null;
+  // Parse jam dari stuffing time (format: "8:00:00", "08:00", "8:00", "13:00:00", dll)
+  const parts=stuffingTime.split(':');
+  if(!parts.length)return null;
+  const hour=parseInt(parts[0],10);
+  if(isNaN(hour))return null;
+  if(hour>=8&&hour<13)return'BATCH 1';
+  if(hour>=13&&hour<16)return'BATCH 2';
+  if(hour>=16&&hour<19)return'BATCH 3';
+  if(hour>=19||hour<8)return'BATCH 4';
+  return null;
+}
+
 function renderSummary(){
   const d=filtered,total=d.length;
   const selesai=d.filter(r=>r.status==='SELESAI').length;
   const pct=total>0?Math.round(selesai/total*100):0;
-  document.getElementById('sum-tbody').innerHTML=['SHIFT 1','SHIFT 2'].map((sh,i)=>{
-    const sd=d.filter(r=>r.shift===sh);
-    const armadaCount=sd.filter(r=>r.transno).length;
-    const sumCaseId=sd.reduce((a,r)=>a+r.caseIdNum,0);
-    const sumCBM=sd.reduce((a,r)=>a+r.totalCBM,0);
+  const batches=[
+    {label:'BATCH 1',info:'08:00 s/d 12:00',cls:'b1'},
+    {label:'BATCH 2',info:'13:00 s/d 15:00',cls:'b2'},
+    {label:'BATCH 3',info:'16:00 s/d 18:00',cls:'b3'},
+    {label:'BATCH 4',info:'19:00 s/d 23:00',cls:'b4'},
+  ];
+  document.getElementById('sum-tbody').innerHTML=batches.map(b=>{
+    const bd=d.filter(r=>getBatch(r.stuffingTime)===b.label);
+    const armadaCount=bd.filter(r=>r.transno).length;
+    const sumCaseId=bd.reduce((a,r)=>a+r.caseIdNum,0);
+    const sumCBM=bd.reduce((a,r)=>a+r.totalCBM,0);
     return`<tr>
-      <td><span class="shift-pill ${i===0?'s1':'s2'}">${sh}</span></td>
-      <td><strong>${armadaCount}</strong></td>
+      <td><span class="shift-pill ${b.cls}" title="${b.info}">${b.label}</span><span style="font-size:10px;color:#9aa0b4;margin-left:4px">${b.info}</span></td>
+      <td><strong>${armadaCount||'-'}</strong></td>
       <td><strong>${sumCaseId>0?Math.round(sumCaseId):'-'}</strong></td>
-      <td><strong>${sumCBM.toFixed(2)}</strong></td>
+      <td><strong>${sumCBM>0?sumCBM.toFixed(2):'-'}</strong></td>
     </tr>`;
   }).join('');
   document.getElementById('prog-pct-main').textContent=pct+'%';
