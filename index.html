@@ -143,6 +143,14 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
 .sp-belum{background:#ffebee;color:#c62828}
 .stuffing-val{font-weight:700;color:#1a56db}
 .no-data-row td{text-align:center;padding:32px;color:var(--text3);font-size:13px}
+.batch-filter-wrap{position:relative}
+.batch-filter-btn{padding:7px 24px 7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:var(--font);color:var(--text2);background:var(--surface);cursor:pointer;font-weight:500;white-space:nowrap;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%235a6480' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 7px center}
+.batch-filter-btn.active{border-color:var(--c-blue);color:var(--c-blue)}
+.batch-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-md);z-index:100;min-width:140px;padding:6px 0}
+.batch-dropdown.open{display:block}
+.batch-opt{display:flex;align-items:center;gap:8px;padding:7px 14px;font-size:13px;color:var(--text);cursor:pointer;transition:background 0.1s;font-weight:500}
+.batch-opt:hover{background:var(--bg)}
+.batch-opt input{width:14px;height:14px;cursor:pointer;accent-color:var(--c-blue)}
 
 /* LOADING */
 #loading-overlay{position:fixed;inset:0;background:rgba(244,246,251,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:14px}
@@ -236,6 +244,16 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
       </select>
       <select id="t-shipping" class="t-sel" onchange="goPage(1);renderTable()"><option value="ALL">Shipping Line ▾</option></select>
       <select id="t-carrier" class="t-sel" onchange="goPage(1);renderTable()"><option value="ALL">Carrier ▾</option></select>
+      <div class="batch-filter-wrap" id="batch-filter-wrap">
+        <button class="batch-filter-btn" onclick="toggleBatchDropdown(event)">Batch ▾</button>
+        <div class="batch-dropdown" id="batch-dropdown">
+          <label class="batch-opt"><input type="checkbox" value="ALL" id="batch-all" onchange="onBatchAllChange(this)" checked> Semua Batch</label>
+          <label class="batch-opt"><input type="checkbox" value="BATCH 1" class="batch-cb" onchange="onBatchCbChange()"> BATCH 1</label>
+          <label class="batch-opt"><input type="checkbox" value="BATCH 2" class="batch-cb" onchange="onBatchCbChange()"> BATCH 2</label>
+          <label class="batch-opt"><input type="checkbox" value="BATCH 3" class="batch-cb" onchange="onBatchCbChange()"> BATCH 3</label>
+          <label class="batch-opt"><input type="checkbox" value="BATCH 4" class="batch-cb" onchange="onBatchCbChange()"> BATCH 4</label>
+        </div>
+      </div>
       <div class="pagination" id="pagination"></div>
     </div>
     <div class="table-wrap">
@@ -443,7 +461,7 @@ function renderSummary(){
     const sumCaseId=bd.reduce((a,r)=>a+r.caseIdNum,0);
     const sumCBM=bd.reduce((a,r)=>a+r.totalCBM,0);
     return`<tr>
-      <td><span class="shift-pill ${b.cls}" title="${b.info}">${b.label}</span><span style="font-size:10px;color:#9aa0b4;margin-left:4px">${b.info}</span></td>
+      <td><span class="shift-pill ${b.cls}">${b.label}</span></td>
       <td><strong>${armadaCount||'-'}</strong></td>
       <td><strong>${sumCaseId>0?Math.round(sumCaseId):'-'}</strong></td>
       <td><strong>${sumCBM>0?sumCBM.toFixed(2):'-'}</strong></td>
@@ -454,16 +472,47 @@ function renderSummary(){
   document.getElementById('prog-armada-lbl').innerHTML=`<strong>${selesai} / ${total}</strong> <span>Armada Selesai</span>`;
 }
 
+function toggleBatchDropdown(e){
+  e.stopPropagation();
+  document.getElementById('batch-dropdown').classList.toggle('open');
+}
+document.addEventListener('click',()=>{
+  const dd=document.getElementById('batch-dropdown');
+  if(dd)dd.classList.remove('open');
+});
+function onBatchAllChange(cb){
+  document.querySelectorAll('.batch-cb').forEach(c=>c.checked=cb.checked);
+  updateBatchBtn();goPage(1);renderTable();
+}
+function onBatchCbChange(){
+  const cbs=[...document.querySelectorAll('.batch-cb')];
+  document.getElementById('batch-all').checked=cbs.every(c=>c.checked);
+  updateBatchBtn();goPage(1);renderTable();
+}
+function updateBatchBtn(){
+  const selected=[...document.querySelectorAll('.batch-cb')].filter(c=>c.checked);
+  const all=document.getElementById('batch-all').checked;
+  const btn=document.querySelector('.batch-filter-btn');
+  btn.classList.toggle('active',!all);
+  btn.textContent=(all?'Batch':selected.map(c=>c.value.replace('BATCH ','')).join(',')+'▾')+' ▾';
+}
+function getSelectedBatches(){
+  if(document.getElementById('batch-all').checked)return null;
+  const sel=[...document.querySelectorAll('.batch-cb')].filter(c=>c.checked).map(c=>c.value);
+  return sel.length?sel:null;
+}
 function getTableData(){
   let d=[...filtered];
   const q=document.getElementById('search-input').value.toLowerCase();
   const st=document.getElementById('t-status').value;
   const sh=document.getElementById('t-shipping').value;
   const ca=document.getElementById('t-carrier').value;
-  if(q)d=d.filter(r=>[r.transno,r.caseid,r.shippingLine,r.carrier,r.area].some(v=>v.toLowerCase().includes(q)));
+  const batches=getSelectedBatches();
+  if(q)d=d.filter(r=>[r.transno,r.caseid,r.shippingLine,r.carrier,r.area,r.jenisArmada].some(v=>v.toLowerCase().includes(q)));
   if(st!=='ALL')d=d.filter(r=>r.status===st);
   if(sh!=='ALL')d=d.filter(r=>r.shippingLine===sh);
   if(ca!=='ALL')d=d.filter(r=>r.carrier===ca);
+  if(batches)d=d.filter(r=>batches.includes(getBatch(r.stuffingTime)));
   if(sortCol)d.sort((a,b)=>String(a[sortCol]).localeCompare(String(b[sortCol]))*sortDir);
   return d;
 }
@@ -486,7 +535,7 @@ function renderTable(){
     return`<span class="status-pill ${cls}">${lbl}</span>`;
   };
   document.getElementById('table-body').innerHTML=page.length===0
-    ?'<tr class="no-data-row"><td colspan="11">Tidak ada data</td></tr>'
+    ?'<tr class="no-data-row"><td colspan="12">Tidak ada data</td></tr>'
     :page.map(r=>`<tr>
       <td>${r.tanggal}</td>
       <td><span class="shift-pill ${r.shift==='SHIFT 1'?'s1':'s2'}">${r.shift}</span></td>
@@ -495,6 +544,7 @@ function renderTable(){
       <td>${r.carrier}</td>
       <td>${getStatusBadge(r)}</td>
       <td><span class="stuffing-val">${r.stuffingTime||'-'}</span></td>
+      <td>${r.jenisArmada||'-'}</td>
       <td>${r.totalCBM.toFixed(2)}</td>
       <td>${r.pc>0?r.pc+'%':'-'}</td>
       <td>${r.ld>0?r.ld+'%':'-'}</td>
