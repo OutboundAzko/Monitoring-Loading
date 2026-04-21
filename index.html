@@ -184,7 +184,7 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
 .batch-ref{font-size:11px;color:var(--text3);margin-top:2px}
 
 /* ── SIDEBAR ── */
-.app-layout{display:flex;min-height:100vh}
+.app-layout{display:flex;min-height:100vh;background:var(--bg)}
 .sidebar{width:240px;background:#1a1f36;flex-shrink:0;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:300;transition:width 0.25s ease}
 .sidebar.collapsed{width:64px}
 .sidebar-logo{padding:0 20px;height:64px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0}
@@ -213,12 +213,12 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
 .sidebar.collapsed .sidebar-bottom{padding:12px 8px}
 
 /* ── MAIN CONTENT WRAPPER ── */
-.content-wrapper{flex:1;margin-left:240px;transition:margin-left 0.25s ease;min-width:0;display:flex;flex-direction:column}
+.content-wrapper{flex:1;margin-left:240px;transition:margin-left 0.25s ease;min-width:0;display:block;overflow-y:auto}
 .content-wrapper.expanded{margin-left:64px}
 
 /* ── PAGE ── */
-.page{display:none;flex-direction:column;flex:1}
-.page.active{display:flex}
+.page{display:none;flex-direction:column;width:100%;min-height:100%}
+.page.active{display:flex;flex-direction:column}
 
 /* ── HEADER FIX ── */
 .header{position:sticky;top:0;z-index:200}
