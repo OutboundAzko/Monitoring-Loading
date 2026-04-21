@@ -309,14 +309,14 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
       <div class="prod-card">
         <div class="prod-card-header s1">📋 SHIFT 1</div>
         <table class="prod-table">
-          <thead><tr><th>Job Desk</th><th>Target</th><th>Need MPP</th><th>Plan MPP</th><th>GAP</th></tr></thead>
+          <thead><tr><th>Job Desk</th><th>Total Aktual</th><th>Target</th><th>Need MPP</th><th>Plan MPP</th><th>GAP</th></tr></thead>
           <tbody id="prod-s1-tbody"></tbody>
         </table>
       </div>
       <div class="prod-card">
         <div class="prod-card-header s2">📋 SHIFT 2</div>
         <table class="prod-table">
-          <thead><tr><th>Job Desk</th><th>Target</th><th>Need MPP</th><th>Plan MPP</th><th>GAP</th></tr></thead>
+          <thead><tr><th>Job Desk</th><th>Total Aktual</th><th>Target</th><th>Need MPP</th><th>Plan MPP</th><th>GAP</th></tr></thead>
           <tbody id="prod-s2-tbody"></tbody>
         </table>
       </div>
@@ -350,27 +350,32 @@ async function loadProdData(){
     const r=await fetch(PROD_URL+'&cb='+Date.now());
     if(!r.ok)return;
     const res=Papa.parse(await r.text(),{header:true,skipEmptyLines:true});
-    // Debug: log semua nama kolom dari baris pertama
     if(res.data.length>0){
       console.log('[PROD] Kolom tersedia:',Object.keys(res.data[0]));
-      console.log('[PROD] Sample row 1:',res.data[0]);
+      console.log('[PROD] Sample row 1:',JSON.stringify(res.data[0]));
     }
-    // Deteksi nama kolom secara dinamis
+    // Deteksi kolom secara dinamis - cari berdasarkan substring
     const prodKeys=res.data.length>0?Object.keys(res.data[0]):[];
-    const findKey=(keys,candidates)=>keys.find(k=>candidates.some(c=>k.trim().toUpperCase()===c.toUpperCase()))||candidates[0];
-    const jobKey=findKey(prodKeys,['JOB DESK','JOBDESK','Job Desk','JOB_DESK']);
-    const shiftKey=findKey(prodKeys,['SHIFT','Shift']);
-    const totalKey=findKey(prodKeys,['Total Count','TOTAL COUNT','Total count','TOTALCOUNT','total count']);
-    const namaKey=findKey(prodKeys,['NAMA','nama','Name']);
-    console.log('[PROD] Keys detected - job:',jobKey,'shift:',shiftKey,'total:',totalKey);
-    prodData=res.data.map(row=>({
-      nama:(row[namaKey]||'').trim(),
-      jobDesk:(row[jobKey]||'').trim().toUpperCase(),
-      shift:(row[shiftKey]||'').trim().toUpperCase(),
-      totalCount:parseFloat((row[totalKey]||'0').toString().replace(/,/g,''))||0,
-    })).filter(r=>r.nama&&r.jobDesk);
+    const findKey=(keys,candidates)=>keys.find(k=>candidates.some(c=>k.trim().toUpperCase().includes(c.toUpperCase())))||null;
+    const jobKey=findKey(prodKeys,['JOB DESK','JOBDESK','JOB_DESK']);
+    const shiftKey=findKey(prodKeys,['SHIFT']);
+    const totalKey=findKey(prodKeys,['TOTAL COUNT','Total Count','TOTALCOUNT']);
+    const namaKey=findKey(prodKeys,['NAMA','NAME']);
+    console.log('[PROD] Keys detected - job:',jobKey,'shift:',shiftKey,'total:',totalKey,'nama:',namaKey);
+    prodData=res.data.filter(row=>{
+      // Ambil semua baris yang punya jobDesk
+      const jd=jobKey?(row[jobKey]||'').trim():'';
+      return jd.length>0;
+    }).map(row=>({
+      nama:namaKey?(row[namaKey]||'').trim():'',
+      jobDesk:jobKey?(row[jobKey]||'').trim().toUpperCase():'',
+      shift:shiftKey?(row[shiftKey]||'').trim().toUpperCase():'',
+      totalCount:totalKey?parseFloat((row[totalKey]||'0').toString().replace(/,/g,''))||0:0,
+    }));
     console.log('[PROD] Total records loaded:',prodData.length);
-    console.log('[PROD] Sample prodData:',prodData.slice(0,3));
+    console.log('[PROD] Unique shifts:',[ ...new Set(prodData.map(r=>r.shift))]);
+    console.log('[PROD] Unique jobDesks:',[ ...new Set(prodData.map(r=>r.jobDesk))]);
+    console.log('[PROD] Sample:',prodData.slice(0,3));
     renderProd();
   }catch(e){console.error('Prod data error:',e);}
 }
@@ -409,14 +414,14 @@ function renderProd(){
   // PLAN MPP dari prodData
   const planMPP=(shift,jobDesk)=>{
     const norm=j=>j.replace(/[\s+&]/g,'').toUpperCase();
-    const normShift=s=>s.replace(/\s+/g,'').toUpperCase();
-    return prodData
-      .filter(r=>{
-        const shiftMatch=normShift(r.shift)===normShift(shift)||r.shift===String(shift==='SHIFT 1'?'1':'2');
-        const jobMatch=norm(r.jobDesk)===norm(jobDesk)||r.jobDesk.toUpperCase().includes(jobDesk.replace(/\s+/g,' ').trim().toUpperCase().split(' ')[0]);
-        return shiftMatch&&jobMatch;
-      })
-      .reduce((a,r)=>a+r.totalCount,0);
+    const shiftNum=shift==='SHIFT 1'?'1':'2';
+    const result=prodData.filter(r=>{
+      const shiftOk=r.shift===shift.toUpperCase()||r.shift===shiftNum||r.shift.includes(shiftNum);
+      const jobOk=norm(r.jobDesk)===norm(jobDesk)||r.jobDesk.includes('CHEKER')&&jobDesk.includes('CHEKER')||r.jobDesk.includes('LOADER')&&jobDesk.includes('LOADER');
+      return shiftOk&&jobOk;
+    }).reduce((a,r)=>a+r.totalCount,0);
+    console.log('[PLAN MPP]',shift,jobDesk,'=',result);
+    return result;
   };
 
   const makeRow=(jobDesk,rumus,target,actual,shift)=>{
@@ -429,8 +434,9 @@ function renderProd(){
     const actualFmt=jobDesk.includes('CHEKER')?Math.round(actual)+' Case':actual.toFixed(1)+' CBM';
     const targetFmt=jobDesk.includes('CHEKER')?target+' Case ID':target+' CBM';
     return`<tr>
-      <td><span class="jobdesk-badge ${jbCls}">${jobDesk}</span><div class="batch-ref">${actualFmt}</div></td>
-      <td style="font-weight:600">${targetFmt}</td>
+      <td><span class="jobdesk-badge ${jbCls}">${jobDesk}</span></td>
+      <td style="font-weight:700;color:var(--text)">${actualFmt}</td>
+      <td style="font-weight:600;color:var(--text2)">${targetFmt}</td>
       <td class="need-val">${needMPP}</td>
       <td class="plan-val">${planMPPval||'-'}</td>
       <td class="${gapCls}">${planMPPval?gapStr:'-'}</td>
