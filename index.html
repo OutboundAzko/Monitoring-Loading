@@ -350,35 +350,108 @@ async function loadProdData(){
     const r=await fetch(PROD_URL+'&cb='+Date.now());
     if(!r.ok)return;
     const rawText=await r.text();
-    // Sheet PRODUKTIVITY punya beberapa baris header di atas
-    // Kita parse dulu tanpa header untuk cari baris yang mengandung "JOB DESK" / "SHIFT"
     const rawRows=Papa.parse(rawText,{header:false,skipEmptyLines:true}).data;
-    console.log('[PROD] Total raw rows:',rawRows.length);
-    // Cari index baris header (yang mengandung "JOB DESK" atau "SHIFT")
+    // Cari baris header yang mengandung "JOB DESK"
     let headerIdx=rawRows.findIndex(row=>row.some(cell=>typeof cell==='string'&&cell.trim().toUpperCase()==='JOB DESK'));
-    if(headerIdx<0)headerIdx=rawRows.findIndex(row=>row.some(cell=>typeof cell==='string'&&cell.trim().toUpperCase()==='SHIFT'));
+    if(headerIdx<0)headerIdx=rawRows.findIndex(row=>row.some(cell=>typeof cell==='string'&&(cell.trim().toUpperCase().includes('JOB')&&cell.trim().toUpperCase().includes('DESK'))));
     console.log('[PROD] Header row index:',headerIdx);
     if(headerIdx<0){console.error('[PROD] Header tidak ditemukan!');return;}
-    const headers=rawRows[headerIdx].map(h=>h.trim());
-    console.log('[PROD] Headers:',headers);
-    // Ambil data mulai baris setelah header
-    const dataRows=rawRows.slice(headerIdx+1);
-    const jobIdx=headers.findIndex(h=>h.toUpperCase().includes('JOB DESK')||h.toUpperCase()==='JOBDESK');
+    const headers=rawRows[headerIdx].map(h=>(h||'').trim());
+    const jobIdx=headers.findIndex(h=>h.toUpperCase().includes('JOB')&&h.toUpperCase().includes('DESK'));
     const shiftIdx=headers.findIndex(h=>h.toUpperCase()==='SHIFT');
-    console.log('[PROD] jobIdx:',jobIdx,'shiftIdx:',shiftIdx);
+    console.log('[PROD] jobIdx:',jobIdx,'shiftIdx:',shiftIdx,'headers:',headers);
+    const dataRows=rawRows.slice(headerIdx+1);
     prodData=dataRows.filter(row=>{
       const jd=(row[jobIdx]||'').trim();
       const sh=(row[shiftIdx]||'').trim().toUpperCase();
-      return jd.length>0&&sh!==''&&sh!=='SHOFF'&&sh!=='AL'&&sh!=='RO'&&(sh==='1'||sh==='2'||sh==='SHIFT 1'||sh==='SHIFT 2');
+      return jd.length>0&&(sh==='1'||sh==='2'||sh==='SHIFT 1'||sh==='SHIFT 2');
     }).map(row=>({
       jobDesk:(row[jobIdx]||'').trim().toUpperCase(),
       shift:(row[shiftIdx]||'').trim(),
     }));
-    console.log('[PROD] Records loaded:',prodData.length);
-    console.log('[PROD] Unique shifts:',[...new Set(prodData.map(r=>r.shift))]);
-    console.log('[PROD] Unique jobs:',[...new Set(prodData.map(r=>r.jobDesk))]);
+    console.log('[PROD] Records:',prodData.length,'shifts:',[...new Set(prodData.map(r=>r.shift))],'jobs:',[...new Set(prodData.map(r=>r.jobDesk))]);
     renderProd();
-  }catch(e){console.error('Prod error:',e);}
+  }catch(e){console.error('[PROD] Error:',e);}
+}
+
+function renderProd(){
+  const dateVal=document.getElementById('f-date').value;
+  if(!dateVal){
+    ['prod-s1-tbody','prod-s2-tbody'].forEach(id=>{
+      document.getElementById(id).innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3)">Pilih tanggal terlebih dahulu</td></tr>';
+    });
+    return;
+  }
+  // Hitung tanggal besok
+  const todayDateObj=new Date(dateVal+'T00:00:00');
+  const tomorrowDateObj=new Date(todayDateObj);
+  tomorrowDateObj.setDate(tomorrowDateObj.getDate()+1);
+  const pad=n=>String(n).padStart(2,'0');
+  const tomorrowStr=tomorrowDateObj.getFullYear()+'-'+pad(tomorrowDateObj.getMonth()+1)+'-'+pad(tomorrowDateObj.getDate());
+
+  const todayData=allData.filter(r=>parseDateStr(r.tanggal)===dateVal);
+  const tomorrowData=allData.filter(r=>parseDateStr(r.tanggal)===tomorrowStr);
+
+  const sumCase=(data,batches)=>data.filter(r=>batches.includes(getBatch(r.stuffingTime))).reduce((a,r)=>a+r.caseIdNum,0);
+  const sumCBM=(data,batches)=>data.filter(r=>batches.includes(getBatch(r.stuffingTime))).reduce((a,r)=>a+r.totalCBM,0);
+
+  // Shift 1: Cheker = Batch2+3 hari ini, Loader = CBM Batch1+2 hari ini
+  const s1Case=sumCase(todayData,['BATCH 2','BATCH 3']);
+  const s1CBM=sumCBM(todayData,['BATCH 1','BATCH 2']);
+  // Shift 2: Cheker = Batch4 hari ini + Batch1 besok, Loader = CBM Batch1+2 hari ini
+  const s2Case=sumCase(todayData,['BATCH 4'])+sumCase(tomorrowData,['BATCH 1']);
+  const s2CBM=sumCBM(todayData,['BATCH 1','BATCH 2']);
+
+  // COUNTIFS plan MPP
+  const planMPP=(shiftNum,isCheker)=>{
+    return prodData.filter(r=>{
+      const sh=r.shift.trim();
+      const shOk=sh===shiftNum||sh==='SHIFT '+shiftNum;
+      const jbOk=isCheker?r.jobDesk.includes('CHEKER'):r.jobDesk.includes('LOADER');
+      return shOk&&jbOk;
+    }).length;
+  };
+
+  const makeRow=(jobDesk,actual,target,shiftNum)=>{
+    const isCheker=jobDesk.includes('CHEKER');
+    const needMPP=Math.ceil(actual/target);
+    const plan=planMPP(shiftNum,isCheker);
+    const gap=plan-needMPP;
+    const gapCls=gap>0?'gap-positive':gap<0?'gap-negative':'gap-zero';
+    const gapStr=gap>0?'+'+gap:String(gap);
+    const jbCls=isCheker?'jb-cheker':'jb-loader';
+    const actualFmt=isCheker?Math.round(actual)+' Case':actual.toFixed(1)+' CBM';
+    const targetFmt=isCheker?target+' Case ID':target+' CBM';
+    return`<tr>
+      <td><span class="jobdesk-badge ${jbCls}">${jobDesk}</span></td>
+      <td style="font-weight:700">${actualFmt}</td>
+      <td style="font-weight:600;color:var(--text2)">${targetFmt}</td>
+      <td class="need-val">${needMPP}</td>
+      <td class="plan-val">${plan||'-'}</td>
+      <td class="${gapCls}">${plan?gapStr:'-'}</td>
+    </tr>`;
+  };
+
+  document.getElementById('prod-s1-tbody').innerHTML=
+    makeRow('CHEKER ST + BR',s1Case,800,'1')+
+    makeRow('LOADER LD',s1CBM,25,'1');
+  document.getElementById('prod-s2-tbody').innerHTML=
+    makeRow('CHEKER ST + BR',s2Case,800,'2')+
+    makeRow('LOADER LD',s2CBM,25,'2');
+}
+
+function parseDateStr(s){
+  if(!s)return null;
+  const p=s.split('-');if(p.length!==3)return null;
+  const mo={Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};
+  return`${p[2].length===2?'20'+p[2]:p[2]}-${mo[p[1]]||p[1]}-${p[0].padStart(2,'0')}`;
+}
+
+function formatDateForCompare(d){
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const day=String(d.getDate()).padStart(2,'0');
+  return`${y}-${m}-${day}`;
 }
 
 
