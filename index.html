@@ -349,129 +349,34 @@ async function loadProdData(){
   try{
     const r=await fetch(PROD_URL+'&cb='+Date.now());
     if(!r.ok)return;
-    const res=Papa.parse(await r.text(),{header:true,skipEmptyLines:true});
+    const res=Papa.parse(await r.text(),{header:true,skipEmptyLines:true,dynamicTyping:false});
     if(res.data.length>0){
-      console.log('[PROD] Kolom tersedia:',Object.keys(res.data[0]));
-      console.log('[PROD] Sample row 1:',JSON.stringify(res.data[0]));
+      console.log('[PROD] Kolom:',Object.keys(res.data[0]));
+      console.log('[PROD] Row 1:',JSON.stringify(res.data[0]));
     }
-    // Deteksi kolom secara dinamis - cari berdasarkan substring
     const prodKeys=res.data.length>0?Object.keys(res.data[0]):[];
-    const findKey=(keys,candidates)=>keys.find(k=>candidates.some(c=>k.trim().toUpperCase().includes(c.toUpperCase())))||null;
-    const jobKey=findKey(prodKeys,['JOB DESK','JOBDESK','JOB_DESK']);
-    const shiftKey=findKey(prodKeys,['SHIFT']);
-    const totalKey=findKey(prodKeys,['TOTAL COUNT','Total Count','TOTALCOUNT']);
-    const namaKey=findKey(prodKeys,['NAMA','NAME']);
-    console.log('[PROD] Keys detected - job:',jobKey,'shift:',shiftKey,'total:',totalKey,'nama:',namaKey);
+    // Deteksi kolom
+    const findCol=(candidates)=>prodKeys.find(k=>candidates.some(c=>k.trim().toUpperCase()===c.toUpperCase()))||prodKeys.find(k=>candidates.some(c=>k.trim().toUpperCase().includes(c.toUpperCase())))||null;
+    const jobKey=findCol(['JOB DESK','JOBDESK']);
+    const shiftKey=findCol(['SHIFT']);
+    console.log('[PROD] jobKey:',jobKey,'shiftKey:',shiftKey);
+    // COUNTIFS: hitung jumlah orang per jobdesk per shift (angka 1 atau 2)
+    // Exclude SHOFF
     prodData=res.data.filter(row=>{
-      // Ambil semua baris yang punya jobDesk
-      const jd=jobKey?(row[jobKey]||'').trim():'';
-      return jd.length>0;
+      const jd=(row[jobKey]||'').trim();
+      const sh=(row[shiftKey]||'').trim().toUpperCase();
+      return jd.length>0 && sh!=='' && sh!=='SHOFF' && sh!=='AL' && sh!=='RO';
     }).map(row=>({
-      nama:namaKey?(row[namaKey]||'').trim():'',
-      jobDesk:jobKey?(row[jobKey]||'').trim().toUpperCase():'',
-      shift:shiftKey?(row[shiftKey]||'').trim().toUpperCase():'',
-      totalCount:totalKey?parseFloat((row[totalKey]||'0').toString().replace(/,/g,''))||0:0,
+      jobDesk:(row[jobKey]||'').trim().toUpperCase(),
+      shift:(row[shiftKey]||'').trim(),
     }));
-    console.log('[PROD] Total records loaded:',prodData.length);
-    console.log('[PROD] Unique shifts:',[ ...new Set(prodData.map(r=>r.shift))]);
-    console.log('[PROD] Unique jobDesks:',[ ...new Set(prodData.map(r=>r.jobDesk))]);
-    console.log('[PROD] Sample:',prodData.slice(0,3));
+    console.log('[PROD] Records (excl SHOFF):',prodData.length);
+    console.log('[PROD] Unique shifts:',[...new Set(prodData.map(r=>r.shift))]);
+    console.log('[PROD] Unique jobs:',[...new Set(prodData.map(r=>r.jobDesk))]);
     renderProd();
-  }catch(e){console.error('Prod data error:',e);}
+  }catch(e){console.error('Prod error:',e);}
 }
 
-function renderProd(){
-  const dateVal=document.getElementById('f-date').value;
-  if(!dateVal){
-    ['prod-s1-tbody','prod-s2-tbody'].forEach(id=>{
-      document.getElementById(id).innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3)">Pilih tanggal terlebih dahulu</td></tr>';
-    });
-    return;
-  }
-
-  // Hitung tomorrow date
-  const todayDate=new Date(dateVal);
-  const tomorrowDate=new Date(todayDate);
-  tomorrowDate.setDate(tomorrowDate.getDate()+1);
-  const tomorrowStr=formatDateForCompare(tomorrowDate);
-
-  // Ambil data dari allData berdasarkan tanggal terpilih
-  const todayData=allData.filter(r=>parseDateStr(r.tanggal)===dateVal);
-  const tomorrowData=allData.filter(r=>parseDateStr(r.tanggal)===tomorrowStr);
-
-  // Helper: sum caseId per batch dari dataset
-  const sumCaseId=(data,batches)=>data.filter(r=>batches.includes(getBatch(r.stuffingTime))).reduce((a,r)=>a+r.caseIdNum,0);
-  const sumCBM=(data,batches)=>data.filter(r=>batches.includes(getBatch(r.stuffingTime))).reduce((a,r)=>a+r.totalCBM,0);
-
-  // SHIFT 1: CHEKER = Batch2+Batch3 (hari ini), LOADER = CBM Batch1+Batch2 (hari ini)
-  const s1ChekerCase=sumCaseId(todayData,['BATCH 2','BATCH 3']);
-  const s1LoaderCBM=sumCBM(todayData,['BATCH 1','BATCH 2']);
-
-  // SHIFT 2: CHEKER = Batch4 (hari ini) + Batch1 (besok), LOADER = CBM Batch1+Batch2 (hari ini)
-  const s2ChekerCase=sumCaseId(todayData,['BATCH 4'])+sumCaseId(tomorrowData,['BATCH 1']);
-  const s2LoaderCBM=sumCBM(todayData,['BATCH 1','BATCH 2']);
-
-  // PLAN MPP dari prodData
-  const planMPP=(shift,jobDesk)=>{
-    const norm=j=>j.replace(/[\s+&]/g,'').toUpperCase();
-    const shiftNum=shift==='SHIFT 1'?'1':'2';
-    const result=prodData.filter(r=>{
-      const shiftOk=r.shift===shift.toUpperCase()||r.shift===shiftNum||r.shift.includes(shiftNum);
-      const jobOk=norm(r.jobDesk)===norm(jobDesk)||r.jobDesk.includes('CHEKER')&&jobDesk.includes('CHEKER')||r.jobDesk.includes('LOADER')&&jobDesk.includes('LOADER');
-      return shiftOk&&jobOk;
-    }).reduce((a,r)=>a+r.totalCount,0);
-    console.log('[PLAN MPP]',shift,jobDesk,'=',result);
-    return result;
-  };
-
-  const makeRow=(jobDesk,rumus,target,actual,shift)=>{
-    const needMPP=Math.ceil(actual/target);
-    const planMPPval=planMPP(shift,jobDesk);
-    const gap=planMPPval-needMPP;
-    const gapCls=gap>0?'gap-positive':gap<0?'gap-negative':'gap-zero';
-    const gapStr=gap>0?'+'+gap:String(gap);
-    const jbCls=jobDesk.includes('CHEKER')?'jb-cheker':'jb-loader';
-    const actualFmt=jobDesk.includes('CHEKER')?Math.round(actual)+' Case':actual.toFixed(1)+' CBM';
-    const targetFmt=jobDesk.includes('CHEKER')?target+' Case ID':target+' CBM';
-    return`<tr>
-      <td><span class="jobdesk-badge ${jbCls}">${jobDesk}</span></td>
-      <td style="font-weight:700;color:var(--text)">${actualFmt}</td>
-      <td style="font-weight:600;color:var(--text2)">${targetFmt}</td>
-      <td class="need-val">${needMPP}</td>
-      <td class="plan-val">${planMPPval||'-'}</td>
-      <td class="${gapCls}">${planMPPval?gapStr:'-'}</td>
-    </tr>`;
-  };
-
-  const fmtDate=d=>{
-    const p=d.split('-');
-    return p[2]+'-'+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(p[1])-1]+'-'+p[0].slice(2);
-  };
-  const todayFmt=fmtDate(dateVal);
-  const tomorrowFmt=fmtDate(tomorrowStr);
-
-  document.getElementById('prod-s1-tbody').innerHTML=
-    makeRow('CHEKER ST + BR','Batch 2+3 ('+todayFmt+')',800,s1ChekerCase,'SHIFT 1')+
-    makeRow('LOADER LD','Batch 1+2 CBM ('+todayFmt+')',25,s1LoaderCBM,'SHIFT 1');
-
-  document.getElementById('prod-s2-tbody').innerHTML=
-    makeRow('CHEKER ST + BR','Batch 4 ('+todayFmt+') + Batch 1 ('+tomorrowFmt+')',800,s2ChekerCase,'SHIFT 2')+
-    makeRow('LOADER LD','Batch 1+2 CBM ('+todayFmt+')',25,s2LoaderCBM,'SHIFT 2');
-}
-
-function formatDateForCompare(d){
-  const y=d.getFullYear();
-  const m=String(d.getMonth()+1).padStart(2,'0');
-  const day=String(d.getDate()).padStart(2,'0');
-  return`${y}-${m}-${day}`;
-}
-
-function parseDateStr(s){
-  if(!s)return null;
-  const p=s.split('-');if(p.length!==3)return null;
-  const mo={Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};
-  return`${p[2].length===2?'20'+p[2]:p[2]}-${mo[p[1]]||p[1]}-${p[0].padStart(2,'0')}`;
-}
 
 async function loadData(){
   const ri=document.getElementById('ri');ri.classList.add('spin');
