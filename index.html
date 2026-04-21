@@ -349,28 +349,32 @@ async function loadProdData(){
   try{
     const r=await fetch(PROD_URL+'&cb='+Date.now());
     if(!r.ok)return;
-    const res=Papa.parse(await r.text(),{header:true,skipEmptyLines:true,dynamicTyping:false});
-    if(res.data.length>0){
-      console.log('[PROD] Kolom:',Object.keys(res.data[0]));
-      console.log('[PROD] Row 1:',JSON.stringify(res.data[0]));
-    }
-    const prodKeys=res.data.length>0?Object.keys(res.data[0]):[];
-    // Deteksi kolom
-    const findCol=(candidates)=>prodKeys.find(k=>candidates.some(c=>k.trim().toUpperCase()===c.toUpperCase()))||prodKeys.find(k=>candidates.some(c=>k.trim().toUpperCase().includes(c.toUpperCase())))||null;
-    const jobKey=findCol(['JOB DESK','JOBDESK']);
-    const shiftKey=findCol(['SHIFT']);
-    console.log('[PROD] jobKey:',jobKey,'shiftKey:',shiftKey);
-    // COUNTIFS: hitung jumlah orang per jobdesk per shift (angka 1 atau 2)
-    // Exclude SHOFF
-    prodData=res.data.filter(row=>{
-      const jd=(row[jobKey]||'').trim();
-      const sh=(row[shiftKey]||'').trim().toUpperCase();
-      return jd.length>0 && sh!=='' && sh!=='SHOFF' && sh!=='AL' && sh!=='RO';
+    const rawText=await r.text();
+    // Sheet PRODUKTIVITY punya beberapa baris header di atas
+    // Kita parse dulu tanpa header untuk cari baris yang mengandung "JOB DESK" / "SHIFT"
+    const rawRows=Papa.parse(rawText,{header:false,skipEmptyLines:true}).data;
+    console.log('[PROD] Total raw rows:',rawRows.length);
+    // Cari index baris header (yang mengandung "JOB DESK" atau "SHIFT")
+    let headerIdx=rawRows.findIndex(row=>row.some(cell=>typeof cell==='string'&&cell.trim().toUpperCase()==='JOB DESK'));
+    if(headerIdx<0)headerIdx=rawRows.findIndex(row=>row.some(cell=>typeof cell==='string'&&cell.trim().toUpperCase()==='SHIFT'));
+    console.log('[PROD] Header row index:',headerIdx);
+    if(headerIdx<0){console.error('[PROD] Header tidak ditemukan!');return;}
+    const headers=rawRows[headerIdx].map(h=>h.trim());
+    console.log('[PROD] Headers:',headers);
+    // Ambil data mulai baris setelah header
+    const dataRows=rawRows.slice(headerIdx+1);
+    const jobIdx=headers.findIndex(h=>h.toUpperCase().includes('JOB DESK')||h.toUpperCase()==='JOBDESK');
+    const shiftIdx=headers.findIndex(h=>h.toUpperCase()==='SHIFT');
+    console.log('[PROD] jobIdx:',jobIdx,'shiftIdx:',shiftIdx);
+    prodData=dataRows.filter(row=>{
+      const jd=(row[jobIdx]||'').trim();
+      const sh=(row[shiftIdx]||'').trim().toUpperCase();
+      return jd.length>0&&sh!==''&&sh!=='SHOFF'&&sh!=='AL'&&sh!=='RO'&&(sh==='1'||sh==='2'||sh==='SHIFT 1'||sh==='SHIFT 2');
     }).map(row=>({
-      jobDesk:(row[jobKey]||'').trim().toUpperCase(),
-      shift:(row[shiftKey]||'').trim(),
+      jobDesk:(row[jobIdx]||'').trim().toUpperCase(),
+      shift:(row[shiftIdx]||'').trim(),
     }));
-    console.log('[PROD] Records (excl SHOFF):',prodData.length);
+    console.log('[PROD] Records loaded:',prodData.length);
     console.log('[PROD] Unique shifts:',[...new Set(prodData.map(r=>r.shift))]);
     console.log('[PROD] Unique jobs:',[...new Set(prodData.map(r=>r.jobDesk))]);
     renderProd();
