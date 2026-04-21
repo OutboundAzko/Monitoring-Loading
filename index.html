@@ -242,11 +242,11 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
   </div>
   <div class="sidebar-menu">
     <div class="sidebar-section">Menu</div>
-    <a class="menu-item active" onclick="showPage('monitoring')" href="#">
+    <a class="menu-item active" onclick="showPage('monitoring', this)" href="#">
       <span class="mi-icon">📦</span>
       <span class="mi-label">Monitoring Loading</span>
     </a>
-    <a class="menu-item" onclick="showPage('productivity')" href="#">
+    <a class="menu-item" onclick="showPage('productivity', this)" href="#">
       <span class="mi-icon">📊</span>
       <span class="mi-label">Produktivitas MPP</span>
     </a>
@@ -457,10 +457,20 @@ async function loadProdData(){
 
 function renderProd(){
   const dateVal=document.getElementById('f-date').value;
+  const noData='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3);font-size:13px">';
   if(!dateVal){
-    ['prod-s1-tbody','prod-s2-tbody'].forEach(id=>{
-      document.getElementById(id).innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3)">Pilih tanggal terlebih dahulu</td></tr>';
-    });
+    document.getElementById('prod-s1-tbody').innerHTML=noData+'Pilih tanggal terlebih dahulu</td></tr>';
+    document.getElementById('prod-s2-tbody').innerHTML=noData+'Pilih tanggal terlebih dahulu</td></tr>';
+    return;
+  }
+  if(!allData||allData.length===0){
+    document.getElementById('prod-s1-tbody').innerHTML=noData+'Memuat data...</td></tr>';
+    document.getElementById('prod-s2-tbody').innerHTML=noData+'Memuat data...</td></tr>';
+    return;
+  }
+  if(!prodData||prodData.length===0){
+    document.getElementById('prod-s1-tbody').innerHTML=noData+'Data produktivitas belum tersedia</td></tr>';
+    document.getElementById('prod-s2-tbody').innerHTML=noData+'Data produktivitas belum tersedia</td></tr>';
     return;
   }
   // Hitung tanggal besok
@@ -815,13 +825,13 @@ function toggleSidebar(){
   localStorage.setItem('sb_collapsed', sb.classList.contains('collapsed')?'1':'0');
 }
 
-function showPage(name){
+function showPage(name, el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
   const pg=document.getElementById('page-'+name);
   if(pg)pg.classList.add('active');
-  event.currentTarget.classList.add('active');
-  // Render produktivitas saat page dibuka
+  if(el)el.classList.add('active');
+  console.log('[PAGE] Switch to:',name,'allData:',allData.length,'prodData:',prodData.length);
   if(name==='productivity')renderProd();
 }
 
