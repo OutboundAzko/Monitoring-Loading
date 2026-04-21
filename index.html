@@ -157,6 +157,31 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
 .loader{width:40px;height:40px;border:3px solid var(--border);border-top-color:#1a56db;border-radius:50%;animation:spin 0.7s linear infinite}
 #loading-overlay p{font-size:14px;color:var(--text2);font-weight:500}
 #error-banner{display:none;background:#ffebee;color:#c62828;padding:12px 20px;border-radius:var(--radius-sm);margin-bottom:16px;font-size:13px;font-weight:500}
+
+/* ── PRODUKTIVITAS ── */
+.prod-section{margin-bottom:20px}
+.prod-section-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.prod-section-title .dot{width:8px;height:8px;border-radius:50%;background:#7c3aed;flex-shrink:0}
+.prod-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.prod-grid{grid-template-columns:1fr}}
+.prod-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow)}
+.prod-card-header{padding:12px 16px;font-size:13px;font-weight:700;color:white;display:flex;align-items:center;gap:8px}
+.prod-card-header.s1{background:linear-gradient(135deg,#1a56db,#1e40af)}
+.prod-card-header.s2{background:linear-gradient(135deg,#7c3aed,#5b21b6)}
+.prod-table{width:100%;border-collapse:collapse}
+.prod-table th{padding:9px 14px;font-size:11px;font-weight:700;letter-spacing:0.05em;color:var(--text3);text-transform:uppercase;background:var(--bg);border-bottom:2px solid var(--border);text-align:left;white-space:nowrap}
+.prod-table td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px;font-weight:500;color:var(--text)}
+.prod-table tr:last-child td{border-bottom:none}
+.prod-table tr:hover td{background:#f7f9ff}
+.jobdesk-badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700}
+.jb-cheker{background:#ede9fe;color:#5b21b6}
+.jb-loader{background:#fef9c3;color:#854d0e}
+.gap-positive{color:#2e7d32;font-weight:700}
+.gap-negative{color:#c62828;font-weight:700}
+.gap-zero{color:#5a6480;font-weight:700}
+.need-val{font-weight:700;color:#1a56db}
+.plan-val{font-weight:700;color:#374151}
+.batch-ref{font-size:11px;color:var(--text3);margin-top:2px}
 </style>
 </head>
 <body>
@@ -276,12 +301,34 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
       </table>
     </div>
   </div>
+
+  <!-- PRODUKTIVITAS -->
+  <div class="prod-section">
+    <div class="prod-section-title"><span class="dot"></span>Produktivitas & Kebutuhan MPP</div>
+    <div class="prod-grid" id="prod-grid">
+      <div class="prod-card">
+        <div class="prod-card-header s1">📋 SHIFT 1</div>
+        <table class="prod-table">
+          <thead><tr><th>Job Desk</th><th>Rumus</th><th>Target</th><th>Need MPP</th><th>Plan MPP</th><th>GAP</th></tr></thead>
+          <tbody id="prod-s1-tbody"></tbody>
+        </table>
+      </div>
+      <div class="prod-card">
+        <div class="prod-card-header s2">📋 SHIFT 2</div>
+        <table class="prod-table">
+          <thead><tr><th>Job Desk</th><th>Rumus</th><th>Target</th><th>Need MPP</th><th>Plan MPP</th><th>GAP</th></tr></thead>
+          <tbody id="prod-s2-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </main>
 
 <script>
+const PROD_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vT1YwOyPQa1twBR3ms6LrmdxwMeGJ8K3xLmYsPkoO6g5ngC6F5ZhpJhwNPx8_cNhzbszqcIhAR-vGxf/pub?gid=1543732572&single=true&output=csv';
 const CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vT1YwOyPQa1twBR3ms6LrmdxwMeGJ8K3xLmYsPkoO6g5ngC6F5ZhpJhwNPx8_cNhzbszqcIhAR-vGxf/pub?gid=435013118&single=true&output=csv';
 const PAGE_SIZE=15;
-let allData=[],filtered=[],currentPage=1,sortCol='',sortDir=1,donutChart=null;
+let allData=[],filtered=[],currentPage=1,sortCol='',sortDir=1,donutChart=null,prodData=[];
 
 const normStatus=s=>{
   if(!s)return'';const u=s.trim().toUpperCase();
@@ -296,6 +343,114 @@ const parseDate=s=>{
   const mo={Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};
   return`${p[2].length===2?'20'+p[2]:p[2]}-${mo[p[1]]||p[1]}-${p[0].padStart(2,'0')}`;
 };
+
+
+async function loadProdData(){
+  try{
+    const r=await fetch(PROD_URL+'&cb='+Date.now());
+    if(!r.ok)return;
+    const res=Papa.parse(await r.text(),{header:true,skipEmptyLines:true});
+    prodData=res.data.map(row=>({
+      nama:(row['NAMA']||row['NIP/NAMA']||'').trim(),
+      nip:(row['NIP']||'').trim(),
+      jobDesk:(row['JOB DESK']||row['JOBDESK']||'').trim().toUpperCase(),
+      shift:(row['SHIFT']||'').trim().toUpperCase(),
+      countST:parseFloat(row['Count ST']||row['COUNT ST']||0)||0,
+      countBR:parseFloat(row['Count BR']||row['COUNT BR']||0)||0,
+      countLD:parseFloat(row['Count LD']||row['COUNT LD']||0)||0,
+      totalCount:parseFloat(row['Total Count']||row['TOTAL COUNT']||0)||0,
+    })).filter(r=>r.nama&&r.jobDesk);
+    renderProd();
+  }catch(e){console.error('Prod data error:',e);}
+}
+
+function renderProd(){
+  const dateVal=document.getElementById('f-date').value;
+  if(!dateVal){
+    ['prod-s1-tbody','prod-s2-tbody'].forEach(id=>{
+      document.getElementById(id).innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text3)">Pilih tanggal terlebih dahulu</td></tr>';
+    });
+    return;
+  }
+
+  // Hitung tomorrow date
+  const todayDate=new Date(dateVal);
+  const tomorrowDate=new Date(todayDate);
+  tomorrowDate.setDate(tomorrowDate.getDate()+1);
+  const tomorrowStr=formatDateForCompare(tomorrowDate);
+
+  // Ambil data dari allData berdasarkan tanggal terpilih
+  const todayData=allData.filter(r=>parseDateStr(r.tanggal)===dateVal);
+  const tomorrowData=allData.filter(r=>parseDateStr(r.tanggal)===tomorrowStr);
+
+  // Helper: sum caseId per batch dari dataset
+  const sumCaseId=(data,batches)=>data.filter(r=>batches.includes(getBatch(r.stuffingTime))).reduce((a,r)=>a+r.caseIdNum,0);
+  const sumCBM=(data,batches)=>data.filter(r=>batches.includes(getBatch(r.stuffingTime))).reduce((a,r)=>a+r.totalCBM,0);
+
+  // SHIFT 1: CHEKER = Batch2+Batch3 (hari ini), LOADER = CBM Batch1+Batch2 (hari ini)
+  const s1ChekerCase=sumCaseId(todayData,['BATCH 2','BATCH 3']);
+  const s1LoaderCBM=sumCBM(todayData,['BATCH 1','BATCH 2']);
+
+  // SHIFT 2: CHEKER = Batch4 (hari ini) + Batch1 (besok), LOADER = CBM Batch1+Batch2 (hari ini)
+  const s2ChekerCase=sumCaseId(todayData,['BATCH 4'])+sumCaseId(tomorrowData,['BATCH 1']);
+  const s2LoaderCBM=sumCBM(todayData,['BATCH 1','BATCH 2']);
+
+  // PLAN MPP dari prodData
+  const planMPP=(shift,jobDesk)=>{
+    const norm=j=>j.replace(/\s+/g,'').toUpperCase();
+    return prodData
+      .filter(r=>r.shift===shift&&norm(r.jobDesk)===norm(jobDesk))
+      .reduce((a,r)=>a+r.totalCount,0);
+  };
+
+  const makeRow=(jobDesk,rumus,target,actual,shift)=>{
+    const needMPP=Math.ceil(actual/target);
+    const planMPPval=planMPP(shift,jobDesk);
+    const gap=planMPPval-needMPP;
+    const gapCls=gap>0?'gap-positive':gap<0?'gap-negative':'gap-zero';
+    const gapStr=gap>0?'+'+gap:String(gap);
+    const jbCls=jobDesk.includes('CHEKER')?'jb-cheker':'jb-loader';
+    const actualFmt=jobDesk.includes('CHEKER')?Math.round(actual)+' Case':actual.toFixed(1)+' CBM';
+    const targetFmt=jobDesk.includes('CHEKER')?target+' Case ID':target+' CBM';
+    return`<tr>
+      <td><span class="jobdesk-badge ${jbCls}">${jobDesk}</span></td>
+      <td style="font-size:12px;color:var(--text2)">${rumus}<div class="batch-ref">${actualFmt}</div></td>
+      <td style="font-weight:600">${targetFmt}</td>
+      <td class="need-val">${needMPP}</td>
+      <td class="plan-val">${planMPPval}</td>
+      <td class="${gapCls}">${gapStr}</td>
+    </tr>`;
+  };
+
+  const fmtDate=d=>{
+    const p=d.split('-');
+    return p[2]+'-'+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(p[1])-1]+'-'+p[0].slice(2);
+  };
+  const todayFmt=fmtDate(dateVal);
+  const tomorrowFmt=fmtDate(tomorrowStr);
+
+  document.getElementById('prod-s1-tbody').innerHTML=
+    makeRow('CHEKER ST + BR','Batch 2+3 ('+todayFmt+')',800,s1ChekerCase,'SHIFT 1')+
+    makeRow('LOADER LD','Batch 1+2 CBM ('+todayFmt+')',25,s1LoaderCBM,'SHIFT 1');
+
+  document.getElementById('prod-s2-tbody').innerHTML=
+    makeRow('CHEKER ST + BR','Batch 4 ('+todayFmt+') + Batch 1 ('+tomorrowFmt+')',800,s2ChekerCase,'SHIFT 2')+
+    makeRow('LOADER LD','Batch 1+2 CBM ('+todayFmt+')',25,s2LoaderCBM,'SHIFT 2');
+}
+
+function formatDateForCompare(d){
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const day=String(d.getDate()).padStart(2,'0');
+  return`${y}-${m}-${day}`;
+}
+
+function parseDateStr(s){
+  if(!s)return null;
+  const p=s.split('-');if(p.length!==3)return null;
+  const mo={Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};
+  return`${p[2].length===2?'20'+p[2]:p[2]}-${mo[p[1]]||p[1]}-${p[0].padStart(2,'0')}`;
+}
 
 async function loadData(){
   const ri=document.getElementById('ri');ri.classList.add('spin');
@@ -326,6 +481,7 @@ async function loadData(){
     }));
     document.getElementById('last-update').textContent='Update: '+new Date().toLocaleTimeString('id-ID');
     populateOpts();autoDate();applyFilters();
+    await loadProdData();
   }catch(e){
     const eb=document.getElementById('error-banner');
     eb.style.display='block';
@@ -366,7 +522,7 @@ function applyFilters(){
     if(am!=='ALL'&&r.jenisArmada!==am)return false;
     return true;
   });
-  currentPage=1;renderAll();
+  currentPage=1;renderAll();renderProd();
 }
 
 function renderAll(){renderKPI();renderDonut();renderSummary();renderTable();}
