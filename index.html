@@ -379,6 +379,17 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
 
   <!-- PAGE: PRODUKTIVITAS -->
   <div class="page" id="page-productivity">
+    <!-- Filter bar produktivitas -->
+    <div class="filter-bar">
+      <input type="date" id="f-date-prod" class="filter-date" onchange="renderProd()">
+      <select id="f-shift-prod" class="filter-select">
+        <option value="ALL">Semua Shift</option>
+        <option value="SHIFT 1">SHIFT 1</option>
+        <option value="SHIFT 2">SHIFT 2</option>
+      </select>
+      <button class="btn-apply" onclick="renderProd()">Apply</button>
+      <span id="prod-last-update" style="font-size:11px;color:var(--text3);margin-left:auto"></span>
+    </div>
     <div style="padding:20px 28px;max-width:1500px;margin:0 auto;width:100%">
   <!-- PRODUKTIVITAS -->
   <div class="prod-section">
@@ -456,7 +467,9 @@ async function loadProdData(){
 }
 
 function renderProd(){
-  const dateVal=document.getElementById('f-date').value;
+  // Ambil tanggal HANYA dari filter produktivitas (independen)
+  const fdProd=document.getElementById('f-date-prod');
+  const dateVal=fdProd?fdProd.value:'';
   const noData='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3);font-size:13px">';
   if(!dateVal){
     document.getElementById('prod-s1-tbody').innerHTML=noData+'Pilih tanggal terlebih dahulu</td></tr>';
@@ -473,6 +486,9 @@ function renderProd(){
     document.getElementById('prod-s2-tbody').innerHTML=noData+'Data produktivitas belum tersedia</td></tr>';
     return;
   }
+  // Update last update
+  const lu=document.getElementById('prod-last-update');
+  if(lu)lu.textContent='Update: '+new Date().toLocaleTimeString('id-ID');
   // Hitung tanggal besok
   const todayDateObj=new Date(dateVal+'T00:00:00');
   const tomorrowDateObj=new Date(todayDateObj);
@@ -831,8 +847,7 @@ function showPage(name, el){
   const pg=document.getElementById('page-'+name);
   if(pg)pg.classList.add('active');
   if(el)el.classList.add('active');
-  console.log('[PAGE] Switch to:',name,'allData:',allData.length,'prodData:',prodData.length);
-  if(name==='productivity')renderProd();
+  if(name==='productivity') renderProd();
 }
 
 // Restore sidebar state
