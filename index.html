@@ -218,7 +218,7 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
 
 /* ── PAGE ── */
 .page{display:none;width:100%}
-.page.active{display:block}
+.page.active{display:block;min-height:calc(100vh - 64px)}
 
 /* ── HEADER FIX ── */
 .header{position:sticky;top:0;z-index:200}
@@ -1005,12 +1005,13 @@ function resetCheckerFilter(){
 
 // ── LOADER TAB ──
 function renderLoaderTab(){
+  console.log('[RENDER LOADER] called, loaderData:', loaderData.length);
+  const loaderKpiEl=document.getElementById('loader-kpi');
+  const loaderRankEl=document.getElementById('loader-rank-tbody');
+  console.log('[RENDER LOADER] elements - kpi:', !!loaderKpiEl, 'rank:', !!loaderRankEl);
   if(!loaderData||loaderData.length===0){
-    const noMsg='<div style="text-align:center;padding:40px;color:var(--text3)">Data Loader belum tersedia. Klik Refresh Data.</div>';
-    const ki=document.getElementById('loader-kpi');
-    if(ki)ki.innerHTML='';
-    const rb=document.getElementById('loader-rank-tbody');
-    if(rb)rb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text3)">Belum ada data</td></tr>';
+    if(loaderKpiEl)loaderKpiEl.innerHTML='<div style="padding:20px;color:var(--text3)">Data Loader belum tersedia. Klik Refresh Data.</div>';
+    if(loaderRankEl)loaderRankEl.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text3)">Belum ada data</td></tr>';
     return;
   }
   const filterName=document.getElementById('loader-filter-name')?.value||'ALL';
@@ -1233,8 +1234,15 @@ function showPage(name, el){
   if(el)el.classList.add('active');
   if(name==='productivity'){
     renderProd();
-    if(loaderData.length===0&&checkerData.length===0)loadProdDashboard();
-    else{renderLoaderTab();renderCheckerTab();}
+    setTimeout(()=>{
+      console.log('[SHOW PAGE] productivity - loaderData:', loaderData.length, 'checkerData:', checkerData.length);
+      if(loaderData.length===0&&checkerData.length===0){
+        loadProdDashboard();
+      } else {
+        renderLoaderTab();
+        renderCheckerTab();
+      }
+    }, 100);
   }
 }
 
