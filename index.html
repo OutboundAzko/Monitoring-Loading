@@ -213,7 +213,7 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
 .sidebar.collapsed .sidebar-bottom{padding:12px 8px}
 
 /* ── MAIN CONTENT WRAPPER ── */
-.content-wrapper{flex:1;margin-left:240px;transition:margin-left 0.25s ease;min-width:0;background:var(--bg)}
+.content-wrapper{flex:1;margin-left:240px;transition:margin-left 0.25s ease;min-width:0;background:var(--bg);min-height:100vh}
 .content-wrapper.expanded{margin-left:64px}
 
 /* ── PAGE ── */
@@ -862,41 +862,65 @@ async function loadProdDashboard(){
     const t1=await r1.text();
     const rows1=Papa.parse(t1,{header:false,skipEmptyLines:true}).data;
     // Cari header row - mengandung TANGGAL
-    const hIdx1=rows1.findIndex(r=>r.some(c=>(c||'').toUpperCase().includes('TANGGAL')));
+    // Cari header row loader - bisa berisi TANGGAL atau LC
+    const hIdx1=rows1.findIndex(r=>r.some(c=>{
+      const v=(c||'').trim().toUpperCase();
+      return v==='TANGGAL'||v==='LC'||v==='LC (ISI MANUAL)'||v.includes('LC (ISI');
+    }));
+    console.log('[LOADER] hIdx1:',hIdx1,'raw header row:',rows1[hIdx1]);
     if(hIdx1>=0){
       const headers1=rows1[hIdx1].map(c=>(c||'').trim().toUpperCase());
-      const tIdx=headers1.findIndex(h=>h.includes('TANGGAL'));
-      const cbmIdx=headers1.findIndex(h=>h.includes('CBM')&&!h.includes('MPP'));
+      console.log('[LOADER] headers1 mapped:',headers1);
+      // Kolom tanggal = kolom pertama yang tidak kosong
+      const tIdx=0; // TANGGAL selalu kolom pertama
+      const lcIdx=headers1.findIndex(h=>h.includes('LC'));
+      const cbmIdx=headers1.findIndex(h=>h==='CBM');
       const cbmMppIdx=headers1.findIndex(h=>h.includes('CBM')&&h.includes('MPP'));
+      const stuffIdx=headers1.findIndex(h=>h.includes('STUFFING'));
       const chekIdx=headers1.findIndex(h=>h.includes('CHEKER')||h.includes('CHECKER'));
-      const ld1Idx=headers1.findIndex(h=>h.includes('LOADER 1')||h==='LOADER1');
-      const ld2Idx=headers1.findIndex(h=>h.includes('LOADER 2')||h==='LOADER2');
+      const nikLd1Idx=headers1.findIndex(h=>h.includes('NIK')&&h.includes('LOADER 1'));
+      const ld1Idx=nikLd1Idx>=0?nikLd1Idx+1:headers1.findIndex(h=>h==='LOADER 1'||h==='LOADER1');
+      const nikLd2Idx=headers1.findIndex(h=>h.includes('NIK')&&h.includes('LOADER 2'));
+      const ld2Idx=nikLd2Idx>=0?nikLd2Idx+1:headers1.findIndex(h=>h==='LOADER 2'||h==='LOADER2');
       const mppIdx=headers1.findIndex(h=>h==='MPP');
-      console.log('[LOADER] headers:',headers1.slice(0,14));
+      console.log('[LOADER] idx - tgl:',tIdx,'cbm:',cbmIdx,'cbmMpp:',cbmMppIdx,'chek:',chekIdx,'ld1:',ld1Idx,'ld2:',ld2Idx,'mpp:',mppIdx);
+      console.log('[LOADER] ALL headers:',headers1);
+      console.log('[LOADER] tIdx:',tIdx,'cbmIdx:',cbmIdx,'cbmMppIdx:',cbmMppIdx,'chekIdx:',chekIdx,'ld1Idx:',ld1Idx,'ld2Idx:',ld2Idx,'mppIdx:',mppIdx);
+      console.log('[LOADER] Sample raw row:',rows1[hIdx1+1]);
       loaderData=rows1.slice(hIdx1+1).filter(r=>{
-        const tgl=(r[tIdx]||'').trim();
-        return tgl.length>0&&tgl!=='TANGGAL'&&!isNaN(parseFloat(r[cbmIdx]||''));
+        if(!r||r.length<3)return false;
+        // Baris valid: kolom pertama ada isinya (tanggal) dan CBM > 0
+        const tgl=(r[0]||'').trim();
+        const cbmVal=parseFloat((r[cbmIdx]||'0').toString().replace(/,/g,''))||0;
+        return tgl.length>2&&!tgl.toUpperCase().includes('TANGGAL')&&cbmVal>0;
       }).map(r=>{
-        const cbmVal=parseFloat((r[cbmMppIdx>=0?cbmMppIdx:cbmIdx]||'0').replace(/,/g,''))||0;
-        const mpp=parseFloat((r[mppIdx]||'1'))||1;
-        const cbmPerMpp=mppIdx>=0?parseFloat((r[cbmMppIdx]||'0').replace(/,/g,''))||0:cbmVal/mpp;
-        // Kumpulkan semua loader yang bekerja pada baris ini
+        const cbmRaw=parseFloat((r[cbmIdx]||'0').toString().replace(/,/g,''))||0;
+        const cbmMppRaw=cbmMppIdx>=0?parseFloat((r[cbmMppIdx]||'0').toString().replace(/,/g,''))||0:0;
+        const mpp=parseFloat((r[mppIdx]||'2').toString())||2;
+        const cbmPerMpp=cbmMppRaw>0?cbmMppRaw:(mpp>0?cbmRaw/mpp:cbmRaw);
+        // Ambil nama dari kolom CHEKER, LOADER 1, LOADER 2
+        // Nama = bukan angka, panjang > 3, bukan header
+        const isName=v=>v&&v.length>3&&!v.match(/^[\d.,]+$/)&&!['CHEKER','CHECKER','LOADER','NIK','NAMA','MPP'].some(k=>v.toUpperCase()===k);
         const people=[];
+        // Cheker - kolom setelah NIK CHEKER
         const chekName=(r[chekIdx+1]||r[chekIdx]||'').trim();
-        const ld1Name=(r[ld1Idx+1]||r[ld1Idx]||'').trim();
-        const ld2Name=(r[ld2Idx+1]||'').trim();
-        if(chekName&&!chekName.match(/^\d+$/))people.push(chekName);
-        if(ld1Name&&!ld1Name.match(/^\d+$/))people.push(ld1Name);
-        if(ld2Name&&!ld2Name.match(/^\d+$/))people.push(ld2Name);
+        if(isName(chekName))people.push(chekName);
+        // Loader 1
+        const ld1Name=(r[ld1Idx]||'').trim();
+        if(isName(ld1Name)&&!people.includes(ld1Name))people.push(ld1Name);
+        // Loader 2
+        const ld2Name=ld2Idx>=0?(r[ld2Idx]||'').trim():'';
+        if(isName(ld2Name)&&!people.includes(ld2Name))people.push(ld2Name);
         return {
           tanggal:(r[tIdx]||'').trim(),
-          cbm:parseFloat((r[cbmIdx]||'0').replace(/,/g,''))||0,
+          cbm:cbmRaw,
           cbmMpp:cbmPerMpp,
           mpp:mpp,
           people:people,
         };
-      });
+      }).filter(r=>r.tanggal&&r.cbm>0);
       console.log('[LOADER] Records:',loaderData.length,'sample:',loaderData[0]);
+      console.log('[LOADER] People sample:',loaderData.slice(0,3).map(r=>r.people));
     }
 
     // Load Checker
@@ -904,7 +928,11 @@ async function loadProdDashboard(){
     const t2=await r2.text();
     const rows2=Papa.parse(t2,{header:false,skipEmptyLines:true}).data;
     // Cari header row - mengandung NAMA dan tanggal (1-Apr dst)
-    const hIdx2=rows2.findIndex(r=>r.some(c=>(c||'').toUpperCase()==='NAMA'));
+    const hIdx2=rows2.findIndex(r=>r.some(c=>{
+      const v=(c||'').trim().toUpperCase();
+      return v==='NAMA'||v==='NO'||v==='NIP';
+    })&&r.some(c=>(c||'').trim().toUpperCase()==='NAMA'));
+    console.log('[CHECKER] hIdx2:',hIdx2,'raw:',rows2[hIdx2]);
     if(hIdx2>=0){
       const headers2=rows2[hIdx2].map(c=>(c||'').trim());
       const namaIdx=headers2.findIndex(h=>h.toUpperCase()==='NAMA');
@@ -977,7 +1005,14 @@ function resetCheckerFilter(){
 
 // ── LOADER TAB ──
 function renderLoaderTab(){
-  if(!loaderData||loaderData.length===0)return;
+  if(!loaderData||loaderData.length===0){
+    const noMsg='<div style="text-align:center;padding:40px;color:var(--text3)">Data Loader belum tersedia. Klik Refresh Data.</div>';
+    const ki=document.getElementById('loader-kpi');
+    if(ki)ki.innerHTML='';
+    const rb=document.getElementById('loader-rank-tbody');
+    if(rb)rb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text3)">Belum ada data</td></tr>';
+    return;
+  }
   const filterName=document.getElementById('loader-filter-name')?.value||'ALL';
   const filterDate=document.getElementById('loader-filter-date')?.value||'';
 
