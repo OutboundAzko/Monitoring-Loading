@@ -1,1 +1,864 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Outbound Warehouse Operational Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --font:'Plus Jakarta Sans',system-ui,sans-serif;
+  --bg:#f4f6fb;
+  --surface:#ffffff;
+  --border:#e8ecf4;
+  --text:#1c2234;
+  --text2:#5a6480;
+  --text3:#9aa0b4;
+  --radius:14px;
+  --radius-sm:8px;
+  --shadow:0 1px 4px rgba(28,34,52,0.08);
+  --shadow-md:0 4px 16px rgba(28,34,52,0.10);
+  --c-blue:#1a56db;
+  --c-green:#2e7d32;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
 
+/* HEADER */
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;box-shadow:var(--shadow)}
+.header-title{font-size:18px;font-weight:800;color:var(--text);letter-spacing:-0.3px}
+.header-actions{display:flex;align-items:center;gap:14px}
+.icon-btn{width:36px;height:36px;border-radius:50%;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px}
+.avatar{width:36px;height:36px;border-radius:50%;background:#1a56db;color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+
+/* FILTER BAR */
+.filter-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.filter-select{padding:8px 28px 8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);color:var(--text);background:var(--bg);cursor:pointer;font-weight:500;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%235a6480' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;min-width:120px}
+.filter-select:focus{outline:none;border-color:var(--c-blue)}
+.filter-date{padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);color:var(--text);background:var(--bg);font-weight:500}
+.filter-date:focus{outline:none;border-color:var(--c-blue)}
+.btn-apply{padding:8px 22px;background:var(--c-blue);color:white;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer}
+.btn-apply:hover{opacity:0.88}
+.btn-refresh{padding:8px 14px;background:var(--bg);color:var(--text2);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;display:flex;align-items:center;gap:5px}
+.spin{animation:spin 0.8s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+#last-update{font-size:11px;color:var(--text3);margin-left:auto}
+
+/* MAIN */
+main{padding:20px 28px;max-width:1500px;margin:0 auto}
+
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr;gap:14px;margin-bottom:20px}
+@media(max-width:1100px){.kpi-row{grid-template-columns:1fr 1fr 1fr}}
+.kpi-card{border-radius:var(--radius);padding:18px 20px;color:white;position:relative;overflow:hidden;min-height:95px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:var(--shadow-md)}
+.kpi-card::after{content:'';position:absolute;right:-14px;top:-14px;width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,0.13)}
+.kpi-card.total{background:linear-gradient(135deg,#1a56db,#1e40af)}
+.kpi-card.belum{background:linear-gradient(135deg,#e53935,#b71c1c)}
+.kpi-card.antri-org{background:linear-gradient(135deg,#f57c00,#e65100)}
+.kpi-card.antri-yel{background:linear-gradient(135deg,#f9a825,#f57f17)}
+.kpi-card.proses{background:linear-gradient(135deg,#1976d2,#0d47a1)}
+.kpi-card.selesai{background:linear-gradient(135deg,#388e3c,#1b5e20)}
+.kpi-label{font-size:11px;font-weight:700;letter-spacing:0.08em;opacity:0.88;text-transform:uppercase;margin-bottom:4px}
+.kpi-top{display:flex;justify-content:space-between;align-items:flex-start}
+.kpi-icon{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.22);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.kpi-value{font-size:36px;font-weight:800;line-height:1;margin:2px 0 4px}
+.kpi-truck{position:absolute;right:12px;bottom:10px;opacity:0.22;font-size:44px;line-height:1}
+.kpi-bottom{display:flex;align-items:center;gap:8px}
+.kpi-badge{font-size:12px;font-weight:700;background:rgba(255,255,255,0.22);padding:2px 8px;border-radius:999px}
+.kpi-badge2{font-size:11px;font-weight:600;opacity:0.72}
+
+/* MIDDLE */
+.middle-row{display:grid;grid-template-columns:1fr 1.05fr;gap:16px;margin-bottom:20px}
+@media(max-width:900px){.middle-row{grid-template-columns:1fr}}
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:20px;box-shadow:var(--shadow)}
+.card-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:16px}
+
+/* DONUT */
+.donut-layout{display:flex;align-items:center;gap:20px}
+.donut-wrap{position:relative;width:175px;height:175px;flex-shrink:0}
+.donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
+.donut-center-num{font-size:28px;font-weight:800;color:var(--text)}
+.donut-legend{flex:1;display:flex;flex-direction:column;gap:9px}
+.legend-row{display:flex;align-items:center;gap:8px}
+.legend-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+.legend-label{font-size:13px;color:var(--text2);flex:1;font-weight:500}
+.legend-count{font-size:14px;font-weight:700;color:var(--text)}
+.donut-footer{margin-top:14px;padding-top:12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.donut-footer-label{font-size:12px;color:var(--text3)}
+.donut-footer-bar{flex:1;height:8px;background:var(--bg);border-radius:999px;overflow:hidden}
+.donut-footer-fill{height:100%;background:#388e3c;border-radius:999px;transition:width 0.5s}
+.donut-footer-pct{font-size:13px;font-weight:700;color:var(--text)}
+.donut-footer-box{width:14px;height:14px;border-radius:3px;background:#388e3c;flex-shrink:0}
+
+/* SUMMARY */
+.sum-table{width:100%;border-collapse:collapse;margin-bottom:14px}
+.sum-table th{font-size:11px;font-weight:700;letter-spacing:0.05em;color:var(--text3);text-transform:uppercase;padding:8px 12px;background:var(--bg);border-bottom:2px solid var(--border);text-align:left}
+.sum-table td{padding:11px 12px;border-bottom:1px solid var(--border);font-size:13px;font-weight:500}
+.sum-table tr:last-child td{border-bottom:none}
+.shift-pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700}
+.s1{background:#e8f0fe;color:#1a56db}
+.s2{background:#f3e8ff;color:#7c3aed}
+.b1{background:#e0f2fe;color:#0369a1}
+.b2{background:#fef9c3;color:#854d0e}
+.b3{background:#fee2e2;color:#991b1b}
+.b4{background:#f3e8ff;color:#6b21a8}
+.prog-block{}
+.prog-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
+.prog-head-label{font-size:13px;font-weight:600;color:var(--text)}
+.prog-head-pct{font-size:20px;font-weight:800;color:#388e3c}
+.prog-bg{height:12px;background:var(--bg);border-radius:999px;overflow:hidden;margin-bottom:6px;border:1px solid var(--border)}
+.prog-fill{height:100%;background:linear-gradient(90deg,#2e7d32,#66bb6a);border-radius:999px;transition:width 0.6s}
+.prog-armada{text-align:right;font-size:13px;font-weight:700;color:var(--text)}
+.prog-armada span{font-weight:400;color:var(--text3)}
+
+/* TABLE */
+.table-section{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow)}
+.table-top{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--bg)}
+.table-title{font-size:15px;font-weight:700;color:var(--text);margin-right:4px}
+.search-box{position:relative}
+.search-box svg{position:absolute;left:9px;top:50%;transform:translateY(-50%)}
+.search-input{padding:7px 10px 7px 28px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);background:var(--surface);color:var(--text);width:150px}
+.search-input:focus{outline:none;border-color:var(--c-blue)}
+.t-sel{padding:7px 24px 7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:var(--font);color:var(--text2);background:var(--surface);cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%235a6480' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 7px center;font-weight:500}
+.t-sel:focus{outline:none;border-color:var(--c-blue)}
+.pagination{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text2);font-weight:500;flex-shrink:0}
+.pg-btn{width:27px;height:27px;border-radius:6px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-size:12px;font-family:var(--font);display:flex;align-items:center;justify-content:center;transition:background 0.1s;color:var(--text)}
+.pg-btn:hover{background:var(--bg)}
+.pg-btn.active{background:var(--c-blue);color:white;border-color:var(--c-blue)}
+.pg-btn:disabled{opacity:0.38;cursor:default}
+.pg-next{padding:0 10px;width:auto;font-weight:600}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead th{padding:10px 13px;text-align:left;font-size:11px;font-weight:700;letter-spacing:0.05em;color:var(--text3);text-transform:uppercase;background:var(--bg);border-bottom:2px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+thead th:hover{color:var(--text)}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.1s}
+tbody tr:hover{background:#f7f9ff}
+tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
+.status-pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:0.03em}
+.sp-selesai{background:#e8f5e9;color:#2e7d32}
+.sp-proses{background:#e3f2fd;color:#1565c0}
+.sp-antri{background:#fff3e0;color:#e65100}
+.sp-belum{background:#ffebee;color:#c62828}
+.stuffing-val{font-weight:700;color:#1a56db}
+.no-data-row td{text-align:center;padding:32px;color:var(--text3);font-size:13px}
+.batch-filter-wrap{position:relative}
+.batch-filter-btn{padding:7px 24px 7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;font-family:var(--font);color:var(--text2);background:var(--surface);cursor:pointer;font-weight:500;white-space:nowrap;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='%235a6480' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 7px center}
+.batch-filter-btn.active{border-color:var(--c-blue);color:var(--c-blue)}
+.batch-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:var(--shadow-md);z-index:100;min-width:140px;padding:6px 0}
+.batch-dropdown.open{display:block}
+.batch-opt{display:flex;align-items:center;gap:8px;padding:7px 14px;font-size:13px;color:var(--text);cursor:pointer;transition:background 0.1s;font-weight:500}
+.batch-opt:hover{background:var(--bg)}
+.batch-opt input{width:14px;height:14px;cursor:pointer;accent-color:var(--c-blue)}
+
+/* LOADING */
+#loading-overlay{position:fixed;inset:0;background:rgba(244,246,251,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:14px}
+.loader{width:40px;height:40px;border:3px solid var(--border);border-top-color:#1a56db;border-radius:50%;animation:spin 0.7s linear infinite}
+#loading-overlay p{font-size:14px;color:var(--text2);font-weight:500}
+#error-banner{display:none;background:#ffebee;color:#c62828;padding:12px 20px;border-radius:var(--radius-sm);margin-bottom:16px;font-size:13px;font-weight:500}
+
+/* ── PRODUKTIVITAS ── */
+.prod-section{margin-bottom:20px}
+.prod-section-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.prod-section-title .dot{width:8px;height:8px;border-radius:50%;background:#7c3aed;flex-shrink:0}
+.prod-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:900px){.prod-grid{grid-template-columns:1fr}}
+.prod-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow)}
+.prod-card-header{padding:12px 16px;font-size:13px;font-weight:700;color:white;display:flex;align-items:center;gap:8px}
+.prod-card-header.s1{background:linear-gradient(135deg,#1a56db,#1e40af)}
+.prod-card-header.s2{background:linear-gradient(135deg,#7c3aed,#5b21b6)}
+.prod-table{width:100%;border-collapse:collapse}
+.prod-table th{padding:9px 14px;font-size:11px;font-weight:700;letter-spacing:0.05em;color:var(--text3);text-transform:uppercase;background:var(--bg);border-bottom:2px solid var(--border);text-align:left;white-space:nowrap}
+.prod-table td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px;font-weight:500;color:var(--text)}
+.prod-table tr:last-child td{border-bottom:none}
+.prod-table tr:hover td{background:#f7f9ff}
+.jobdesk-badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:700}
+.jb-cheker{background:#ede9fe;color:#5b21b6}
+.jb-loader{background:#fef9c3;color:#854d0e}
+.gap-positive{color:#2e7d32;font-weight:700}
+.gap-negative{color:#c62828;font-weight:700}
+.gap-zero{color:#5a6480;font-weight:700}
+.need-val{font-weight:700;color:#1a56db}
+.plan-val{font-weight:700;color:#374151}
+.batch-ref{font-size:11px;color:var(--text3);margin-top:2px}
+
+/* ── SIDEBAR ── */
+.app-layout{display:flex;min-height:100vh;background:var(--bg)}
+.sidebar{width:240px;background:#1a1f36;flex-shrink:0;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:300;transition:width 0.25s ease}
+.sidebar.collapsed{width:64px}
+.sidebar-logo{padding:0 20px;height:64px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0}
+.sidebar-logo-icon{width:34px;height:34px;border-radius:8px;background:var(--c-blue);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:white;flex-shrink:0}
+.sidebar-logo-text{font-size:13px;font-weight:700;color:white;line-height:1.3;white-space:nowrap;overflow:hidden}
+.sidebar-logo-text span{display:block;font-size:10px;font-weight:400;color:rgba(255,255,255,0.45);margin-top:1px}
+.sidebar-toggle{margin-left:auto;width:26px;height:26px;border-radius:6px;background:rgba(255,255,255,0.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.6);font-size:13px;flex-shrink:0;transition:background 0.15s}
+.sidebar-toggle:hover{background:rgba(255,255,255,0.15)}
+.sidebar-section{padding:16px 12px 8px;font-size:10px;font-weight:700;letter-spacing:0.1em;color:rgba(255,255,255,0.3);text-transform:uppercase;white-space:nowrap;overflow:hidden}
+.sidebar-collapsed .sidebar-section{opacity:0}
+.sidebar-menu{flex:1;overflow-y:auto;overflow-x:hidden;padding:4px 8px}
+.sidebar-menu::-webkit-scrollbar{width:4px}
+.sidebar-menu::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+.menu-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background 0.15s;margin-bottom:2px;text-decoration:none;white-space:nowrap;overflow:hidden}
+.menu-item:hover{background:rgba(255,255,255,0.08)}
+.menu-item.active{background:var(--c-blue)}
+.menu-item .mi-icon{font-size:16px;flex-shrink:0;width:20px;text-align:center}
+.menu-item .mi-label{font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);white-space:nowrap;overflow:hidden}
+.menu-item.active .mi-label{color:white;font-weight:600}
+.menu-item .mi-badge{margin-left:auto;background:rgba(255,255,255,0.2);color:white;font-size:10px;font-weight:700;padding:2px 6px;border-radius:999px;flex-shrink:0}
+.sidebar-bottom{padding:12px 8px;border-top:1px solid rgba(255,255,255,0.08)}
+.sidebar-collapsed .mi-label,.sidebar-collapsed .mi-badge,.sidebar-collapsed .sidebar-logo-text,.sidebar-collapsed .sidebar-section{display:none}
+.sidebar.collapsed .sidebar-logo{padding:0 15px;justify-content:center}
+.sidebar.collapsed .sidebar-logo-icon{margin:0}
+.sidebar.collapsed .menu-item{justify-content:center;padding:10px}
+.sidebar.collapsed .sidebar-bottom{padding:12px 8px}
+
+/* ── MAIN CONTENT WRAPPER ── */
+.content-wrapper{flex:1;margin-left:240px;transition:margin-left 0.25s ease;min-width:0;display:block;overflow-y:auto}
+.content-wrapper.expanded{margin-left:64px}
+
+/* ── PAGE ── */
+.page{display:none;flex-direction:column;width:100%;min-height:100%}
+.page.active{display:flex;flex-direction:column}
+
+/* ── HEADER FIX ── */
+.header{position:sticky;top:0;z-index:200}
+</style>
+</head>
+<body>
+
+<div id="loading-overlay">
+  <div class="loader"></div>
+  <p>Memuat data operasional...</p>
+</div>
+
+<div class="app-layout">
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">OB</div>
+    <div class="sidebar-logo-text">Outbound WH<span>Operational System</span></div>
+    <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
+  </div>
+  <div class="sidebar-menu">
+    <div class="sidebar-section">Menu</div>
+    <a class="menu-item active" onclick="showPage('monitoring', this)" href="#">
+      <span class="mi-icon">📦</span>
+      <span class="mi-label">Monitoring Loading</span>
+    </a>
+    <a class="menu-item" onclick="showPage('productivity', this)" href="#">
+      <span class="mi-icon">📊</span>
+      <span class="mi-label">Produktivitas MPP</span>
+    </a>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="menu-item" style="cursor:default">
+      <span class="mi-icon">👤</span>
+      <span class="mi-label" style="font-size:12px;color:rgba(255,255,255,0.5)">Admin</span>
+    </div>
+  </div>
+</nav>
+
+<!-- CONTENT WRAPPER -->
+<div class="content-wrapper" id="content-wrapper">
+
+<header class="header">
+  <div class="header-title">Outbound Warehouse Operational Dashboard</div>
+  <div class="header-actions">
+    <div class="icon-btn">🔍</div>
+    <div class="icon-btn">🔔</div>
+    <div class="avatar">AD</div>
+  </div>
+</header>
+
+<!-- PAGE: MONITORING -->
+<div class="page active" id="page-monitoring">
+<div class="filter-bar">
+  <input type="date" id="f-date" class="filter-date">
+  <select id="f-shift" class="filter-select">
+    <option value="ALL">Semua Shift</option>
+    <option value="SHIFT 1">SHIFT 1</option>
+    <option value="SHIFT 2">SHIFT 2</option>
+  </select>
+  <select id="f-area" class="filter-select"><option value="ALL">Semua Area</option></select>
+  <select id="f-armada" class="filter-select"><option value="ALL">All Armada</option></select>
+  <button class="btn-apply" onclick="applyFilters()">Apply</button>
+  <button class="btn-refresh" onclick="loadData()"><span id="ri">↻</span> Refresh</button>
+  <span id="last-update"></span>
+</div>
+
+<div style="padding:20px 28px;max-width:1500px;margin:0 auto">
+  <div id="error-banner"></div>
+  <div class="kpi-row" id="kpi-row"></div>
+
+  <div class="middle-row">
+    <div class="card">
+      <div class="card-title">Status Armada</div>
+      <div class="donut-layout">
+        <div class="donut-wrap">
+          <canvas id="donutChart" role="img" aria-label="Donut chart status armada"></canvas>
+          <div class="donut-center"><div class="donut-center-num" id="donut-total">0</div></div>
+        </div>
+        <div class="donut-legend" id="donut-legend"></div>
+      </div>
+      <div class="donut-footer">
+        <span class="donut-footer-label" id="prog-mini-pct">0%</span>
+        <div class="donut-footer-bar"><div class="donut-footer-fill" id="prog-mini-fill" style="width:0%"></div></div>
+        <span class="donut-footer-pct" id="prog-mini-pct2">0%</span>
+        <span class="donut-footer-box"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Summary Operasional</div>
+      <table class="sum-table">
+        <thead><tr><th>Batch</th><th>Total Armada</th><th>Total Case ID</th><th>Total CBM</th></tr></thead>
+        <tbody id="sum-tbody"></tbody>
+      </table>
+      <div class="prog-block">
+        <div class="prog-head">
+          <div class="prog-head-label">Progress Target Penyelesaian Armada</div>
+          <div class="prog-head-pct" id="prog-pct-main">0%</div>
+        </div>
+        <div class="prog-bg"><div class="prog-fill" id="prog-fill-main" style="width:0%"></div></div>
+        <div class="prog-armada" id="prog-armada-lbl">0 / 0 <span>Armada Selesai</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-section">
+    <div class="table-top">
+      <div class="table-title">Data Armada</div>
+      <div class="search-box">
+        <svg width="13" height="13" viewBox="0 0 20 20" fill="none"><circle cx="8.5" cy="8.5" r="5.75" stroke="#9aa0b4" stroke-width="1.5"/><path d="M13 13l3.5 3.5" stroke="#9aa0b4" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <input type="text" id="search-input" class="search-input" placeholder="Search..." oninput="goPage(1);renderTable()">
+      </div>
+      <select id="t-status" class="t-sel" onchange="goPage(1);renderTable()">
+        <option value="ALL">Status ▾</option>
+        <option value="SELESAI">Selesai</option>
+        <option value="PROSES">Proses</option>
+        <option value="ANTRI">Antri</option>
+        <option value="BELUM DATANG">Belum Datang</option>
+      </select>
+      <select id="t-shipping" class="t-sel" onchange="goPage(1);renderTable()"><option value="ALL">Shipping Line ▾</option></select>
+      <select id="t-carrier" class="t-sel" onchange="goPage(1);renderTable()"><option value="ALL">Carrier ▾</option></select>
+      <div class="batch-filter-wrap" id="batch-filter-wrap">
+        <button class="batch-filter-btn" onclick="toggleBatchDropdown(event)">Batch ▾</button>
+        <div class="batch-dropdown" id="batch-dropdown">
+          <label class="batch-opt"><input type="checkbox" value="ALL" id="batch-all" onchange="onBatchAllChange(this)" checked> Semua Batch</label>
+          <label class="batch-opt"><input type="checkbox" value="BATCH 1" class="batch-cb" onchange="onBatchCbChange()"> BATCH 1</label>
+          <label class="batch-opt"><input type="checkbox" value="BATCH 2" class="batch-cb" onchange="onBatchCbChange()"> BATCH 2</label>
+          <label class="batch-opt"><input type="checkbox" value="BATCH 3" class="batch-cb" onchange="onBatchCbChange()"> BATCH 3</label>
+          <label class="batch-opt"><input type="checkbox" value="BATCH 4" class="batch-cb" onchange="onBatchCbChange()"> BATCH 4</label>
+        </div>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th onclick="sortBy('tanggal')">TANGGAL MUAT ↕</th>
+          <th>PENYELESAIAN</th>
+          <th onclick="sortBy('transno')">TRANSNO ↕</th>
+          <th>SHIPPINGLINE</th>
+          <th>CARRIER</th>
+          <th onclick="sortBy('status')">STATUS ↕</th>
+          <th>STUFFING TIME</th>
+          <th>JENIS ARMADA</th>
+          <th>CBM</th>
+          <th>%PC</th>
+          <th>%LD</th>
+          <th>AREA</th>
+        </tr></thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  </div><!-- end page monitoring -->
+
+  <!-- PAGE: PRODUKTIVITAS -->
+  <div class="page" id="page-productivity">
+    <!-- Filter bar produktivitas -->
+    <div class="filter-bar">
+      <input type="date" id="f-date-prod" class="filter-date" onchange="renderProd()">
+      <select id="f-shift-prod" class="filter-select">
+        <option value="ALL">Semua Shift</option>
+        <option value="SHIFT 1">SHIFT 1</option>
+        <option value="SHIFT 2">SHIFT 2</option>
+      </select>
+      <button class="btn-apply" onclick="renderProd()">Apply</button>
+      <span id="prod-last-update" style="font-size:11px;color:var(--text3);margin-left:auto"></span>
+    </div>
+    <div style="padding:20px 28px;max-width:1500px;margin:0 auto;width:100%">
+  <!-- PRODUKTIVITAS -->
+  <div class="prod-section">
+    <div class="prod-section-title"><span class="dot"></span>Produktivitas & Kebutuhan MPP</div>
+    <div class="prod-grid" id="prod-grid">
+      <div class="prod-card">
+        <div class="prod-card-header s1">📋 SHIFT 1</div>
+        <table class="prod-table">
+          <thead><tr><th>Job Desk</th><th>Total Aktual</th><th>Target</th><th>Need MPP</th><th>Plan MPP</th><th>GAP</th></tr></thead>
+          <tbody id="prod-s1-tbody"></tbody>
+        </table>
+      </div>
+      <div class="prod-card">
+        <div class="prod-card-header s2">📋 SHIFT 2</div>
+        <table class="prod-table">
+          <thead><tr><th>Job Desk</th><th>Total Aktual</th><th>Target</th><th>Need MPP</th><th>Plan MPP</th><th>GAP</th></tr></thead>
+          <tbody id="prod-s2-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+    </div>
+  </div><!-- end page productivity -->
+</div><!-- end content-wrapper -->
+</div><!-- end app-layout -->
+
+<script>
+const PROD_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vT1YwOyPQa1twBR3ms6LrmdxwMeGJ8K3xLmYsPkoO6g5ngC6F5ZhpJhwNPx8_cNhzbszqcIhAR-vGxf/pub?gid=1543732572&single=true&output=csv';
+const CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vT1YwOyPQa1twBR3ms6LrmdxwMeGJ8K3xLmYsPkoO6g5ngC6F5ZhpJhwNPx8_cNhzbszqcIhAR-vGxf/pub?gid=435013118&single=true&output=csv';
+const PAGE_SIZE=15;
+let allData=[],filtered=[],currentPage=1,sortCol='',sortDir=1,donutChart=null,prodData=[];
+
+const normStatus=s=>{
+  if(!s)return'';const u=s.trim().toUpperCase();
+  if(u==='SELESAI'||u==='KELUAR DC')return'SELESAI';
+  if(u==='PROSES')return'PROSES';
+  if(u==='ANTRI')return'ANTRI';
+  if(u.includes('BELUM'))return'BELUM DATANG';
+  return u;
+};
+const parseDate=s=>{
+  if(!s)return null;const p=s.split('-');if(p.length!==3)return null;
+  const mo={Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};
+  return`${p[2].length===2?'20'+p[2]:p[2]}-${mo[p[1]]||p[1]}-${p[0].padStart(2,'0')}`;
+};
+
+
+async function loadProdData(){
+  try{
+    const r=await fetch(PROD_URL+'&cb='+Date.now());
+    if(!r.ok)return;
+    const rawText=await r.text();
+    const rawRows=Papa.parse(rawText,{header:false,skipEmptyLines:true}).data;
+    // Cari baris header yang mengandung "JOB DESK"
+    let headerIdx=rawRows.findIndex(row=>row.some(cell=>typeof cell==='string'&&cell.trim().toUpperCase()==='JOB DESK'));
+    if(headerIdx<0)headerIdx=rawRows.findIndex(row=>row.some(cell=>typeof cell==='string'&&(cell.trim().toUpperCase().includes('JOB')&&cell.trim().toUpperCase().includes('DESK'))));
+    console.log('[PROD] Header row index:',headerIdx);
+    if(headerIdx<0){console.error('[PROD] Header tidak ditemukan!');return;}
+    const headers=rawRows[headerIdx].map(h=>(h||'').trim());
+    const jobIdx=headers.findIndex(h=>h.toUpperCase().includes('JOB')&&h.toUpperCase().includes('DESK'));
+    const shiftIdx=headers.findIndex(h=>h.toUpperCase()==='SHIFT');
+    console.log('[PROD] jobIdx:',jobIdx,'shiftIdx:',shiftIdx,'headers:',headers);
+    const dataRows=rawRows.slice(headerIdx+1);
+    prodData=dataRows.filter(row=>{
+      const jd=(row[jobIdx]||'').trim();
+      const sh=(row[shiftIdx]||'').trim().toUpperCase();
+      return jd.length>0&&(sh==='1'||sh==='2'||sh==='SHIFT 1'||sh==='SHIFT 2');
+    }).map(row=>({
+      jobDesk:(row[jobIdx]||'').trim().toUpperCase(),
+      shift:(row[shiftIdx]||'').trim(),
+    }));
+    console.log('[PROD] Records:',prodData.length,'shifts:',[...new Set(prodData.map(r=>r.shift))],'jobs:',[...new Set(prodData.map(r=>r.jobDesk))]);
+    renderProd();
+  }catch(e){console.error('[PROD] Error:',e);}
+}
+
+function renderProd(){
+  // Ambil tanggal HANYA dari filter produktivitas (independen)
+  const fdProd=document.getElementById('f-date-prod');
+  const dateVal=fdProd?fdProd.value:'';
+  const noData='<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3);font-size:13px">';
+  if(!dateVal){
+    document.getElementById('prod-s1-tbody').innerHTML=noData+'Pilih tanggal terlebih dahulu</td></tr>';
+    document.getElementById('prod-s2-tbody').innerHTML=noData+'Pilih tanggal terlebih dahulu</td></tr>';
+    return;
+  }
+  if(!allData||allData.length===0){
+    document.getElementById('prod-s1-tbody').innerHTML=noData+'Memuat data...</td></tr>';
+    document.getElementById('prod-s2-tbody').innerHTML=noData+'Memuat data...</td></tr>';
+    return;
+  }
+  if(!prodData||prodData.length===0){
+    document.getElementById('prod-s1-tbody').innerHTML=noData+'Data produktivitas belum tersedia</td></tr>';
+    document.getElementById('prod-s2-tbody').innerHTML=noData+'Data produktivitas belum tersedia</td></tr>';
+    return;
+  }
+  // Update last update
+  const lu=document.getElementById('prod-last-update');
+  if(lu)lu.textContent='Update: '+new Date().toLocaleTimeString('id-ID');
+  // Hitung tanggal besok
+  const todayDateObj=new Date(dateVal+'T00:00:00');
+  const tomorrowDateObj=new Date(todayDateObj);
+  tomorrowDateObj.setDate(tomorrowDateObj.getDate()+1);
+  const pad=n=>String(n).padStart(2,'0');
+  const tomorrowStr=tomorrowDateObj.getFullYear()+'-'+pad(tomorrowDateObj.getMonth()+1)+'-'+pad(tomorrowDateObj.getDate());
+
+  const todayData=allData.filter(r=>parseDateStr(r.tanggal)===dateVal);
+  const tomorrowData=allData.filter(r=>parseDateStr(r.tanggal)===tomorrowStr);
+
+  const sumCase=(data,batches)=>data.filter(r=>batches.includes(getBatch(r.stuffingTime))).reduce((a,r)=>a+r.caseIdNum,0);
+  const sumCBM=(data,batches)=>data.filter(r=>batches.includes(getBatch(r.stuffingTime))).reduce((a,r)=>a+r.totalCBM,0);
+
+  // Shift 1: Cheker = Batch2+3 hari ini, Loader = CBM Batch1+2 hari ini
+  const s1Case=sumCase(todayData,['BATCH 2','BATCH 3']);
+  const s1CBM=sumCBM(todayData,['BATCH 1','BATCH 2']);
+  // Shift 2: Cheker = Batch4 hari ini + Batch1 besok, Loader = CBM Batch1+2 hari ini
+  const s2Case=sumCase(todayData,['BATCH 4'])+sumCase(tomorrowData,['BATCH 1']);
+  const s2CBM=sumCBM(todayData,['BATCH 1','BATCH 2']);
+
+  // COUNTIFS plan MPP
+  const planMPP=(shiftNum,isCheker)=>{
+    return prodData.filter(r=>{
+      const sh=r.shift.trim();
+      const shOk=sh===shiftNum||sh==='SHIFT '+shiftNum;
+      const jbOk=isCheker?r.jobDesk.includes('CHEKER'):r.jobDesk.includes('LOADER');
+      return shOk&&jbOk;
+    }).length;
+  };
+
+  const makeRow=(jobDesk,actual,target,shiftNum)=>{
+    const isCheker=jobDesk.includes('CHEKER');
+    const needMPP=Math.ceil(actual/target);
+    const plan=planMPP(shiftNum,isCheker);
+    const gap=plan-needMPP;
+    const gapCls=gap>0?'gap-positive':gap<0?'gap-negative':'gap-zero';
+    const gapStr=gap>0?'+'+gap:String(gap);
+    const jbCls=isCheker?'jb-cheker':'jb-loader';
+    const actualFmt=isCheker?Math.round(actual)+' Case':actual.toFixed(1)+' CBM';
+    const targetFmt=isCheker?target+' Case ID':target+' CBM';
+    return`<tr>
+      <td><span class="jobdesk-badge ${jbCls}">${jobDesk}</span></td>
+      <td style="font-weight:700">${actualFmt}</td>
+      <td style="font-weight:600;color:var(--text2)">${targetFmt}</td>
+      <td class="need-val">${needMPP}</td>
+      <td class="plan-val">${plan||'-'}</td>
+      <td class="${gapCls}">${plan?gapStr:'-'}</td>
+    </tr>`;
+  };
+
+  document.getElementById('prod-s1-tbody').innerHTML=
+    makeRow('CHEKER ST + BR',s1Case,800,'1')+
+    makeRow('LOADER LD',s1CBM,25,'1');
+  document.getElementById('prod-s2-tbody').innerHTML=
+    makeRow('CHEKER ST + BR',s2Case,800,'2')+
+    makeRow('LOADER LD',s2CBM,25,'2');
+}
+
+function parseDateStr(s){
+  if(!s)return null;
+  const p=s.split('-');if(p.length!==3)return null;
+  const mo={Jan:'01',Feb:'02',Mar:'03',Apr:'04',May:'05',Jun:'06',Jul:'07',Aug:'08',Sep:'09',Oct:'10',Nov:'11',Dec:'12'};
+  return`${p[2].length===2?'20'+p[2]:p[2]}-${mo[p[1]]||p[1]}-${p[0].padStart(2,'0')}`;
+}
+
+function formatDateForCompare(d){
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,'0');
+  const day=String(d.getDate()).padStart(2,'0');
+  return`${y}-${m}-${day}`;
+}
+
+
+async function loadData(){
+  const ri=document.getElementById('ri');ri.classList.add('spin');
+  document.getElementById('error-banner').style.display='none';
+  try{
+    const r=await fetch(CSV_URL+'&cb='+Date.now());
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const res=Papa.parse(await r.text(),{header:true,skipEmptyLines:true});
+    // Deteksi nama kolom stuffing time (bisa berbeda tergantung export)
+    const sampleKeys=res.data.length>0?Object.keys(res.data[0]):[];
+    const stuffKey=sampleKeys.find(k=>k.replace(/\s+/g,'').toUpperCase()==='STUFFINGTIME')||'STUFFING TIME';
+    allData=res.data.map(row=>({
+      tanggal:(row['TANGGAL MUAT']||'').trim(),
+      shift:(row['PENYELESAIAN']||'').trim().toUpperCase(),
+      transno:(row['TRANSNO']||'').trim(),
+      caseid:(row['AKTUAL CASEID']||'').trim(),
+      caseIdNum:parseFloat((row['AKTUAL CASEID']||'').replace(/[^0-9.]/g,''))||0,
+      totalCBM:parseFloat(row['TOTAL CBM'])||0,
+      pc:parseFloat(row['%PC'])||0,
+      ld:parseFloat(row['%LD'])||0,
+      shippingLine:(row['SHIPPINGLINE']||'').trim(),
+      carrier:(row['CARRIERID']||'').trim(),
+      statusRaw:(row['STATUS']||'').trim(),
+      status:normStatus(row['STATUS']||''),
+      stuffingTime:(row[stuffKey]||'').trim(),
+      jenisArmada:(()=>{
+        const jk=Object.keys(row).find(k=>k.trim().toUpperCase().replace(/\s+/g,' ')==='JENIS ARMADA'||k.trim().toUpperCase()==='JENISARMADA');
+        return jk?(row[jk]||'').trim():'';
+      })(),
+      area:(row['AREA']||'').trim(),
+    }));
+    document.getElementById('last-update').textContent='Update: '+new Date().toLocaleTimeString('id-ID');
+    populateOpts();autoDate();applyFilters();
+    await loadProdData();
+  }catch(e){
+    const eb=document.getElementById('error-banner');
+    eb.style.display='block';
+    eb.textContent='Gagal memuat data: '+e.message+'. Pastikan Google Sheets sudah di-publish ke web.';
+  }
+  ri.classList.remove('spin');
+  document.getElementById('loading-overlay').style.display='none';
+}
+
+function setOpts(id,vals,all){
+  const s=document.getElementById(id),cv=s.value;
+  s.innerHTML=`<option value="ALL">${all}</option>`+vals.map(v=>`<option value="${v}">${v}</option>`).join('');
+  if(cv&&cv!=='ALL')s.value=cv;
+}
+
+function populateOpts(){
+  setOpts('f-area',[...new Set(allData.map(r=>r.area).filter(Boolean))].sort(),'Semua Area');
+  setOpts('f-armada',[...new Set(allData.map(r=>r.jenisArmada).filter(Boolean))].sort(),'All Armada');
+  setOpts('t-shipping',[...new Set(allData.map(r=>r.shippingLine).filter(Boolean))].sort(),'Shipping Line ▾');
+  setOpts('t-carrier',[...new Set(allData.map(r=>r.carrier).filter(Boolean))].sort(),'Carrier ▾');
+}
+
+function autoDate(){
+  const dates=[...new Set(allData.map(r=>parseDate(r.tanggal)).filter(Boolean))].sort().reverse();
+  const fi=document.getElementById('f-date');
+  if(dates.length&&!fi.value)fi.value=dates[0];
+}
+
+function applyFilters(){
+  const dv=document.getElementById('f-date').value;
+  const sh=document.getElementById('f-shift').value;
+  const ar=document.getElementById('f-area').value;
+  const am=document.getElementById('f-armada').value;
+  filtered=allData.filter(r=>{
+    if(dv&&parseDate(r.tanggal)!==dv)return false;
+    if(sh!=='ALL'&&r.shift!==sh)return false;
+    if(ar!=='ALL'&&r.area!==ar)return false;
+    if(am!=='ALL'&&r.jenisArmada!==am)return false;
+    return true;
+  });
+  currentPage=1;renderAll();renderProd();
+}
+
+function renderAll(){renderKPI();renderDonut();renderSummary();renderTable();}
+
+function renderKPI(){
+  const d=filtered,total=d.length;
+  const selesai=d.filter(r=>r.status==='SELESAI').length;
+  const proses=d.filter(r=>r.status==='PROSES').length;
+  const antri=d.filter(r=>r.status==='ANTRI').length;
+  const belum=d.filter(r=>r.status==='BELUM DATANG').length;
+  const pct=n=>total>0?Math.round(n/total*100):0;
+  document.getElementById('kpi-row').innerHTML=`
+    <div class="kpi-card total">
+      <div><div class="kpi-label">Total Armada</div></div>
+      <div class="kpi-value">${total}</div>
+      <div class="kpi-truck">🚛</div>
+    </div>
+    <div class="kpi-card belum">
+      <div class="kpi-top"><div class="kpi-label">Belum Datang</div><div class="kpi-icon">⚠️</div></div>
+      <div class="kpi-value">${belum}</div>
+      <div class="kpi-bottom"><span class="kpi-badge">▲ ${pct(belum)}%</span><span class="kpi-badge2">${pct(belum)}%</span></div>
+    </div>
+    <div class="kpi-card antri-org">
+      <div class="kpi-top"><div class="kpi-label">Antri</div><div class="kpi-icon">⬇️</div></div>
+      <div class="kpi-value">${antri}</div>
+      <div class="kpi-bottom"><span class="kpi-badge">▲ ${pct(antri)}%</span><span class="kpi-badge2">${pct(antri)}%</span></div>
+    </div>
+    <div class="kpi-card proses">
+      <div class="kpi-top"><div class="kpi-label">Proses</div><div class="kpi-icon">▶️</div></div>
+      <div class="kpi-value">${proses}</div>
+      <div class="kpi-bottom"><span class="kpi-badge">▲ ${pct(proses)}%</span><span class="kpi-badge2">${pct(proses)}%</span></div>
+    </div>
+    <div class="kpi-card selesai">
+      <div class="kpi-top"><div class="kpi-label">Selesai</div><div class="kpi-icon">✅</div></div>
+      <div class="kpi-value">${selesai}</div>
+      <div class="kpi-bottom"><span class="kpi-badge">▲ ${pct(selesai)}%</span><span class="kpi-badge2">${pct(selesai)}%</span></div>
+    </div>`;
+}
+
+function renderDonut(){
+  const d=filtered,total=d.length;
+  const selesai=d.filter(r=>r.status==='SELESAI').length;
+  const proses=d.filter(r=>r.status==='PROSES').length;
+  const antri=d.filter(r=>r.status==='ANTRI').length;
+  const belum=d.filter(r=>r.status==='BELUM DATANG').length;
+  const pct=n=>total>0?Math.round(n/total*100):0;
+  document.getElementById('donut-total').textContent=total;
+  document.getElementById('donut-legend').innerHTML=[
+    {l:'BELUM DATANG',n:belum,c:'#e53935'},
+    {l:'ANTRI',n:antri,c:'#f57c00'},
+    {l:'PROSES',n:proses,c:'#1976d2'},
+    {l:'SELESAI',n:selesai,c:'#388e3c'},
+  ].map(x=>`<div class="legend-row"><span class="legend-dot" style="background:${x.c}"></span><span class="legend-label">${x.l}</span><span class="legend-count">${x.n}</span></div>`).join('');
+  const p=pct(selesai);
+  document.getElementById('prog-mini-pct').textContent=p+'%';
+  document.getElementById('prog-mini-fill').style.width=p+'%';
+  document.getElementById('prog-mini-pct2').textContent=p+'%';
+  if(donutChart)donutChart.destroy();
+  donutChart=new Chart(document.getElementById('donutChart').getContext('2d'),{
+    type:'doughnut',
+    data:{labels:['Belum Datang','Antri','Proses','Selesai'],datasets:[{data:[belum,antri,proses,selesai],backgroundColor:['#e53935','#f57c00','#1976d2','#388e3c'],borderWidth:3,borderColor:'#fff',hoverOffset:4}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+ctx.parsed}}}}
+  });
+}
+
+function getBatch(stuffingTime){
+  if(!stuffingTime)return null;
+  // Parse jam dari stuffing time (format: "8:00:00", "08:00", "8:00", "13:00:00", dll)
+  const parts=stuffingTime.split(':');
+  if(!parts.length)return null;
+  const hour=parseInt(parts[0],10);
+  if(isNaN(hour))return null;
+  if(hour>=8&&hour<13)return'BATCH 1';
+  if(hour>=13&&hour<16)return'BATCH 2';
+  if(hour>=16&&hour<19)return'BATCH 3';
+  if(hour>=19||hour<8)return'BATCH 4';
+  return null;
+}
+
+function renderSummary(){
+  const d=filtered,total=d.length;
+  const selesai=d.filter(r=>r.status==='SELESAI').length;
+  const pct=total>0?Math.round(selesai/total*100):0;
+  const batches=[
+    {label:'BATCH 1',cls:'b1'},
+    {label:'BATCH 2',cls:'b2'},
+    {label:'BATCH 3',cls:'b3'},
+    {label:'BATCH 4',cls:'b4'},
+  ];
+  document.getElementById('sum-tbody').innerHTML=batches.map(b=>{
+    const bd=d.filter(r=>getBatch(r.stuffingTime)===b.label);
+    const armadaCount=bd.filter(r=>r.transno).length;
+    const sumCaseId=bd.reduce((a,r)=>a+r.caseIdNum,0);
+    const sumCBM=bd.reduce((a,r)=>a+r.totalCBM,0);
+    return`<tr>
+      <td><span class="shift-pill ${b.cls}">${b.label}</span></td>
+      <td><strong>${armadaCount||'-'}</strong></td>
+      <td><strong>${sumCaseId>0?Math.round(sumCaseId):'-'}</strong></td>
+      <td><strong>${sumCBM>0?sumCBM.toFixed(2):'-'}</strong></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('prog-pct-main').textContent=pct+'%';
+  document.getElementById('prog-fill-main').style.width=pct+'%';
+  document.getElementById('prog-armada-lbl').innerHTML=`<strong>${selesai} / ${total}</strong> <span>Armada Selesai</span>`;
+}
+
+function toggleBatchDropdown(e){
+  e.stopPropagation();
+  document.getElementById('batch-dropdown').classList.toggle('open');
+}
+document.addEventListener('click',()=>{
+  const dd=document.getElementById('batch-dropdown');
+  if(dd)dd.classList.remove('open');
+});
+function onBatchAllChange(cb){
+  document.querySelectorAll('.batch-cb').forEach(c=>c.checked=cb.checked);
+  updateBatchBtn();goPage(1);renderTable();
+}
+function onBatchCbChange(){
+  const cbs=[...document.querySelectorAll('.batch-cb')];
+  document.getElementById('batch-all').checked=cbs.every(c=>c.checked);
+  updateBatchBtn();goPage(1);renderTable();
+}
+function updateBatchBtn(){
+  const selected=[...document.querySelectorAll('.batch-cb')].filter(c=>c.checked);
+  const all=document.getElementById('batch-all').checked;
+  const btn=document.querySelector('.batch-filter-btn');
+  btn.classList.toggle('active',!all);
+  btn.textContent=(all?'Batch':selected.map(c=>c.value.replace('BATCH ','')).join(',')+'▾')+' ▾';
+}
+function getSelectedBatches(){
+  if(document.getElementById('batch-all').checked)return null;
+  const sel=[...document.querySelectorAll('.batch-cb')].filter(c=>c.checked).map(c=>c.value);
+  return sel.length?sel:null;
+}
+function getTableData(){
+  let d=[...filtered];
+  const q=document.getElementById('search-input').value.toLowerCase();
+  const st=document.getElementById('t-status').value;
+  const sh=document.getElementById('t-shipping').value;
+  const ca=document.getElementById('t-carrier').value;
+  const batches=getSelectedBatches();
+  if(q)d=d.filter(r=>[r.transno,r.caseid,r.shippingLine,r.carrier,r.area,r.jenisArmada].some(v=>v.toLowerCase().includes(q)));
+  if(st!=='ALL')d=d.filter(r=>r.status===st);
+  if(sh!=='ALL')d=d.filter(r=>r.shippingLine===sh);
+  if(ca!=='ALL')d=d.filter(r=>r.carrier===ca);
+  if(batches)d=d.filter(r=>batches.includes(getBatch(r.stuffingTime)));
+  if(sortCol)d.sort((a,b)=>String(a[sortCol]).localeCompare(String(b[sortCol]))*sortDir);
+  return d;
+}
+
+function sortBy(col){if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=1;}renderTable();}
+
+function goPage(p){currentPage=p;renderTable();}
+
+function renderTable(){
+  const d=getTableData();
+  const tp=Math.max(1,Math.ceil(d.length/PAGE_SIZE));
+  if(currentPage>tp)currentPage=1;
+  const start=(currentPage-1)*PAGE_SIZE;
+  const page=d.slice(start,start+PAGE_SIZE);
+  const smap={'SELESAI':'sp-selesai','PROSES':'sp-proses','ANTRI':'sp-antri','BELUM DATANG':'sp-belum'};
+  const getStatusBadge=(r)=>{
+    const cls=smap[r.status]||'';
+    const raw=r.statusRaw||r.status;
+    const lbl=raw==='KELUAR DC'?'KELUAR DC':(r.status==='SELESAI'?'SELESAI':r.status==='PROSES'?'PROSES':r.status==='ANTRI'?'ANTRI':'BELUM DATANG');
+    return`<span class="status-pill ${cls}">${lbl}</span>`;
+  };
+  document.getElementById('table-body').innerHTML=page.length===0
+    ?'<tr class="no-data-row"><td colspan="12">Tidak ada data</td></tr>'
+    :page.map(r=>`<tr>
+      <td>${r.tanggal}</td>
+      <td><span class="shift-pill ${r.shift==='SHIFT 1'?'s1':'s2'}">${r.shift}</span></td>
+      <td>${r.transno}</td>
+      <td style="max-width:170px;overflow:hidden;text-overflow:ellipsis">${r.shippingLine}</td>
+      <td>${r.carrier}</td>
+      <td>${getStatusBadge(r)}</td>
+      <td><span class="stuffing-val">${r.stuffingTime||'-'}</span></td>
+      <td>${r.jenisArmada||'-'}</td>
+      <td>${r.totalCBM.toFixed(2)}</td>
+      <td>${r.pc>0?r.pc+'%':'-'}</td>
+      <td>${r.ld>0?r.ld+'%':'-'}</td>
+      <td>${r.area}</td>
+    </tr>`).join('');
+
+  let pg=`<span>${Math.min(start+1,d.length)} ${Math.min(start+PAGE_SIZE,d.length)} / ${d.length}</span>`;
+  pg+=`<button class="pg-btn" onclick="goPage(${currentPage-1})" ${currentPage<=1?'disabled':''}>‹</button>`;
+  const maxPg=Math.min(tp,5);
+  for(let p=1;p<=maxPg;p++)pg+=`<button class="pg-btn${p===currentPage?' active':''}" onclick="goPage(${p})">${p}</button>`;
+  if(tp>5&&currentPage<tp)pg+=`<button class="pg-btn${currentPage===tp?' active':''}" onclick="goPage(${tp})">${tp}</button>`;
+  pg+=`<button class="pg-btn pg-next" onclick="goPage(${currentPage+1})" ${currentPage>=tp?'disabled':''}>Next</button>`;
+  document.getElementById('pagination').innerHTML=pg;
+}
+
+loadData();
+setInterval(loadData,5*60*1000);
+
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar');
+  const cw=document.getElementById('content-wrapper');
+  sb.classList.toggle('collapsed');
+  cw.classList.toggle('expanded');
+  localStorage.setItem('sb_collapsed', sb.classList.contains('collapsed')?'1':'0');
+}
+
+function showPage(name, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
+  const pg=document.getElementById('page-'+name);
+  if(pg)pg.classList.add('active');
+  if(el)el.classList.add('active');
+  if(name==='productivity') renderProd();
+}
+
+// Restore sidebar state
+(function(){
+  const collapsed=localStorage.getItem('sb_collapsed')==='1';
+  if(collapsed){
+    document.getElementById('sidebar').classList.add('collapsed');
+    document.getElementById('content-wrapper').classList.add('expanded');
+  }
+})();
+
+</script>
+</body>
+</html>
