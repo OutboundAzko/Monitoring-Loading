@@ -213,12 +213,12 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
 .sidebar.collapsed .sidebar-bottom{padding:12px 8px}
 
 /* ── MAIN CONTENT WRAPPER ── */
-.content-wrapper{flex:1;margin-left:240px;transition:margin-left 0.25s ease;min-width:0;display:block;overflow-y:auto}
+.content-wrapper{flex:1;margin-left:240px;transition:margin-left 0.25s ease;min-width:0;background:var(--bg)}
 .content-wrapper.expanded{margin-left:64px}
 
 /* ── PAGE ── */
-.page{display:none;flex-direction:column;width:100%;min-height:100%}
-.page.active{display:flex;flex-direction:column}
+.page{display:none;width:100%}
+.page.active{display:block}
 
 /* ── HEADER FIX ── */
 .header{position:sticky;top:0;z-index:200}
@@ -242,11 +242,11 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
   </div>
   <div class="sidebar-menu">
     <div class="sidebar-section">Menu</div>
-    <a class="menu-item active" onclick="showPage('monitoring', this)" href="#">
+    <a class="menu-item active" onclick="showPage('monitoring', this);return false;" href="javascript:void(0)">
       <span class="mi-icon">📦</span>
       <span class="mi-label">Monitoring Loading</span>
     </a>
-    <a class="menu-item" onclick="showPage('productivity', this)" href="#">
+    <a class="menu-item" onclick="showPage('productivity', this);return false;" href="javascript:void(0)">
       <span class="mi-icon">📊</span>
       <span class="mi-label">Produktivitas MPP</span>
     </a>
