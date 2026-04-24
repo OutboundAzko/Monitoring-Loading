@@ -159,7 +159,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
         <label>Filter Nama:</label>
         <select id="loader-name" onchange="renderLoader()"><option value="ALL">Semua Orang</option></select>
         <label>Filter Tanggal:</label>
-        <input type="date" id="loader-date" onchange="renderLoader()">
+        <select id="loader-date" onchange="renderLoader()" style="min-width:140px">
+          <option value="">Semua Tanggal</option>
+        </select>
         <button class="btn btn-secondary" onclick="resetLoader()">Reset</button>
       </div>
       <div class="grid-2">
@@ -287,6 +289,15 @@ async function loadLoader(){
   const names=[...new Set(loaderData.flatMap(r=>r.people))].filter(Boolean).sort();
   const sel=document.getElementById('loader-name');
   sel.innerHTML='<option value="ALL">Semua Orang</option>'+names.map(n=>`<option value="${n}">${n}</option>`).join('');
+  // Populate tanggal
+  const dates=[...new Set(loaderData.map(r=>r.tgl))].sort((a,b)=>{
+    const mo={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+    const pa=a.split('-'),pb=b.split('-');
+    const ya=pa[2]?parseInt(pa[2]):2026,yb=pb[2]?parseInt(pb[2]):2026;
+    return ya*10000+(mo[pa[1]]||0)*100+parseInt(pa[0])-(yb*10000+(mo[pb[1]]||0)*100+parseInt(pb[0]));
+  });
+  const dateSel=document.getElementById('loader-date');
+  dateSel.innerHTML='<option value="">Semua Tanggal</option>'+dates.map(d=>`<option value="${d}">${d}</option>`).join('');
 }
 
 async function loadChecker(){
