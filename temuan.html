@@ -22,28 +22,34 @@
 body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh;display:flex}
 
 /* SIDEBAR */
-.sidebar{width:240px;background:var(--navy);flex-shrink:0;display:flex;flex-direction:column;height:100vh;position:fixed;top:0;left:0;z-index:100;transition:width .25s}
+.sidebar{width:240px;background:#1a1f36;flex-shrink:0;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:300;transition:width 0.25s ease}
 .sidebar.collapsed{width:64px}
-.sidebar-logo{padding:0 20px;height:64px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.sidebar-logo{padding:0 20px;height:64px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0}
+.sidebar-logo-icon{width:34px;height:34px;border-radius:8px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:white;flex-shrink:0}
+.sidebar-logo-text{font-size:13px;font-weight:700;color:white;line-height:1.3;white-space:nowrap;overflow:hidden}
+.sidebar-logo-text span{display:block;font-size:10px;font-weight:400;color:rgba(255,255,255,0.45);margin-top:1px}
+.sidebar-toggle{margin-left:auto;width:26px;height:26px;border-radius:6px;background:rgba(255,255,255,0.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.6);font-size:13px;flex-shrink:0;transition:background 0.15s}
+.sidebar-toggle:hover{background:rgba(255,255,255,0.15)}
+.sidebar-section{padding:16px 12px 8px;font-size:10px;font-weight:700;letter-spacing:0.1em;color:rgba(255,255,255,0.3);text-transform:uppercase;white-space:nowrap;overflow:hidden}
+.sidebar.collapsed .sidebar-section{opacity:0}
+.sidebar-menu{flex:1;overflow-y:auto;overflow-x:hidden;padding:4px 8px}
+.sidebar-menu::-webkit-scrollbar{width:4px}
+.sidebar-menu::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+.menu-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background 0.15s;margin-bottom:2px;text-decoration:none;white-space:nowrap;overflow:hidden}
+.menu-item:hover{background:rgba(255,255,255,0.08)}
+.menu-item.active{background:var(--blue)}
+.menu-item .mi-icon{font-size:16px;flex-shrink:0;width:20px;text-align:center}
+.menu-item .mi-label{font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);white-space:nowrap;overflow:hidden}
+.menu-item.active .mi-label{color:white;font-weight:600}
+.sidebar-bottom{padding:12px 8px;border-top:1px solid rgba(255,255,255,0.08)}
+.sidebar.collapsed .mi-label,.sidebar.collapsed .sidebar-logo-text,.sidebar.collapsed .sidebar-section{display:none}
 .sidebar.collapsed .sidebar-logo{padding:0 15px;justify-content:center}
-.logo-icon{width:34px;height:34px;border-radius:8px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:14px;flex-shrink:0}
-.logo-text{font-size:13px;font-weight:700;color:#fff;line-height:1.3;white-space:nowrap;overflow:hidden}
-.logo-text span{display:block;font-size:10px;font-weight:400;color:rgba(255,255,255,.45);margin-top:1px}
-.sidebar.collapsed .logo-text{display:none}
-.toggle-btn{margin-left:auto;width:26px;height:26px;border-radius:6px;background:rgba(255,255,255,.08);border:none;cursor:pointer;color:rgba(255,255,255,.6);font-size:13px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-.sidebar.collapsed .toggle-btn{margin:0}
-.sidebar-menu{flex:1;padding:8px;overflow:hidden}
-.menu-section{padding:12px 12px 6px;font-size:10px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.3);text-transform:uppercase;white-space:nowrap;overflow:hidden}
-.sidebar.collapsed .menu-section{opacity:0}
-.menu-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:2px;color:rgba(255,255,255,.7);font-size:13px;font-weight:500;text-decoration:none;transition:background .15s;white-space:nowrap;overflow:hidden}
-.menu-item:hover{background:rgba(255,255,255,.08)}
-.menu-item.active{background:var(--blue);color:#fff;font-weight:600}
-.menu-item .icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
-.menu-item .label{overflow:hidden}
-.sidebar.collapsed .label{display:none}
+.sidebar.collapsed .sidebar-logo-icon{margin:0}
+.sidebar.collapsed .menu-item{justify-content:center;padding:10px}
+.sidebar.collapsed .sidebar-bottom{padding:12px 8px}
 
 /* MAIN */
-.main{margin-left:240px;flex:1;display:flex;flex-direction:column;min-height:100vh;transition:margin-left .25s}
+.main{margin-left:240px;flex:1;display:flex;flex-direction:column;min-height:100vh;transition:margin-left 0.25s ease}
 .main.expanded{margin-left:64px}
 
 /* HEADER */
@@ -127,15 +133,30 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 <!-- SIDEBAR -->
 <nav class="sidebar" id="sidebar">
   <div class="sidebar-logo">
-    <div class="logo-icon">OB</div>
-    <div class="logo-text">Outbound WH<span>Operational System</span></div>
-    <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+    <div class="sidebar-logo-icon">OB</div>
+    <div class="sidebar-logo-text">Outbound WH<span>Operational System</span></div>
+    <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
   </div>
   <div class="sidebar-menu">
-    <div class="menu-section">Menu</div>
-    <a class="menu-item" href="index.html"><span class="icon">📦</span><span class="label">Monitoring Loading</span></a>
-    <a class="menu-item" href="produktivitas.html"><span class="icon">📊</span><span class="label">Produktivitas MPP</span></a>
-    <a class="menu-item active" href="temuan.html"><span class="icon">🔍</span><span class="label">Temuan Penyimpangan</span></a>
+    <div class="sidebar-section">Menu</div>
+    <a class="menu-item" href="index.html">
+      <span class="mi-icon">📦</span>
+      <span class="mi-label">Monitoring Loading</span>
+    </a>
+    <a class="menu-item" href="produktivitas.html">
+      <span class="mi-icon">📊</span>
+      <span class="mi-label">Produktivitas MPP</span>
+    </a>
+    <a class="menu-item active" href="temuan.html">
+      <span class="mi-icon">🔍</span>
+      <span class="mi-label">Temuan Penyimpangan</span>
+    </a>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="menu-item" style="cursor:default">
+      <span class="mi-icon">👤</span>
+      <span class="mi-label" style="font-size:12px;color:rgba(255,255,255,0.5)">Admin</span>
+    </div>
   </div>
 </nav>
 
@@ -260,9 +281,21 @@ let trendChart=null, temuanChart=null, areaChart=null, trendTemuanChart=null;
 
 // ── SIDEBAR ──
 function toggleSidebar(){
-  document.getElementById('sidebar').classList.toggle('collapsed');
-  document.getElementById('main').classList.toggle('expanded');
+  const sb=document.getElementById('sidebar');
+  const mn=document.getElementById('main');
+  sb.classList.toggle('collapsed');
+  mn.classList.toggle('expanded');
+  localStorage.setItem('sb_collapsed', sb.classList.contains('collapsed')?'1':'0');
 }
+
+// Restore sidebar state
+(function(){
+  const collapsed=localStorage.getItem('sb_collapsed')==='1';
+  if(collapsed){
+    document.getElementById('sidebar').classList.add('collapsed');
+    document.getElementById('main').classList.add('expanded');
+  }
+})();
 
 // ── LOAD DATA ──
 async function loadData(){
