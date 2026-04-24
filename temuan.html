@@ -3,73 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Temuan Penyimpangan Dashboard</title>
+<title>Outbound WH Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-:root{--font:'Plus Jakarta Sans',system-ui,sans-serif;--bg:#f4f6fb;--surface:#fff;--border:#e8ecf4;--text:#1c2234;--text2:#5a6480;--text3:#9aa0b4;--radius:14px;--radius-sm:8px;--shadow:0 1px 4px rgba(28,34,52,.08);--shadow-md:0 4px 16px rgba(28,34,52,.10);--c-blue:#1a56db;--c-green:#2e7d32}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font);background:var(--bg);color:var(--text)}
-.header{background:#fff;border-bottom:1px solid var(--border);padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:2}
-.header-title{font-weight:800}
-.filter-bar{background:#fff;border-bottom:1px solid var(--border);padding:12px 28px;display:flex;gap:10px;flex-wrap:wrap}
-.filter-bar select,.filter-bar input{padding:8px;border:1px solid var(--border);border-radius:8px}
-main{padding:20px 28px;max-width:1500px;margin:auto}
-.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:20px}
-.kpi{background:#fff;border-radius:14px;padding:16px;border:1px solid var(--border)}
-.kpi h4{font-size:11px;color:var(--text3)}
-.kpi h2{font-size:28px}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
-.card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:20px}
+:root{--font:'Plus Jakarta Sans',system-ui,sans-serif;--bg:#f4f6fb;--surface:#fff;--border:#e8ecf4;--text:#1c2234;--text2:#5a6480;--text3:#9aa0b4;--radius:14px}
+body{font-family:var(--font);background:var(--bg);display:flex}
+.sidebar{width:240px;background:#1a1f36;color:#fff;height:100vh;padding:16px;position:fixed}
+.menu-item{padding:10px;border-radius:8px;cursor:pointer;margin-bottom:6px}
+.menu-item:hover{background:rgba(255,255,255,.1)}
+.menu-item.active{background:#1a56db}
+.main{margin-left:240px;flex:1}
+.header{background:#fff;padding:16px 24px;border-bottom:1px solid var(--border);font-weight:700}
+.content{padding:20px}
+.page{display:none}
+.page.active{display:block}
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:#fff;padding:14px;border-radius:10px;border:1px solid var(--border)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.card{background:#fff;padding:16px;border-radius:10px;border:1px solid var(--border)}
 .chart{height:260px}
-.table{background:#fff;border-radius:14px;border:1px solid var(--border)}
-.table table{width:100%;border-collapse:collapse}
-.table th,.table td{padding:10px;border-bottom:1px solid var(--border);font-size:12px}
 </style>
 </head>
 <body>
 
-<header class="header">
-  <div class="header-title">Temuan Penyimpangan Dashboard</div>
-</header>
-
-<div class="filter-bar">
-  <input type="date" id="f-date">
-  <select id="f-shift"><option value="ALL">Semua Shift</option></select>
-  <select id="f-area"><option value="ALL">Semua Area</option></select>
-  <button onclick="applyFilters()">Apply</button>
+<div class="sidebar">
+  <div class="menu-item active" onclick="showPage('monitoring')">📦 Monitoring</div>
+  <div class="menu-item" onclick="showPage('produktivitas')">📊 Produktivitas</div>
+  <div class="menu-item" onclick="showPage('temuan')">🚨 Temuan</div>
 </div>
 
-<main>
-  <div class="kpi-row" id="kpi"></div>
+<div class="main">
+  <div class="header">Outbound Dashboard</div>
+  <div class="content">
 
-  <div class="row">
-    <div class="card"><canvas id="donut" class="chart"></canvas></div>
-    <div class="card"><canvas id="trend" class="chart"></canvas></div>
-  </div>
+    <div id="page-monitoring" class="page active">
+      <h3>Monitoring Loading (placeholder)</h3>
+    </div>
 
-  <div class="row">
-    <div class="card"><canvas id="picker" class="chart"></canvas></div>
-    <div class="card"><canvas id="checker" class="chart"></canvas></div>
-  </div>
+    <div id="page-produktivitas" class="page">
+      <h3>Produktivitas MPP (placeholder)</h3>
+    </div>
 
-  <div class="row">
-    <div class="card"><canvas id="sku" class="chart"></canvas></div>
-    <div class="card"><canvas id="area" class="chart"></canvas></div>
-  </div>
+    <div id="page-temuan" class="page">
+      <div class="kpi-row" id="kpi"></div>
 
-  <div class="table">
-    <table>
-      <thead><tr><th>TGL</th><th>SHIFT</th><th>PICKER</th><th>CHECKER</th><th>AREA</th><th>TEMUAN</th></tr></thead>
-      <tbody id="tbody"></tbody>
-    </table>
+      <div class="row">
+        <div class="card"><canvas id="donut" class="chart"></canvas></div>
+        <div class="card"><canvas id="trend" class="chart"></canvas></div>
+      </div>
+
+      <div class="row">
+        <div class="card"><canvas id="picker" class="chart"></canvas></div>
+        <div class="card"><canvas id="checker" class="chart"></canvas></div>
+      </div>
+
+      <div class="row">
+        <div class="card"><canvas id="sku" class="chart"></canvas></div>
+        <div class="card"><canvas id="area" class="chart"></canvas></div>
+      </div>
+    </div>
+
   </div>
-</main>
+</div>
 
 <script>
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelectorAll('.menu-item').forEach(x=>x.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
 const URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vT1YwOyPQa1twBR3ms6LrmdxwMeGJ8K3xLmYsPkoO6g5ngC6F5ZhpJhwNPx8_cNhzbszqcIhAR-vGxf/pub?gid=873262577&single=true&output=csv';
-let data=[],filtered=[];
+let data=[],charts={};
 
 function groupBy(arr,key){return arr.reduce((a,x)=>{const k=x[key]||'UNKNOWN';a[k]=(a[k]||0)+1;return a;},{});} 
 
@@ -77,54 +86,38 @@ async function load(){
   const res=await fetch(URL);
   const txt=await res.text();
   const parsed=Papa.parse(txt,{header:true}).data;
-  data=parsed.map(r=>({
-    tgl:r['TGL'],shift:r['SHIFT'],picker:r['NAMA PICKER'],checker:r['USER CHECKER'],area:r['AREA'],temuan:r['TEMUAN PENYIMPANGAN'],sku:r['SKU']
-  }));
-  filtered=[...data];
-  render();
-}
 
-function applyFilters(){
-  const d=document.getElementById('f-date').value;
-  const s=document.getElementById('f-shift').value;
-  const a=document.getElementById('f-area').value;
-  filtered=data.filter(x=>{
-    if(d && x.tgl!==d) return false;
-    if(s!=='ALL' && x.shift!==s) return false;
-    if(a!=='ALL' && x.area!==a) return false;
-    return true;
-  });
+  data=parsed.map(r=>({
+    tgl:(r['TGL']||'').trim(),
+    shift:(r['SHIFT']||'').trim(),
+    picker:(r['NAMA PICKER']||'').trim(),
+    checker:(r['USER CHECKER']||'').trim(),
+    area:(r['AREA']||'').trim(),
+    temuan:(r['TEMUAN PENYIMPANGAN']||'').trim(),
+    sku:(r['SKU']||'').trim()
+  })).filter(x=>x.temuan);
+
   render();
 }
 
 function render(){
-  renderKPI();renderDonut();renderTrend();renderBar('picker','picker');renderBar('checker','checker');renderBar('sku','sku');renderBar('area','area');renderTable();
+  const g=groupBy(data,'temuan');
+  document.getElementById('kpi').innerHTML=Object.entries(g).map(([k,v])=>`<div class='kpi'><div>${k}</div><h2>${v}</h2></div>`).join('');
+
+  makeChart('donut','doughnut',groupBy(data,'temuan'));
+  makeChart('trend','line',groupBy(data,'tgl'));
+  makeChart('picker','bar',groupBy(data,'picker'));
+  makeChart('checker','bar',groupBy(data,'checker'));
+  makeChart('sku','bar',groupBy(data,'sku'));
+  makeChart('area','bar',groupBy(data,'area'));
 }
 
-function renderKPI(){
-  const g=groupBy(filtered,'temuan');
-  const el=document.getElementById('kpi');
-  el.innerHTML=Object.entries(g).map(([k,v])=>`<div class='kpi'><h4>${k}</h4><h2>${v}</h2></div>`).join('');
-}
-
-function renderDonut(){
-  const g=groupBy(filtered,'temuan');
-  new Chart(document.getElementById('donut'),{type:'doughnut',data:{labels:Object.keys(g),datasets:[{data:Object.values(g)}]}});
-}
-
-function renderTrend(){
-  const g=groupBy(filtered,'tgl');
-  new Chart(document.getElementById('trend'),{type:'line',data:{labels:Object.keys(g),datasets:[{data:Object.values(g)}]}});
-}
-
-function renderBar(id,key){
-  const g=groupBy(filtered,key);
-  const sorted=Object.entries(g).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  new Chart(document.getElementById(id),{type:'bar',data:{labels:sorted.map(x=>x[0]),datasets:[{data:sorted.map(x=>x[1])}]}});
-}
-
-function renderTable(){
-  document.getElementById('tbody').innerHTML=filtered.map(r=>`<tr><td>${r.tgl}</td><td>${r.shift}</td><td>${r.picker}</td><td>${r.checker}</td><td>${r.area}</td><td>${r.temuan}</td></tr>`).join('');
+function makeChart(id,type,obj){
+  if(charts[id]) charts[id].destroy();
+  charts[id]=new Chart(document.getElementById(id),{
+    type:type,
+    data:{labels:Object.keys(obj),datasets:[{data:Object.values(obj)}]}
+  });
 }
 
 load();
