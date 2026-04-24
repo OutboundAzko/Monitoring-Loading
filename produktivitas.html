@@ -196,6 +196,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       <div class="inner-filter">
         <label>Filter Nama:</label>
         <select id="checker-name" onchange="renderChecker()"><option value="ALL">Semua Orang</option></select>
+        <label>Filter Tanggal:</label>
+        <select id="checker-date" onchange="renderChecker()" style="min-width:140px">
+          <option value="">Semua Tanggal</option>
+        </select>
         <button class="btn btn-secondary" onclick="resetChecker()">Reset</button>
       </div>
       <div class="grid-2">
@@ -333,6 +337,14 @@ async function loadChecker(){
 
   const sel=document.getElementById('checker-name');
   sel.innerHTML='<option value="ALL">Semua Orang</option>'+checkerData.map(p=>`<option value="${p.nama}">${p.nama}</option>`).join('');
+  // Populate tanggal checker
+  const allDatesChecker=[...new Set(checkerData.flatMap(p=>Object.keys(p.daily)))].sort((a,b)=>{
+    const mo={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+    const pa=a.split('-'),pb=b.split('-');
+    return(mo[pa[1]]||0)*100+parseInt(pa[0])-(mo[pb[1]]||0)*100-parseInt(pb[0]);
+  });
+  const dateSel=document.getElementById('checker-date');
+  if(dateSel)dateSel.innerHTML='<option value="">Semua Tanggal</option>'+allDatesChecker.map(d=>`<option value="${d}">${d}</option>`).join('');
 }
 
 // ── RENDER LOADER ──
@@ -404,7 +416,19 @@ function renderLoader(){
 // ── RENDER CHECKER ──
 function renderChecker(){
   const fName=document.getElementById('checker-name').value;
-  const persons=fName==='ALL'?checkerData:checkerData.filter(p=>p.nama===fName);
+  const fDate=document.getElementById('checker-date')?.value||'';
+
+  // Filter berdasarkan tanggal jika dipilih
+  let persons;
+  if(fDate){
+    // Hitung ulang per orang hanya untuk tanggal yang dipilih
+    persons=checkerData.map(p=>{
+      const dayVal=p.daily[fDate]||0;
+      return{...p,total:dayVal,activeDays:dayVal>0?1:0,avg:dayVal,pct:dayVal>0?Math.round(dayVal/TARGET_CASE*100):0};
+    }).filter(p=>fName==='ALL'?p.total>0:p.nama===fName);
+  } else {
+    persons=fName==='ALL'?checkerData:checkerData.filter(p=>p.nama===fName);
+  }
 
   const total=persons.reduce((a,p)=>a+p.total,0);
   const avgAll=persons.length?persons.reduce((a,p)=>a+p.avg,0)/persons.length:0;
@@ -447,7 +471,7 @@ function renderChecker(){
 }
 
 function resetLoader(){document.getElementById('loader-name').value='ALL';document.getElementById('loader-date').value='';renderLoader();}
-function resetChecker(){document.getElementById('checker-name').value='ALL';renderChecker();}
+function resetChecker(){document.getElementById('checker-name').value='ALL';const cd=document.getElementById('checker-date');if(cd)cd.value='';renderChecker();}
 function switchTab(name,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
