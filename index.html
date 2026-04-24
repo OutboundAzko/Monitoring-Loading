@@ -158,7 +158,7 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
 #loading-overlay p{font-size:14px;color:var(--text2);font-weight:500}
 #error-banner{display:none;background:#ffebee;color:#c62828;padding:12px 20px;border-radius:var(--radius-sm);margin-bottom:16px;font-size:13px;font-weight:500}
 
-/* -- PRODUKTIVITAS -- */
+/* ── PRODUKTIVITAS ── */
 .prod-section{margin-bottom:20px}
 .prod-section-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .prod-section-title .dot{width:8px;height:8px;border-radius:50%;background:#7c3aed;flex-shrink:0}
@@ -183,7 +183,7 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
 .plan-val{font-weight:700;color:#374151}
 .batch-ref{font-size:11px;color:var(--text3);margin-top:2px}
 
-/* -- SIDEBAR -- */
+/* ── SIDEBAR ── */
 .app-layout{display:flex;min-height:100vh;background:var(--bg)}
 .sidebar{width:240px;background:#1a1f36;flex-shrink:0;display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:300;transition:width 0.25s ease}
 .sidebar.collapsed{width:64px}
@@ -212,18 +212,18 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
 .sidebar.collapsed .menu-item{justify-content:center;padding:10px}
 .sidebar.collapsed .sidebar-bottom{padding:12px 8px}
 
-/* -- MAIN CONTENT WRAPPER -- */
+/* ── MAIN CONTENT WRAPPER ── */
 .content-wrapper{flex:1;margin-left:240px;transition:margin-left 0.25s ease;min-width:0;background:var(--bg);min-height:100vh;overflow:auto}
 .content-wrapper.expanded{margin-left:64px}
 
-/* -- PAGE -- */
+/* ── PAGE ── */
 .page{display:none;width:100%}
 .page.active{display:block;min-height:calc(100vh - 64px)}
 
-/* -- HEADER FIX -- */
+/* ── HEADER FIX ── */
 .header{position:sticky;top:0;z-index:200}
 
-/* -- PROD DASHBOARD -- */
+/* ── PROD DASHBOARD ── */
 .prod-dash-page{padding:20px 28px;max-width:1500px;margin:0 auto}
 .prod-tabs{display:flex;gap:8px;margin-bottom:20px}
 .prod-tab{padding:9px 22px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);transition:all 0.15s;font-family:var(--font)}
@@ -280,22 +280,22 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
   <div class="sidebar-logo">
     <div class="sidebar-logo-icon">OB</div>
     <div class="sidebar-logo-text">Outbound WH<span>Operational System</span></div>
-    <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">?</button>
+    <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
   </div>
   <div class="sidebar-menu">
     <div class="sidebar-section">Menu</div>
     <a class="menu-item active" onclick="showPage('monitoring', this);return false;" href="javascript:void(0)">
-      <span class="mi-icon">??</span>
+      <span class="mi-icon">📦</span>
       <span class="mi-label">Monitoring Loading</span>
     </a>
     <a class="menu-item" onclick="showPage('productivity', this);return false;" href="javascript:void(0)">
-      <span class="mi-icon">??</span>
+      <span class="mi-icon">📊</span>
       <span class="mi-label">Produktivitas MPP</span>
     </a>
   </div>
   <div class="sidebar-bottom">
     <div class="menu-item" style="cursor:default">
-      <span class="mi-icon">??</span>
+      <span class="mi-icon">👤</span>
       <span class="mi-label" style="font-size:12px;color:rgba(255,255,255,0.5)">Admin</span>
     </div>
   </div>
@@ -307,8 +307,8 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
 <header class="header">
   <div class="header-title">Outbound Warehouse Operational Dashboard</div>
   <div class="header-actions">
-    <div class="icon-btn">??</div>
-    <div class="icon-btn">??</div>
+    <div class="icon-btn">🔍</div>
+    <div class="icon-btn">🔔</div>
     <div class="avatar">AD</div>
   </div>
 </header>
@@ -325,7 +325,7 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
   <select id="f-area" class="filter-select"><option value="ALL">Semua Area</option></select>
   <select id="f-armada" class="filter-select"><option value="ALL">All Armada</option></select>
   <button class="btn-apply" onclick="applyFilters()">Apply</button>
-  <button class="btn-refresh" onclick="loadData()"><span id="ri">?</span> Refresh</button>
+  <button class="btn-refresh" onclick="loadData()"><span id="ri">↻</span> Refresh</button>
   <span id="last-update"></span>
 </div>
 
@@ -376,16 +376,16 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
         <input type="text" id="search-input" class="search-input" placeholder="Search..." oninput="goPage(1);renderTable()">
       </div>
       <select id="t-status" class="t-sel" onchange="goPage(1);renderTable()">
-        <option value="ALL">Status ?</option>
+        <option value="ALL">Status ▾</option>
         <option value="SELESAI">Selesai</option>
         <option value="PROSES">Proses</option>
         <option value="ANTRI">Antri</option>
         <option value="BELUM DATANG">Belum Datang</option>
       </select>
-      <select id="t-shipping" class="t-sel" onchange="goPage(1);renderTable()"><option value="ALL">Shipping Line ?</option></select>
-      <select id="t-carrier" class="t-sel" onchange="goPage(1);renderTable()"><option value="ALL">Carrier ?</option></select>
+      <select id="t-shipping" class="t-sel" onchange="goPage(1);renderTable()"><option value="ALL">Shipping Line ▾</option></select>
+      <select id="t-carrier" class="t-sel" onchange="goPage(1);renderTable()"><option value="ALL">Carrier ▾</option></select>
       <div class="batch-filter-wrap" id="batch-filter-wrap">
-        <button class="batch-filter-btn" onclick="toggleBatchDropdown(event)">Batch ?</button>
+        <button class="batch-filter-btn" onclick="toggleBatchDropdown(event)">Batch ▾</button>
         <div class="batch-dropdown" id="batch-dropdown">
           <label class="batch-opt"><input type="checkbox" value="ALL" id="batch-all" onchange="onBatchAllChange(this)" checked> Semua Batch</label>
           <label class="batch-opt"><input type="checkbox" value="BATCH 1" class="batch-cb" onchange="onBatchCbChange()"> BATCH 1</label>
@@ -399,12 +399,12 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
     <div class="table-wrap">
       <table>
         <thead><tr>
-          <th onclick="sortBy('tanggal')">TANGGAL MUAT ?</th>
+          <th onclick="sortBy('tanggal')">TANGGAL MUAT ↕</th>
           <th>PENYELESAIAN</th>
-          <th onclick="sortBy('transno')">TRANSNO ?</th>
+          <th onclick="sortBy('transno')">TRANSNO ↕</th>
           <th>SHIPPINGLINE</th>
           <th>CARRIER</th>
-          <th onclick="sortBy('status')">STATUS ?</th>
+          <th onclick="sortBy('status')">STATUS ↕</th>
           <th>STUFFING TIME</th>
           <th>JENIS ARMADA</th>
           <th>CBM</th>
@@ -424,7 +424,7 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
     <!-- Filter bar produktivitas -->
     <div class="filter-bar" style="position:relative;top:auto">
       <input type="date" id="f-date-prod" class="filter-date" onchange="renderProd()">
-      <button class="btn-apply" onclick="loadProdDashboard()">?? Refresh Data</button>
+      <button class="btn-apply" onclick="loadProdDashboard()">🔄 Refresh Data</button>
       <span id="prod-last-update" style="font-size:11px;color:var(--text3);margin-left:auto"></span>
     </div>
 
@@ -432,8 +432,8 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
 
       <!-- TABS -->
       <div class="prod-tabs">
-        <button class="prod-tab active" onclick="switchProdTab('loader',this)">?? Loader LD (CBM)</button>
-        <button class="prod-tab" onclick="switchProdTab('checker',this)">? Checker ST+BR (Case ID)</button>
+        <button class="prod-tab active" onclick="switchProdTab('loader',this)">📦 Loader LD (CBM)</button>
+        <button class="prod-tab" onclick="switchProdTab('checker',this)">✅ Checker ST+BR (Case ID)</button>
       </div>
 
       <!-- TAB: LOADER LD -->
@@ -451,11 +451,11 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
         <!-- Charts + Ranking -->
         <div class="prod-row-2">
           <div class="prod-card">
-            <div class="prod-card-title">?? Trend CBM/MPP Harian</div>
+            <div class="prod-card-title">📈 Trend CBM/MPP Harian</div>
             <div class="prod-chart-wrap"><canvas id="loaderTrendChart"></canvas></div>
           </div>
           <div class="prod-card">
-            <div class="prod-card-title">?? Ranking Produktivitas Loader</div>
+            <div class="prod-card-title">🏆 Ranking Produktivitas Loader</div>
             <div style="overflow-x:auto;max-height:280px;overflow-y:auto">
               <table class="prod-rank-table"><thead><tr><th>#</th><th>Nama</th><th>Total CBM</th><th>Avg/Hari</th><th>% Target</th></tr></thead>
               <tbody id="loader-rank-tbody"></tbody></table>
@@ -464,7 +464,7 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
         </div>
         <!-- Bar chart semua orang -->
         <div class="prod-full-card">
-          <div class="prod-card-title">?? Perbandingan Produktivitas Loader (CBM)</div>
+          <div class="prod-card-title">📊 Perbandingan Produktivitas Loader (CBM)</div>
           <div class="prod-bar-wrap"><canvas id="loaderBarChart"></canvas></div>
         </div>
       </div>
@@ -482,11 +482,11 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
         <!-- Charts + Ranking -->
         <div class="prod-row-2">
           <div class="prod-card">
-            <div class="prod-card-title">?? Trend Case ID/MPP Harian</div>
+            <div class="prod-card-title">📈 Trend Case ID/MPP Harian</div>
             <div class="prod-chart-wrap"><canvas id="checkerTrendChart"></canvas></div>
           </div>
           <div class="prod-card">
-            <div class="prod-card-title">?? Ranking Produktivitas Checker</div>
+            <div class="prod-card-title">🏆 Ranking Produktivitas Checker</div>
             <div style="overflow-x:auto;max-height:280px;overflow-y:auto">
               <table class="prod-rank-table"><thead><tr><th>#</th><th>Nama</th><th>Total Case ID</th><th>Avg/Hari</th><th>% Target</th></tr></thead>
               <tbody id="checker-rank-tbody"></tbody></table>
@@ -495,7 +495,7 @@ tbody td{padding:10px 13px;color:var(--text);white-space:nowrap;font-weight:500}
         </div>
         <!-- Bar chart semua orang -->
         <div class="prod-full-card">
-          <div class="prod-card-title">?? Perbandingan Produktivitas Checker (Case ID)</div>
+          <div class="prod-card-title">📊 Perbandingan Produktivitas Checker (Case ID)</div>
           <div class="prod-bar-wrap"><canvas id="checkerBarChart"></canvas></div>
         </div>
       </div>
@@ -628,8 +628,8 @@ function setOpts(id,vals,all){
 function populateOpts(){
   setOpts('f-area',[...new Set(allData.map(r=>r.area).filter(Boolean))].sort(),'Semua Area');
   setOpts('f-armada',[...new Set(allData.map(r=>r.jenisArmada).filter(Boolean))].sort(),'All Armada');
-  setOpts('t-shipping',[...new Set(allData.map(r=>r.shippingLine).filter(Boolean))].sort(),'Shipping Line ?');
-  setOpts('t-carrier',[...new Set(allData.map(r=>r.carrier).filter(Boolean))].sort(),'Carrier ?');
+  setOpts('t-shipping',[...new Set(allData.map(r=>r.shippingLine).filter(Boolean))].sort(),'Shipping Line ▾');
+  setOpts('t-carrier',[...new Set(allData.map(r=>r.carrier).filter(Boolean))].sort(),'Carrier ▾');
 }
 
 function autoDate(){
@@ -666,27 +666,27 @@ function renderKPI(){
     <div class="kpi-card total">
       <div><div class="kpi-label">Total Armada</div></div>
       <div class="kpi-value">${total}</div>
-      <div class="kpi-truck">??</div>
+      <div class="kpi-truck">🚛</div>
     </div>
     <div class="kpi-card belum">
-      <div class="kpi-top"><div class="kpi-label">Belum Datang</div><div class="kpi-icon">??</div></div>
+      <div class="kpi-top"><div class="kpi-label">Belum Datang</div><div class="kpi-icon">⚠️</div></div>
       <div class="kpi-value">${belum}</div>
-      <div class="kpi-bottom"><span class="kpi-badge">? ${pct(belum)}%</span><span class="kpi-badge2">${pct(belum)}%</span></div>
+      <div class="kpi-bottom"><span class="kpi-badge">▲ ${pct(belum)}%</span><span class="kpi-badge2">${pct(belum)}%</span></div>
     </div>
     <div class="kpi-card antri-org">
-      <div class="kpi-top"><div class="kpi-label">Antri</div><div class="kpi-icon">??</div></div>
+      <div class="kpi-top"><div class="kpi-label">Antri</div><div class="kpi-icon">⬇️</div></div>
       <div class="kpi-value">${antri}</div>
-      <div class="kpi-bottom"><span class="kpi-badge">? ${pct(antri)}%</span><span class="kpi-badge2">${pct(antri)}%</span></div>
+      <div class="kpi-bottom"><span class="kpi-badge">▲ ${pct(antri)}%</span><span class="kpi-badge2">${pct(antri)}%</span></div>
     </div>
     <div class="kpi-card proses">
-      <div class="kpi-top"><div class="kpi-label">Proses</div><div class="kpi-icon">??</div></div>
+      <div class="kpi-top"><div class="kpi-label">Proses</div><div class="kpi-icon">▶️</div></div>
       <div class="kpi-value">${proses}</div>
-      <div class="kpi-bottom"><span class="kpi-badge">? ${pct(proses)}%</span><span class="kpi-badge2">${pct(proses)}%</span></div>
+      <div class="kpi-bottom"><span class="kpi-badge">▲ ${pct(proses)}%</span><span class="kpi-badge2">${pct(proses)}%</span></div>
     </div>
     <div class="kpi-card selesai">
-      <div class="kpi-top"><div class="kpi-label">Selesai</div><div class="kpi-icon">?</div></div>
+      <div class="kpi-top"><div class="kpi-label">Selesai</div><div class="kpi-icon">✅</div></div>
       <div class="kpi-value">${selesai}</div>
-      <div class="kpi-bottom"><span class="kpi-badge">? ${pct(selesai)}%</span><span class="kpi-badge2">${pct(selesai)}%</span></div>
+      <div class="kpi-bottom"><span class="kpi-badge">▲ ${pct(selesai)}%</span><span class="kpi-badge2">${pct(selesai)}%</span></div>
     </div>`;
 }
 
@@ -779,7 +779,7 @@ function updateBatchBtn(){
   const all=document.getElementById('batch-all').checked;
   const btn=document.querySelector('.batch-filter-btn');
   btn.classList.toggle('active',!all);
-  btn.textContent=(all?'Batch':selected.map(c=>c.value.replace('BATCH ','')).join(',')+'?')+' ?';
+  btn.textContent=(all?'Batch':selected.map(c=>c.value.replace('BATCH ','')).join(',')+'▾')+' ▾';
 }
 function getSelectedBatches(){
   if(document.getElementById('batch-all').checked)return null;
@@ -848,9 +848,9 @@ function renderTable(){
 loadData();
 setInterval(loadData,5*60*1000);
 
-// -------------------------------------------
+// ═══════════════════════════════════════════
 // PROD DASHBOARD - LOADER & CHECKER
-// -------------------------------------------
+// ═══════════════════════════════════════════
 
 let loaderTrendChart=null, loaderBarChart=null, checkerTrendChart=null, checkerBarChart=null;
 const TARGET_CBM=25, TARGET_CASE=800;
@@ -1003,7 +1003,7 @@ function resetCheckerFilter(){
   renderCheckerTab();
 }
 
-// -- LOADER TAB --
+// ── LOADER TAB ──
 function renderLoaderTab(){
   console.log('[RENDER LOADER] called, loaderData:', loaderData.length);
   const loaderKpiEl=document.getElementById('loader-kpi');
@@ -1049,7 +1049,7 @@ function renderLoaderTab(){
     <div class="prod-kpi blue"><div class="prod-kpi-label">Total Loader Aktif</div><div class="prod-kpi-value">${persons.length}</div><div class="prod-kpi-sub">Orang</div></div>
     <div class="prod-kpi blue"><div class="prod-kpi-label">Total CBM</div><div class="prod-kpi-value">${totalCBM.toFixed(1)}</div><div class="prod-kpi-sub">Seluruh periode</div></div>
     <div class="prod-kpi ${avgAll>=TARGET_CBM?'good':'warn'}"><div class="prod-kpi-label">Avg CBM/MPP/Hari</div><div class="prod-kpi-value">${avgAll.toFixed(1)}</div><div class="prod-kpi-sub">Target: ${TARGET_CBM} CBM</div></div>
-    <div class="prod-kpi ${goodCount===persons.length?'good':'warn'}"><div class="prod-kpi-label">Capai Target</div><div class="prod-kpi-value">${goodCount}/${persons.length}</div><div class="prod-kpi-sub">Orang = 100%</div></div>
+    <div class="prod-kpi ${goodCount===persons.length?'good':'warn'}"><div class="prod-kpi-label">Capai Target</div><div class="prod-kpi-value">${goodCount}/${persons.length}</div><div class="prod-kpi-sub">Orang ≥ 100%</div></div>
   `;
 
   // Ranking
@@ -1120,7 +1120,7 @@ function renderLoaderTab(){
   }
 }
 
-// -- CHECKER TAB --
+// ── CHECKER TAB ──
 function renderCheckerTab(){
   if(!checkerData||checkerData.length===0)return;
   const filterName=document.getElementById('checker-filter-name')?.value||'ALL';
@@ -1135,7 +1135,7 @@ function renderCheckerTab(){
     <div class="prod-kpi blue"><div class="prod-kpi-label">Total Checker Aktif</div><div class="prod-kpi-value">${persons.length}</div><div class="prod-kpi-sub">Orang</div></div>
     <div class="prod-kpi blue"><div class="prod-kpi-label">Total Case ID</div><div class="prod-kpi-value">${totalCase.toLocaleString()}</div><div class="prod-kpi-sub">Seluruh periode</div></div>
     <div class="prod-kpi ${avgAll>=TARGET_CASE?'good':'warn'}"><div class="prod-kpi-label">Avg Case/MPP/Hari</div><div class="prod-kpi-value">${Math.round(avgAll).toLocaleString()}</div><div class="prod-kpi-sub">Target: ${TARGET_CASE.toLocaleString()}</div></div>
-    <div class="prod-kpi ${goodCount===persons.length?'good':'warn'}"><div class="prod-kpi-label">Capai Target</div><div class="prod-kpi-value">${goodCount}/${persons.length}</div><div class="prod-kpi-sub">Orang = 100%</div></div>
+    <div class="prod-kpi ${goodCount===persons.length?'good':'warn'}"><div class="prod-kpi-label">Capai Target</div><div class="prod-kpi-value">${goodCount}/${persons.length}</div><div class="prod-kpi-sub">Orang ≥ 100%</div></div>
   `;
 
   // Ranking
