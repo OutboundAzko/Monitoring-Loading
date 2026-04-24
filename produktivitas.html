@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Produktivitas MPP - Outbound WH</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --font:'Plus Jakarta Sans',system-ui,sans-serif;
+  --bg:#f4f6fb;--surface:#fff;--border:#e8ecf4;
+  --text:#1c2234;--text2:#5a6480;--text3:#9aa0b4;
+  --radius:14px;--radius-sm:8px;
+  --shadow:0 1px 4px rgba(28,34,52,.08);
+  --shadow-md:0 4px 16px rgba(28,34,52,.10);
+  --blue:#1a56db;--green:#2e7d32;--orange:#e65100;--red:#c62828;
+  --navy:#1a1f36;
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh;display:flex}
+
+/* SIDEBAR */
+.sidebar{width:240px;background:var(--navy);flex-shrink:0;display:flex;flex-direction:column;height:100vh;position:fixed;top:0;left:0;z-index:100}
+.sidebar-logo{padding:0 20px;height:64px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sidebar-logo-icon{width:34px;height:34px;border-radius:8px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:14px;flex-shrink:0}
+.sidebar-logo-text{font-size:13px;font-weight:700;color:#fff;line-height:1.3}
+.sidebar-logo-text span{display:block;font-size:10px;font-weight:400;color:rgba(255,255,255,.45);margin-top:1px}
+.sidebar-menu{flex:1;padding:8px}
+.sidebar-section{padding:12px 12px 6px;font-size:10px;font-weight:700;letter-spacing:.1em;color:rgba(255,255,255,.3);text-transform:uppercase}
+.menu-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;cursor:pointer;margin-bottom:2px;color:rgba(255,255,255,.7);font-size:13px;font-weight:500;text-decoration:none;transition:background .15s}
+.menu-item:hover{background:rgba(255,255,255,.08)}
+.menu-item.active{background:var(--blue);color:#fff;font-weight:600}
+.menu-item .icon{font-size:16px;width:20px;text-align:center}
+
+/* MAIN */
+.main{margin-left:240px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+
+/* HEADER */
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:var(--shadow)}
+.header-title{font-size:16px;font-weight:700;color:var(--text)}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+
+/* FILTER */
+.filter-wrap{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.filter-wrap input,.filter-wrap select{padding:7px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);color:var(--text);background:var(--bg)}
+.filter-wrap input:focus,.filter-wrap select:focus{outline:none;border-color:var(--blue)}
+.btn{padding:8px 18px;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{opacity:.88}
+.btn-secondary{background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+#last-update{font-size:11px;color:var(--text3);margin-left:auto}
+
+/* CONTENT */
+.content{padding:20px 28px;flex:1}
+
+/* TABS */
+.tabs{display:flex;gap:8px;margin-bottom:20px}
+.tab{padding:9px 22px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-family:var(--font);transition:all .15s}
+.tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:16px 20px;box-shadow:var(--shadow)}
+.kpi-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:8px}
+.kpi-value{font-size:30px;font-weight:800;line-height:1;margin-bottom:4px}
+.kpi-sub{font-size:12px;color:var(--text2)}
+.kpi.blue .kpi-value{color:var(--blue)}
+.kpi.green .kpi-value{color:var(--green)}
+.kpi.orange .kpi-value{color:var(--orange)}
+
+/* FILTER BAR */
+.inner-filter{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border)}
+.inner-filter label{font-size:12px;font-weight:600;color:var(--text2)}
+.inner-filter select,.inner-filter input{padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);background:var(--bg);color:var(--text)}
+
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:1000px){.grid-2{grid-template-columns:1fr}}
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:20px;box-shadow:var(--shadow)}
+.card-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px}
+.chart-wrap{position:relative;height:260px}
+.chart-wrap-lg{position:relative;height:300px}
+
+/* TABLE */
+.rank-table{width:100%;border-collapse:collapse}
+.rank-table th{font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--text3);text-transform:uppercase;padding:8px 12px;background:var(--bg);border-bottom:2px solid var(--border);text-align:left}
+.rank-table td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12.5px;font-weight:500}
+.rank-table tr:last-child td{border-bottom:none}
+.rank-table tr:hover td{background:#f7f9ff}
+.rank-num{color:var(--text3);font-weight:700}
+.rank-name{font-weight:600}
+.rank-val{font-weight:700;color:var(--blue)}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700}
+.badge-green{background:#e8f5e9;color:#2e7d32}
+.badge-orange{background:#fff3e0;color:#e65100}
+.badge-red{background:#ffebee;color:#c62828}
+
+/* LOADING */
+#loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px;color:var(--text3);gap:12px;font-size:14px}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-icon">OB</div>
+    <div class="sidebar-logo-text">Outbound WH<span>Operational System</span></div>
+  </div>
+  <div class="sidebar-menu">
+    <div class="sidebar-section">Menu</div>
+    <a class="menu-item" href="index.html"><span class="icon">📦</span> Monitoring Loading</a>
+    <a class="menu-item active" href="produktivitas.html"><span class="icon">📊</span> Produktivitas MPP</a>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="header">
+    <div class="header-title">📊 Produktivitas MPP</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span id="last-update"></span>
+      <div class="avatar">AD</div>
+    </div>
+  </header>
+
+  <div class="filter-wrap">
+    <button class="btn btn-primary" onclick="loadAll()">🔄 Refresh Data</button>
+    <span id="status-msg" style="font-size:12px;color:var(--text2)">Klik Refresh Data untuk memuat data</span>
+  </div>
+
+  <div class="content">
+    <div id="loading" style="display:none">
+      <div class="spinner"></div>
+      <span>Memuat data produktivitas...</span>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('loader',this)">📦 Loader LD (CBM)</button>
+      <button class="tab" onclick="switchTab('checker',this)">✅ Checker ST+BR (Case ID)</button>
+    </div>
+
+    <!-- TAB LOADER -->
+    <div class="tab-content active" id="tab-loader">
+      <div class="kpi-row" id="loader-kpi">
+        <div class="kpi blue"><div class="kpi-label">Total Loader</div><div class="kpi-value">-</div><div class="kpi-sub">Orang aktif</div></div>
+        <div class="kpi blue"><div class="kpi-label">Total CBM</div><div class="kpi-value">-</div><div class="kpi-sub">Seluruh periode</div></div>
+        <div class="kpi orange"><div class="kpi-label">Avg CBM/MPP/Hari</div><div class="kpi-value">-</div><div class="kpi-sub">Target: 25 CBM</div></div>
+        <div class="kpi orange"><div class="kpi-label">Capai Target</div><div class="kpi-value">-</div><div class="kpi-sub">Orang ≥ 100%</div></div>
+      </div>
+      <div class="inner-filter">
+        <label>Filter Nama:</label>
+        <select id="loader-name" onchange="renderLoader()"><option value="ALL">Semua Orang</option></select>
+        <label>Filter Tanggal:</label>
+        <input type="date" id="loader-date" onchange="renderLoader()">
+        <button class="btn btn-secondary" onclick="resetLoader()">Reset</button>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">📈 Trend CBM/MPP Harian (Top 5)</div>
+          <div class="chart-wrap"><canvas id="loaderTrend"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🏆 Ranking Loader</div>
+          <div style="overflow-y:auto;max-height:280px">
+            <table class="rank-table">
+              <thead><tr><th>#</th><th>Nama</th><th>Total CBM</th><th>Avg/Hari</th><th>%Target</th></tr></thead>
+              <tbody id="loader-rank"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📊 Perbandingan CBM/MPP Semua Loader</div>
+        <div class="chart-wrap-lg"><canvas id="loaderBar"></canvas></div>
+      </div>
+    </div>
+
+    <!-- TAB CHECKER -->
+    <div class="tab-content" id="tab-checker">
+      <div class="kpi-row" id="checker-kpi">
+        <div class="kpi blue"><div class="kpi-label">Total Checker</div><div class="kpi-value">-</div><div class="kpi-sub">Orang aktif</div></div>
+        <div class="kpi blue"><div class="kpi-label">Total Case ID</div><div class="kpi-value">-</div><div class="kpi-sub">Seluruh periode</div></div>
+        <div class="kpi orange"><div class="kpi-label">Avg Case/MPP/Hari</div><div class="kpi-value">-</div><div class="kpi-sub">Target: 800 Case</div></div>
+        <div class="kpi orange"><div class="kpi-label">Capai Target</div><div class="kpi-value">-</div><div class="kpi-sub">Orang ≥ 100%</div></div>
+      </div>
+      <div class="inner-filter">
+        <label>Filter Nama:</label>
+        <select id="checker-name" onchange="renderChecker()"><option value="ALL">Semua Orang</option></select>
+        <button class="btn btn-secondary" onclick="resetChecker()">Reset</button>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">📈 Trend Case ID/MPP Harian (Top 5)</div>
+          <div class="chart-wrap"><canvas id="checkerTrend"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🏆 Ranking Checker</div>
+          <div style="overflow-y:auto;max-height:280px">
+            <table class="rank-table">
+              <thead><tr><th>#</th><th>Nama</th><th>Total Case</th><th>Avg/Hari</th><th>%Target</th></tr></thead>
+              <tbody id="checker-rank"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📊 Perbandingan Case ID Semua Checker</div>
+        <div class="chart-wrap-lg"><canvas id="checkerBar"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const LOADER_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vT1YwOyPQa1twBR3ms6LrmdxwMeGJ8K3xLmYsPkoO6g5ngC6F5ZhpJhwNPx8_cNhzbszqcIhAR-vGxf/pub?gid=1638374890&single=true&output=csv';
+const CHECKER_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vT1YwOyPQa1twBR3ms6LrmdxwMeGJ8K3xLmYsPkoO6g5ngC6F5ZhpJhwNPx8_cNhzbszqcIhAR-vGxf/pub?gid=855868867&single=true&output=csv';
+const TARGET_CBM=25, TARGET_CASE=800;
+const COLORS=['#1a56db','#22c55e','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#84cc16','#ec4899','#14b8a6'];
+
+let loaderData=[], checkerData=[];
+let lTrendChart=null, lBarChart=null, cTrendChart=null, cBarChart=null;
+
+// ── LOAD DATA ──
+async function loadAll(){
+  document.getElementById('loading').style.display='flex';
+  document.getElementById('status-msg').textContent='Memuat data...';
+  try{
+    await Promise.all([loadLoader(), loadChecker()]);
+    document.getElementById('last-update').textContent='Update: '+new Date().toLocaleTimeString('id-ID');
+    document.getElementById('status-msg').textContent='Data berhasil dimuat ✅';
+    renderLoader();
+    renderChecker();
+  }catch(e){
+    document.getElementById('status-msg').textContent='Error: '+e.message;
+    console.error(e);
+  }
+  document.getElementById('loading').style.display='none';
+}
+
+async function loadLoader(){
+  const r=await fetch(LOADER_URL+'&cb='+Date.now());
+  const txt=await r.text();
+  const rows=Papa.parse(txt,{header:false,skipEmptyLines:true}).data;
+  // Cari header row
+  const hi=rows.findIndex(r=>r.some(c=>(c||'').trim().toUpperCase()==='TANGGAL'));
+  if(hi<0){console.error('Loader header not found');return;}
+  const H=rows[hi].map(c=>(c||'').trim().toUpperCase());
+  const tI=H.indexOf('TANGGAL');
+  const cbmI=H.indexOf('CBM');
+  const cbmMppI=H.findIndex(h=>h.includes('CBM')&&h.includes('MPP'));
+  const chekI=H.findIndex(h=>h==='CHEKER'||h==='CHECKER');
+  const ld1I=H.findIndex(h=>h==='LOADER 1'||h==='LOADER1');
+  const ld2I=H.findIndex(h=>h==='LOADER 2'||h==='LOADER2');
+  const mppI=H.indexOf('MPP');
+  console.log('[LOADER] H:',H);
+  console.log('[LOADER] idx - tgl:',tI,'cbm:',cbmI,'cbmMpp:',cbmMppI,'chek:',chekI,'ld1:',ld1I,'ld2:',ld2I,'mpp:',mppI);
+
+  const isName=v=>v&&v.length>3&&!v.match(/^[\d.,]+$/)&&!['CHEKER','CHECKER','LOADER','NIK','NAMA','MPP','BU','STATUS'].some(k=>v===k);
+
+  loaderData=rows.slice(hi+1).filter(r=>{
+    const tgl=(r[tI]||'').trim();
+    const cbm=parseFloat((r[cbmI]||'').replace(/,/g,''))||0;
+    return tgl.length>2&&cbm>0;
+  }).map(r=>{
+    const tgl=(r[tI]||'').trim();
+    const cbm=parseFloat((r[cbmI]||'').replace(/,/g,''))||0;
+    const cbmMpp=cbmMppI>=0?parseFloat((r[cbmMppI]||'').replace(/,/g,''))||0:0;
+    const mpp=parseFloat((r[mppI]||'2'))||2;
+    const people=[];
+    if(chekI>=0){const v=(r[chekI]||'').trim();if(isName(v))people.push(v);}
+    if(ld1I>=0){const v=(r[ld1I]||'').trim();if(isName(v)&&!people.includes(v))people.push(v);}
+    if(ld2I>=0){const v=(r[ld2I]||'').trim();if(isName(v)&&!people.includes(v))people.push(v);}
+    const cbmPerPerson=people.length>0?cbm/people.length:cbmMpp>0?cbmMpp:cbm/mpp;
+    return{tgl,cbm,cbmMpp:cbmPerPerson,people};
+  });
+  console.log('[LOADER] Records:',loaderData.length,'sample:',loaderData[0]);
+
+  // Populate filter nama
+  const names=[...new Set(loaderData.flatMap(r=>r.people))].filter(Boolean).sort();
+  const sel=document.getElementById('loader-name');
+  sel.innerHTML='<option value="ALL">Semua Orang</option>'+names.map(n=>`<option value="${n}">${n}</option>`).join('');
+}
+
+async function loadChecker(){
+  const r=await fetch(CHECKER_URL+'&cb='+Date.now());
+  const txt=await r.text();
+  const rows=Papa.parse(txt,{header:false,skipEmptyLines:true}).data;
+  // Cari header row - ada NAMA
+  const hi=rows.findIndex(r=>r.some(c=>(c||'').trim().toUpperCase()==='NAMA'));
+  if(hi<0){console.error('Checker header not found');return;}
+  const H=rows[hi].map(c=>(c||'').trim());
+  const namaI=H.findIndex(h=>h.toUpperCase()==='NAMA');
+  const dateCols=[];
+  H.forEach((h,i)=>{if(h.match(/^\d+-[A-Za-z]+/))dateCols.push({i,d:h});});
+  const totalI=H.findIndex(h=>h.toUpperCase()==='TOTAL');
+  console.log('[CHECKER] H:',H,'dateCols:',dateCols.length);
+
+  checkerData=rows.slice(hi+1).filter(r=>{
+    const nama=(r[namaI]||'').trim();
+    return nama.length>2&&!nama.toUpperCase().includes('TOTAL')&&nama.toUpperCase()!=='NAMA';
+  }).map(r=>{
+    const nama=(r[namaI]||'').trim();
+    const daily={};
+    dateCols.forEach(d=>{
+      const v=parseFloat((r[d.i]||'').replace(/,/g,''))||0;
+      if(v>0)daily[d.d]=v;
+    });
+    const total=totalI>=0?parseFloat((r[totalI]||'').replace(/,/g,''))||0:Object.values(daily).reduce((a,b)=>a+b,0);
+    const activeDays=Object.values(daily).filter(v=>v>0).length;
+    const avg=activeDays>0?total/activeDays:0;
+    return{nama,daily,total,activeDays,avg,pct:avg>0?Math.round(avg/TARGET_CASE*100):0};
+  }).filter(r=>r.total>0);
+  console.log('[CHECKER] Records:',checkerData.length);
+
+  const sel=document.getElementById('checker-name');
+  sel.innerHTML='<option value="ALL">Semua Orang</option>'+checkerData.map(p=>`<option value="${p.nama}">${p.nama}</option>`).join('');
+}
+
+// ── RENDER LOADER ──
+function renderLoader(){
+  const fName=document.getElementById('loader-name').value;
+  const fDate=document.getElementById('loader-date').value;
+
+  // Agregasi per orang
+  const map={};
+  loaderData.forEach(row=>{
+    if(fDate&&row.tgl!==fDate)return;
+    if(!row.people.length)return;
+    const cbmPP=row.cbm/row.people.length;
+    row.people.forEach(name=>{
+      if(fName!=='ALL'&&name!==fName)return;
+      if(!map[name])map[name]={name,daily:{},total:0};
+      if(!map[name].daily[row.tgl])map[name].daily[row.tgl]=0;
+      map[name].daily[row.tgl]+=cbmPP;
+      map[name].total+=cbmPP;
+    });
+  });
+
+  const persons=Object.values(map).map(p=>{
+    const days=Object.values(p.daily).filter(v=>v>0).length;
+    const avg=days>0?p.total/days:0;
+    return{...p,days,avg,pct:avg>0?Math.round(avg/TARGET_CBM*100):0};
+  });
+
+  const total=persons.reduce((a,p)=>a+p.total,0);
+  const avgAll=persons.length?persons.reduce((a,p)=>a+p.avg,0)/persons.length:0;
+  const good=persons.filter(p=>p.pct>=100).length;
+
+  // KPI
+  document.getElementById('loader-kpi').innerHTML=`
+    <div class="kpi blue"><div class="kpi-label">Total Loader</div><div class="kpi-value">${persons.length}</div><div class="kpi-sub">Orang aktif</div></div>
+    <div class="kpi blue"><div class="kpi-label">Total CBM</div><div class="kpi-value">${total.toFixed(1)}</div><div class="kpi-sub">Seluruh periode</div></div>
+    <div class="kpi ${avgAll>=TARGET_CBM?'green':'orange'}"><div class="kpi-label">Avg CBM/MPP/Hari</div><div class="kpi-value">${avgAll.toFixed(1)}</div><div class="kpi-sub">Target: ${TARGET_CBM} CBM</div></div>
+    <div class="kpi ${good===persons.length&&persons.length>0?'green':'orange'}"><div class="kpi-label">Capai Target</div><div class="kpi-value">${good}/${persons.length}</div><div class="kpi-sub">Orang ≥ 100%</div></div>`;
+
+  // Ranking
+  const sorted=[...persons].sort((a,b)=>b.avg-a.avg);
+  document.getElementById('loader-rank').innerHTML=sorted.length?sorted.map((p,i)=>{
+    const cls=p.pct>=100?'badge-green':p.pct>=80?'badge-orange':'badge-red';
+    return`<tr><td class="rank-num">${i+1}</td><td class="rank-name">${p.name}</td><td class="rank-val">${p.total.toFixed(1)}</td><td>${p.avg.toFixed(1)}/hari</td><td><span class="badge ${cls}">${p.pct}%</span></td></tr>`;
+  }).join(''):'<tr><td colspan="5" style="text-align:center;padding:20px;color:#9aa0b4">Tidak ada data</td></tr>';
+
+  // Trend chart
+  const allDates=[...new Set(loaderData.map(r=>r.tgl))].sort();
+  const showP=fName==='ALL'?sorted.slice(0,5):persons;
+  if(lTrendChart)lTrendChart.destroy();
+  lTrendChart=new Chart(document.getElementById('loaderTrend').getContext('2d'),{
+    type:'line',
+    data:{labels:allDates,datasets:[
+      ...showP.map((p,i)=>({label:p.name.split(' ').slice(0,2).join(' '),data:allDates.map(d=>p.daily[d]?+p.daily[d].toFixed(1):null),borderColor:COLORS[i%COLORS.length],backgroundColor:COLORS[i%COLORS.length]+'22',tension:.3,spanGaps:true,pointRadius:3,borderWidth:2})),
+      {label:'Target 25',data:allDates.map(()=>TARGET_CBM),borderColor:'#ef4444',borderDash:[6,3],borderWidth:1.5,pointRadius:0,fill:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false},ticks:{font:{size:10},maxRotation:45}}}}
+  });
+
+  // Bar chart
+  if(lBarChart)lBarChart.destroy();
+  lBarChart=new Chart(document.getElementById('loaderBar').getContext('2d'),{
+    type:'bar',
+    data:{labels:sorted.map(p=>p.name.split(' ').slice(0,2).join(' ')),datasets:[{label:'Avg CBM/Hari',data:sorted.map(p=>+p.avg.toFixed(1)),backgroundColor:sorted.map(p=>p.pct>=100?'#22c55e99':p.pct>=80?'#f59e0b99':'#ef444499'),borderColor:sorted.map(p=>p.pct>=100?'#22c55e':p.pct>=80?'#f59e0b':'#ef4444'),borderWidth:1.5,borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},annotation:{annotations:{target:{type:'line',yMin:TARGET_CBM,yMax:TARGET_CBM,borderColor:'red',borderDash:[6,3],borderWidth:1.5}}}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false},ticks:{font:{size:11},maxRotation:30}}}}
+  });
+}
+
+// ── RENDER CHECKER ──
+function renderChecker(){
+  const fName=document.getElementById('checker-name').value;
+  const persons=fName==='ALL'?checkerData:checkerData.filter(p=>p.nama===fName);
+
+  const total=persons.reduce((a,p)=>a+p.total,0);
+  const avgAll=persons.length?persons.reduce((a,p)=>a+p.avg,0)/persons.length:0;
+  const good=persons.filter(p=>p.pct>=100).length;
+
+  document.getElementById('checker-kpi').innerHTML=`
+    <div class="kpi blue"><div class="kpi-label">Total Checker</div><div class="kpi-value">${persons.length}</div><div class="kpi-sub">Orang aktif</div></div>
+    <div class="kpi blue"><div class="kpi-label">Total Case ID</div><div class="kpi-value">${total.toLocaleString()}</div><div class="kpi-sub">Seluruh periode</div></div>
+    <div class="kpi ${avgAll>=TARGET_CASE?'green':'orange'}"><div class="kpi-label">Avg Case/MPP/Hari</div><div class="kpi-value">${Math.round(avgAll).toLocaleString()}</div><div class="kpi-sub">Target: ${TARGET_CASE}</div></div>
+    <div class="kpi ${good===persons.length&&persons.length>0?'green':'orange'}"><div class="kpi-label">Capai Target</div><div class="kpi-value">${good}/${persons.length}</div><div class="kpi-sub">Orang ≥ 100%</div></div>`;
+
+  const sorted=[...persons].sort((a,b)=>b.avg-a.avg);
+  document.getElementById('checker-rank').innerHTML=sorted.length?sorted.map((p,i)=>{
+    const cls=p.pct>=100?'badge-green':p.pct>=80?'badge-orange':'badge-red';
+    return`<tr><td class="rank-num">${i+1}</td><td class="rank-name">${p.nama}</td><td class="rank-val">${p.total.toLocaleString()}</td><td>${Math.round(p.avg).toLocaleString()}/hari</td><td><span class="badge ${cls}">${p.pct}%</span></td></tr>`;
+  }).join(''):'<tr><td colspan="5" style="text-align:center;padding:20px;color:#9aa0b4">Tidak ada data</td></tr>';
+
+  const allDates=[...new Set(checkerData.flatMap(p=>Object.keys(p.daily)))].sort((a,b)=>{
+    const mo={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+    const pa=a.split('-'),pb=b.split('-');
+    return(mo[pa[1]]||0)*100+parseInt(pa[0])-(mo[pb[1]]||0)*100-parseInt(pb[0]);
+  });
+  const showP=fName==='ALL'?sorted.slice(0,5):persons;
+  if(cTrendChart)cTrendChart.destroy();
+  cTrendChart=new Chart(document.getElementById('checkerTrend').getContext('2d'),{
+    type:'line',
+    data:{labels:allDates,datasets:[
+      ...showP.map((p,i)=>({label:p.nama.split(' ').slice(0,2).join(' '),data:allDates.map(d=>p.daily[d]||null),borderColor:COLORS[i%COLORS.length],backgroundColor:COLORS[i%COLORS.length]+'22',tension:.3,spanGaps:true,pointRadius:3,borderWidth:2})),
+      {label:'Target 800',data:allDates.map(()=>TARGET_CASE),borderColor:'#ef4444',borderDash:[6,3],borderWidth:1.5,pointRadius:0,fill:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false},ticks:{font:{size:10},maxRotation:45}}}}
+  });
+
+  if(cBarChart)cBarChart.destroy();
+  cBarChart=new Chart(document.getElementById('checkerBar').getContext('2d'),{
+    type:'bar',
+    data:{labels:sorted.map(p=>p.nama.split(' ').slice(0,2).join(' ')),datasets:[{label:'Avg Case/Hari',data:sorted.map(p=>Math.round(p.avg)),backgroundColor:sorted.map(p=>p.pct>=100?'#22c55e99':p.pct>=80?'#f59e0b99':'#ef444499'),borderColor:sorted.map(p=>p.pct>=100?'#22c55e':p.pct>=80?'#f59e0b':'#ef4444'),borderWidth:1.5,borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false},ticks:{font:{size:11},maxRotation:30}}}}
+  });
+}
+
+function resetLoader(){document.getElementById('loader-name').value='ALL';document.getElementById('loader-date').value='';renderLoader();}
+function resetChecker(){document.getElementById('checker-name').value='ALL';renderChecker();}
+function switchTab(name,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+// Auto load saat halaman dibuka
+loadAll();
+</script>
+</body>
+</html>
