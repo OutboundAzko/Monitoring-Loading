@@ -57,7 +57,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .avatar{width:36px;height:36px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
 
 /* FILTER BAR */
-.filter-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.filter-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 28px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .filter-bar input,.filter-bar select{padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);color:var(--text);background:var(--bg)}
 .filter-bar input:focus,.filter-bar select:focus{outline:none;border-color:var(--blue)}
 .btn{padding:8px 18px;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;transition:opacity .15s}
@@ -210,11 +210,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 
   <!-- FILTER BAR -->
   <div class="filter-bar">
-    <input type="date" id="f-date">
+    <input type="date" id="f-date" title="Filter tanggal spesifik">
+    <select id="f-periode" onchange="onPeriodeChange()" title="Filter periode">
+      <option value="">Pilih Periode</option>
+      <option value="7">7 Hari Terakhir</option>
+    </select>
     <select id="f-shift"><option value="">Semua Shift</option><option value="1">Shift 1</option><option value="2">Shift 2</option></select>
     <select id="f-area"><option value="">Semua Area</option></select>
     <select id="f-picker"><option value="">Semua Picker</option></select>
     <select id="f-checker"><option value="">Semua Checker</option></select>
+    <select id="f-jenis"><option value="">Semua Jenis Penyimpangan</option></select>
     <button class="btn btn-apply" onclick="applyFilter()">Apply</button>
     <button class="btn btn-reset" onclick="resetFilter()">↺ Reset</button>
     <div id="upd-lbl">
@@ -261,14 +266,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <!-- ROW 2: Top 10 Picker + Checker + SKU -->
     <div class="grid-rank">
       <div class="card">
-        <div class="card-header"><div class="card-title">Top 10 Picker dengan Case Tertinggi</div></div>
+        <div class="card-header"><div class="card-title">Top 10 Picker dengan Case Temuan Tertinggi</div></div>
         <table class="rank-tbl">
           <thead><tr><th>#</th><th>Picker</th><th>Total Case</th></tr></thead>
           <tbody id="picker-tbody"></tbody>
         </table>
       </div>
       <div class="card">
-        <div class="card-header"><div class="card-title">Top 10 Checker dengan Case Tertinggi</div></div>
+        <div class="card-header"><div class="card-title">Top 10 Checker dengan Case Penemuan Tertinggi</div></div>
         <table class="rank-tbl">
           <thead><tr><th>#</th><th>Checker</th><th>Total Case</th></tr></thead>
           <tbody id="checker-tbody"></tbody>
@@ -447,9 +452,13 @@ async function loadData(){
     setOpts('f-picker',[...new Set(allData.map(r=>r.namaPicker||r.nikPicker).filter(Boolean))].sort(),'Semua Picker');
     setOpts('f-checker',[...new Set(allData.map(r=>r.userChecker).filter(Boolean))].sort(),'Semua Checker');
 
-    // Populate jenis temuan di tabel filter
+    // Populate jenis temuan di tabel filter dan filter bar
     const jenis=[...new Set(allData.map(r=>r.temuan).filter(Boolean))].sort();
     document.getElementById('tbl-jenis').innerHTML='<option value="">Semua Jenis Temuan</option>'+jenis.map(j=>`<option value="${j}">${j}</option>`).join('');
+    document.getElementById('f-jenis').innerHTML='<option value="">Semua Jenis Penyimpangan</option>'+jenis.map(j=>`<option value="${j}">${j}</option>`).join('');
+
+    // Populate periode - dari bulan pertama data sampai bulan sekarang
+    populatePeriode();
 
     // Auto set tanggal terbaru
     const dates=allData.map(r=>r.dt).filter(Boolean).sort((a,b)=>b-a);
@@ -462,25 +471,70 @@ async function loadData(){
   ri.classList.remove('spin');
 }
 
+function populatePeriode(){
+  const mo=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+  // Cari bulan pertama dan terakhir dari data
+  const dates=allData.map(r=>r.dt).filter(Boolean).sort((a,b)=>a-b);
+  if(!dates.length)return;
+  const first=dates[0], last=dates[dates.length-1];
+  const opts=['<option value="">Pilih Periode</option>','<option value="7">7 Hari Terakhir</option>'];
+  // Loop dari bulan pertama sampai bulan terakhir
+  let y=first.getFullYear(), m=first.getMonth();
+  while(y<last.getFullYear()||(y===last.getFullYear()&&m<=last.getMonth())){
+    const val=`${y}-${String(m+1).padStart(2,'0')}`;
+    const label=`${mo[m]} ${y}`;
+    opts.push(`<option value="${val}">${label}</option>`);
+    m++;if(m>11){m=0;y++;}
+  }
+  document.getElementById('f-periode').innerHTML=opts.join('');
+}
+
+function onPeriodeChange(){
+  const val=document.getElementById('f-periode').value;
+  // Ketika periode dipilih, kosongkan filter tanggal
+  if(val)document.getElementById('f-date').value='';
+}
+
 function applyFilter(){
   const fDate=document.getElementById('f-date').value;
+  const fPeriode=document.getElementById('f-periode').value;
   const fShift=document.getElementById('f-shift').value;
   const fArea=document.getElementById('f-area').value;
   const fPicker=document.getElementById('f-picker').value;
   const fChecker=document.getElementById('f-checker').value;
+  const fJenis=document.getElementById('f-jenis').value;
+
+  // Hitung range dari periode
+  let periodeFrom=null, periodeTo=null;
+  if(fPeriode==='7'){
+    const today=new Date();today.setHours(0,0,0,0);
+    periodeFrom=new Date(today);periodeFrom.setDate(periodeFrom.getDate()-6);
+    periodeTo=today;
+  } else if(fPeriode&&fPeriode.includes('-')){
+    // Format YYYY-MM
+    const [py,pm]=fPeriode.split('-').map(Number);
+    periodeFrom=new Date(py,pm-1,1);
+    periodeTo=new Date(py,pm,0); // hari terakhir bulan
+  }
+
   filtered=allData.filter(r=>{
     if(fDate&&toYMD(r.dt)!==fDate)return false;
+    if(periodeFrom&&r.dt){
+      const d=new Date(r.dt.getFullYear(),r.dt.getMonth(),r.dt.getDate());
+      if(d<periodeFrom||d>periodeTo)return false;
+    }
     if(fShift&&r.shift!==fShift)return false;
     if(fArea&&r.area!==fArea)return false;
     if(fPicker&&r.namaPicker!==fPicker&&r.nikPicker!==fPicker)return false;
     if(fChecker&&r.userChecker!==fChecker)return false;
+    if(fJenis&&r.temuan!==fJenis)return false;
     return true;
   });
   curPage=1;renderAll();
 }
 
 function resetFilter(){
-  ['f-shift','f-area','f-picker','f-checker'].forEach(id=>document.getElementById(id).value='');
+  ['f-shift','f-area','f-picker','f-checker','f-jenis','f-periode'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-date').value='';
   applyFilter();
 }
@@ -500,9 +554,6 @@ function renderKPI(){
   const sorted=Object.entries(jMap).sort((a,b)=>b[1]-a[1]);
   const top2=sorted.slice(0,2);
   const othersTotal=sorted.slice(2).reduce((a,e)=>a+e[1],0);
-  const totalPerm=filtered.reduce((a,r)=>a+r.permintaan,0);
-  const totalPeny=filtered.reduce((a,r)=>a+r.penyiapan,0);
-  const akurasi=totalPerm>0?((totalPeny/totalPerm)*100).toFixed(2):'-';
 
   let html=`<div class="kpi c-blue"><span class="kpi-icon-bg">📋</span>
     <div class="kpi-label">Total Temuan</div>
@@ -530,15 +581,15 @@ function renderKPI(){
     </div>`;
   }
 
-  // Akurasi SKU
-  html+=`<div class="kpi ${parseFloat(akurasi)>=95?'c-green':'c-red'}"><span class="kpi-icon-bg">✅</span>
-    <div class="kpi-label">Akurasi SKU</div>
-    <div class="kpi-value" style="font-size:22px;margin-top:6px">${akurasi}%</div>
-    <div class="kpi-sub"><span class="kpi-trend">Peny/Perm</span></div>
+  // Total Case ID Unik
+  const uniqueCases=[...new Set(filtered.map(r=>r.caseId).filter(Boolean))].length;
+  html+=`<div class="kpi c-teal"><span class="kpi-icon-bg">🔢</span>
+    <div class="kpi-label">Total Case ID</div>
+    <div class="kpi-value">${uniqueCases.toLocaleString()}</div>
+    <div class="kpi-sub"><span class="kpi-trend">Case ID Unik</span></div>
   </div>`;
 
   document.getElementById('kpi-grid').innerHTML=html;
-  // Update jumlah kolom grid
   const count=Math.min(2+top2.length+(sorted.length>2?1:0)+1,5);
   document.getElementById('kpi-grid').style.gridTemplateColumns=`repeat(${count},1fr)`;
 }
