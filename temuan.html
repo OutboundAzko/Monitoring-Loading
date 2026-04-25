@@ -266,14 +266,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <!-- ROW 2: Top 10 Picker + Checker + SKU -->
     <div class="grid-rank">
       <div class="card">
-        <div class="card-header"><div class="card-title">Top 10 Picker dengan Case Temuan Tertinggi</div></div>
+        <div class="card-header"><div class="card-title">Top 10 Picker dengan Case Tertinggi</div></div>
         <table class="rank-tbl">
           <thead><tr><th>#</th><th>Picker</th><th>Total Case</th></tr></thead>
           <tbody id="picker-tbody"></tbody>
         </table>
       </div>
       <div class="card">
-        <div class="card-header"><div class="card-title">Top 10 Checker dengan Case Penemuan Tertinggi</div></div>
+        <div class="card-header"><div class="card-title">Top 10 Checker dengan Case Tertinggi</div></div>
         <table class="rank-tbl">
           <thead><tr><th>#</th><th>Checker</th><th>Total Case</th></tr></thead>
           <tbody id="checker-tbody"></tbody>
@@ -581,12 +581,12 @@ function renderKPI(){
     </div>`;
   }
 
-  // Total Case ID Unik
-  const uniqueCases=[...new Set(filtered.map(r=>r.caseId).filter(Boolean))].length;
-  html+=`<div class="kpi c-teal"><span class="kpi-icon-bg">🔢</span>
-    <div class="kpi-label">Total Case ID</div>
-    <div class="kpi-value">${uniqueCases.toLocaleString()}</div>
-    <div class="kpi-sub"><span class="kpi-trend">Case ID Unik</span></div>
+  // Total SKU Bermasalah (SKU unik yang muncul dalam temuan)
+  const uniqueSKU=[...new Set(filtered.map(r=>r.sku).filter(Boolean))].length;
+  html+=`<div class="kpi c-teal"><span class="kpi-icon-bg">📦</span>
+    <div class="kpi-label">Total SKU Bermasalah</div>
+    <div class="kpi-value">${uniqueSKU.toLocaleString()}</div>
+    <div class="kpi-sub"><span class="kpi-trend">SKU Unik</span> dalam temuan</div>
   </div>`;
 
   document.getElementById('kpi-grid').innerHTML=html;
