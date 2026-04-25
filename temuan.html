@@ -165,6 +165,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .loader{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
 #loading-overlay p{font-size:14px;color:var(--text2);font-weight:500}
 .footnote{font-size:11px;color:var(--text3);margin-top:12px;font-style:italic}
+.periode-cb-label{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--bg);cursor:pointer;font-size:12px;font-weight:500;color:var(--text2);transition:all .15s;user-select:none}
+.periode-cb-label:hover{border-color:var(--blue);color:var(--blue)}
+.periode-cb-label input[type=checkbox]{display:none}
+.periode-cb-label.checked{border-color:var(--blue);background:#e8f0fe;color:var(--blue);font-weight:700}
 </style>
 </head>
 <body>
@@ -211,10 +215,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
   <!-- FILTER BAR -->
   <div class="filter-bar">
     <input type="date" id="f-date" title="Filter tanggal spesifik">
-    <select id="f-periode" onchange="onPeriodeChange()" title="Filter periode">
-      <option value="">Pilih Periode</option>
-      <option value="7">7 Hari Terakhir</option>
-    </select>
+    <button class="btn btn-reset" onclick="togglePeriodePanel()" id="btn-periode" style="display:flex;align-items:center;gap:6px">
+      📆 Periode <span id="periode-badge" style="background:#1a56db;color:#fff;border-radius:999px;padding:1px 7px;font-size:11px;display:none">0</span>
+    </button>
     <select id="f-shift"><option value="">Semua Shift</option><option value="1">Shift 1</option><option value="2">Shift 2</option></select>
     <select id="f-area"><option value="">Semua Area</option></select>
     <select id="f-picker"><option value="">Semua Picker</option></select>
@@ -226,6 +229,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       <span id="upd-time"></span>
       <span id="ri" onclick="loadData()" title="Refresh" style="cursor:pointer">↻</span>
     </div>
+  </div>
+
+  <!-- PANEL PERIODE CHECKBOX -->
+  <div id="periode-panel" style="display:none;background:var(--surface);border-bottom:1px solid var(--border);padding:12px 28px;box-shadow:0 4px 12px rgba(0,0,0,.08)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-size:13px;font-weight:700;color:var(--text)">Pilih Periode</div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-reset" style="font-size:12px;padding:4px 10px" onclick="selectAllPeriode()">Pilih Semua</button>
+        <button class="btn btn-reset" style="font-size:12px;padding:4px 10px" onclick="clearAllPeriode()">Hapus Semua</button>
+        <button class="btn btn-apply" style="font-size:12px;padding:4px 12px" onclick="applyPeriode()">Terapkan</button>
+      </div>
+    </div>
+    <div id="periode-checkboxes" style="display:flex;flex-wrap:wrap;gap:8px"></div>
   </div>
 
   <div class="content">
@@ -473,55 +489,113 @@ async function loadData(){
 
 function populatePeriode(){
   const mo=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
-  // Cari bulan pertama dan terakhir dari data
   const dates=allData.map(r=>r.dt).filter(Boolean).sort((a,b)=>a-b);
   if(!dates.length)return;
-  const first=dates[0], last=dates[dates.length-1];
-  const opts=['<option value="">Pilih Periode</option>','<option value="7">7 Hari Terakhir</option>'];
-  // Loop dari bulan pertama sampai bulan terakhir
-  let y=first.getFullYear(), m=first.getMonth();
+  const first=dates[0],last=dates[dates.length-1];
+  const wrap=document.getElementById('periode-checkboxes');
+  let html='';
+  // Opsi 7 hari terakhir
+  html+=`<label class="periode-cb-label" id="pcb-7" onclick="togglePeriodeCb('7',this)"><input type="checkbox" value="7">7 Hari Terakhir</label>`;
+  // Loop bulan
+  let y=first.getFullYear(),m=first.getMonth();
   while(y<last.getFullYear()||(y===last.getFullYear()&&m<=last.getMonth())){
     const val=`${y}-${String(m+1).padStart(2,'0')}`;
     const label=`${mo[m]} ${y}`;
-    opts.push(`<option value="${val}">${label}</option>`);
+    html+=`<label class="periode-cb-label" id="pcb-${val}" onclick="togglePeriodeCb('${val}',this)"><input type="checkbox" value="${val}">${label}</label>`;
     m++;if(m>11){m=0;y++;}
   }
-  document.getElementById('f-periode').innerHTML=opts.join('');
+  wrap.innerHTML=html;
 }
 
-function onPeriodeChange(){
-  const val=document.getElementById('f-periode').value;
-  // Ketika periode dipilih, kosongkan filter tanggal
-  if(val)document.getElementById('f-date').value='';
+let selectedPeriodes=[];
+
+function togglePeriodePanel(){
+  const panel=document.getElementById('periode-panel');
+  panel.style.display=panel.style.display==='none'?'block':'none';
+}
+
+function togglePeriodeCb(val,el){
+  el.classList.toggle('checked');
+  if(selectedPeriodes.includes(val)){
+    selectedPeriodes=selectedPeriodes.filter(v=>v!==val);
+  } else {
+    selectedPeriodes.push(val);
+  }
+  updatePeriodeBadge();
+}
+
+function selectAllPeriode(){
+  selectedPeriodes=[];
+  document.querySelectorAll('#periode-checkboxes .periode-cb-label').forEach(el=>{
+    el.classList.add('checked');
+    selectedPeriodes.push(el.querySelector('input').value);
+  });
+  updatePeriodeBadge();
+}
+
+function clearAllPeriode(){
+  selectedPeriodes=[];
+  document.querySelectorAll('#periode-checkboxes .periode-cb-label').forEach(el=>el.classList.remove('checked'));
+  updatePeriodeBadge();
+}
+
+function updatePeriodeBadge(){
+  const badge=document.getElementById('periode-badge');
+  const btn=document.getElementById('btn-periode');
+  if(selectedPeriodes.length>0){
+    badge.style.display='inline';
+    badge.textContent=selectedPeriodes.length;
+    btn.style.borderColor='#1a56db';
+    btn.style.color='#1a56db';
+  } else {
+    badge.style.display='none';
+    btn.style.borderColor='';
+    btn.style.color='';
+  }
+}
+
+function applyPeriode(){
+  document.getElementById('periode-panel').style.display='none';
+  if(selectedPeriodes.length>0)document.getElementById('f-date').value='';
+  applyFilter();
 }
 
 function applyFilter(){
   const fDate=document.getElementById('f-date').value;
-  const fPeriode=document.getElementById('f-periode').value;
   const fShift=document.getElementById('f-shift').value;
   const fArea=document.getElementById('f-area').value;
   const fPicker=document.getElementById('f-picker').value;
   const fChecker=document.getElementById('f-checker').value;
   const fJenis=document.getElementById('f-jenis').value;
 
-  // Hitung range dari periode
-  let periodeFrom=null, periodeTo=null;
-  if(fPeriode==='7'){
+  // Hitung range dari periode checkbox (bisa multiple)
+  // Build set of valid YYYY-MM strings dan handle "7" hari terakhir
+  let periodeValidDates=null; // null = semua tanggal valid
+  if(selectedPeriodes.length>0){
     const today=new Date();today.setHours(0,0,0,0);
-    periodeFrom=new Date(today);periodeFrom.setDate(periodeFrom.getDate()-6);
-    periodeTo=today;
-  } else if(fPeriode&&fPeriode.includes('-')){
-    // Format YYYY-MM
-    const [py,pm]=fPeriode.split('-').map(Number);
-    periodeFrom=new Date(py,pm-1,1);
-    periodeTo=new Date(py,pm,0); // hari terakhir bulan
+    periodeValidDates=new Set();
+    selectedPeriodes.forEach(p=>{
+      if(p==='7'){
+        // 7 hari terakhir - tambahkan semua tanggal
+        for(let i=0;i<7;i++){
+          const d=new Date(today);d.setDate(d.getDate()-i);
+          periodeValidDates.add(toYMD(d));
+        }
+      } else {
+        // Format YYYY-MM - tambahkan YYYY-MM sebagai prefix
+        periodeValidDates.add('month:'+p);
+      }
+    });
   }
 
   filtered=allData.filter(r=>{
     if(fDate&&toYMD(r.dt)!==fDate)return false;
-    if(periodeFrom&&r.dt){
-      const d=new Date(r.dt.getFullYear(),r.dt.getMonth(),r.dt.getDate());
-      if(d<periodeFrom||d>periodeTo)return false;
+    if(periodeValidDates&&r.dt){
+      const ymd=toYMD(r.dt);
+      const ym=ymd.substring(0,7); // YYYY-MM
+      const validYMD=periodeValidDates.has(ymd);
+      const validMonth=periodeValidDates.has('month:'+ym);
+      if(!validYMD&&!validMonth)return false;
     }
     if(fShift&&r.shift!==fShift)return false;
     if(fArea&&r.area!==fArea)return false;
@@ -657,31 +731,45 @@ function renderTrend(){
 // ── SHIFT SUMMARY ──
 function renderShift(){
   const shifts=['1','2','3'];
-  const jenis=[...new Set(filtered.map(r=>r.temuan).filter(Boolean))].sort();
-  const top3Jenis=Object.entries(filtered.reduce((m,r)=>{if(r.temuan)m[r.temuan]=(m[r.temuan]||0)+1;return m;},{})).sort((a,b)=>b[1]-a[1]).slice(0,3).map(e=>e[0]);
+  // Ambil SEMUA jenis case yang muncul, sort by jumlah terbanyak
+  const allJenis=Object.entries(
+    filtered.reduce((m,r)=>{if(r.temuan)m[r.temuan]=(m[r.temuan]||0)+1;return m;},{}))
+    .sort((a,b)=>b[1]-a[1]).map(e=>e[0]);
+
   const smap={};
   filtered.forEach(r=>{
     const s=r.shift||'?';
     if(!smap[s])smap[s]={total:0};
-    top3Jenis.forEach(j=>{if(!smap[s][j])smap[s][j]=0;});
+    allJenis.forEach(j=>{if(!smap[s][j])smap[s][j]=0;});
     smap[s].total++;
-    if(r.temuan&&smap[s][r.temuan]!==undefined)smap[s][r.temuan]++;
+    if(r.temuan)smap[s][r.temuan]=(smap[s][r.temuan]||0)+1;
   });
   const activeShifts=Object.keys(smap).filter(s=>smap[s].total>0).sort();
-  const totals={total:0};top3Jenis.forEach(j=>totals[j]=0);
-  activeShifts.forEach(s=>{totals.total+=smap[s].total;top3Jenis.forEach(j=>totals[j]+=(smap[s][j]||0));});
+  const totals={total:0};
+  allJenis.forEach(j=>totals[j]=0);
+  activeShifts.forEach(s=>{
+    totals.total+=smap[s].total;
+    allJenis.forEach(j=>totals[j]+=(smap[s][j]||0));
+  });
 
   const sCls={'1':'s1','2':'s2','3':'s3'};
   const jShort=j=>j.split(' ').map(w=>w[0]+w.slice(1).toLowerCase()).join(' ');
+  const jColor=j=>{
+    if(j.includes('KURANG')&&j.includes('SELISIH'))return'#b91c1c';
+    if(j.includes('LEBIH')&&j.includes('SELISIH'))return'#c2410c';
+    if(j.includes('SALAH'))return'#b45309';
+    if(j.includes('PART'))return'#1d4ed8';
+    return'#475569';
+  };
 
-  let thExtra=top3Jenis.map(j=>`<th style="color:#${j.includes('KURANG')?'b91c1c':j.includes('LEBIH')?'c2410c':j.includes('SALAH')?'b45309':'475569'}">${jShort(j)}</th>`).join('');
+  let thExtra=allJenis.map(j=>`<th style="color:${jColor(j)};white-space:nowrap">${jShort(j)}</th>`).join('');
   let rows=activeShifts.map(s=>`
     <tr>
       <td><span class="s-badge ${sCls[s]||''}">${s}</span></td>
       <td style="font-weight:700">${smap[s].total}</td>
-      ${top3Jenis.map(j=>`<td style="font-weight:600">${smap[s][j]||0}</td>`).join('')}
+      ${allJenis.map(j=>`<td style="font-weight:600;color:${jColor(j)}">${smap[s][j]||0}</td>`).join('')}
     </tr>`).join('');
-  let foot=`<tr><td><strong>TOTAL</strong></td><td><strong>${totals.total}</strong></td>${top3Jenis.map(j=>`<td><strong>${totals[j]}</strong></td>`).join('')}</tr>`;
+  let foot=`<tr><td><strong>TOTAL</strong></td><td><strong>${totals.total}</strong></td>${allJenis.map(j=>`<td><strong style="color:${jColor(j)}">${totals[j]}</strong></td>`).join('')}</tr>`;
 
   document.getElementById('shift-table-wrap').innerHTML=`
     <table class="shift-table">
