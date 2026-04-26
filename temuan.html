@@ -282,14 +282,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <!-- ROW 2: Top 10 Picker + Checker + SKU -->
     <div class="grid-rank">
       <div class="card">
-        <div class="card-header"><div class="card-title">Top 10 Picker dengan Case Temuan Tertinggi</div></div>
+        <div class="card-header"><div class="card-title">Top 10 Picker dengan Case Tertinggi</div></div>
         <table class="rank-tbl">
           <thead><tr><th>#</th><th>Picker</th><th>Total Case</th></tr></thead>
           <tbody id="picker-tbody"></tbody>
         </table>
       </div>
       <div class="card">
-        <div class="card-header"><div class="card-title">Top 10 Checker dengan Case Penemuan Tertinggi</div></div>
+        <div class="card-header"><div class="card-title">Top 10 Checker dengan Case Tertinggi</div></div>
         <table class="rank-tbl">
           <thead><tr><th>#</th><th>Checker</th><th>Total Case</th></tr></thead>
           <tbody id="checker-tbody"></tbody>
@@ -724,20 +724,46 @@ function renderDonut(){
 function renderTrend(){
   const period=document.getElementById('trend-period').value;
   let data=period==='filter'?filtered:filterByPeriod(allData,period);
-  const dateMap={};
-  data.forEach(r=>{if(r.dt){const k=toYMD(r.dt);dateMap[k]=(dateMap[k]||0)+1;}});
-  const dates=Object.keys(dateMap).sort();
-  const fmtLabel=d=>{const p=d.split('-');const mo=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];return`${parseInt(p[2])} ${mo[parseInt(p[1])-1]}`;};
+
+  // Jika mode filter dan ada multiple bulan → group per bulan
+  // Jika mode lain atau hanya 1 bulan → group per tanggal
+  const useMonthly=period==='filter'&&selectedPeriodes.length>1&&!selectedPeriodes.includes('7');
+  const mo=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+
+  let labels=[], vals=[];
+  if(useMonthly){
+    // Group by bulan YYYY-MM
+    const mMap={};
+    data.forEach(r=>{if(r.dt){const k=toYMD(r.dt).substring(0,7);mMap[k]=(mMap[k]||0)+1;}});
+    const months=Object.keys(mMap).sort();
+    labels=months.map(m=>{const p=m.split('-');return`${mo[parseInt(p[1])-1]} ${p[0]}`;});
+    vals=months.map(m=>mMap[m]);
+  } else {
+    // Group by tanggal
+    const dMap={};
+    data.forEach(r=>{if(r.dt){const k=toYMD(r.dt);dMap[k]=(dMap[k]||0)+1;}});
+    const dates=Object.keys(dMap).sort();
+    labels=dates.map(d=>{const p=d.split('-');return`${parseInt(p[2])} ${mo[parseInt(p[1])-1]}`;});
+    vals=dates.map(d=>dMap[d]);
+  }
+
   if(trendCh)trendCh.destroy();
   trendCh=new Chart(document.getElementById('trendChart').getContext('2d'),{
-    type:'line',
+    type: useMonthly?'bar':'line',
     data:{
-      labels:dates.map(fmtLabel),
-      datasets:[{label:'Temuan',data:dates.map(d=>dateMap[d]),borderColor:'#1a56db',backgroundColor:'#1a56db12',tension:.35,pointRadius:4,pointBackgroundColor:'#1a56db',borderWidth:2.5,fill:true}]
+      labels,
+      datasets:[{
+        label:'Temuan',data:vals,
+        borderColor:'#1a56db',
+        backgroundColor:useMonthly?'#1a56db99':'#1a56db12',
+        tension:.35,pointRadius:useMonthly?0:4,
+        pointBackgroundColor:'#1a56db',borderWidth:2.5,
+        fill:!useMonthly,borderRadius:useMonthly?6:0,
+      }]
     },
     options:{responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{title:ctx=>`${ctx[0].label}`,label:ctx=>` ${ctx.parsed.y} temuan`}}},
-      scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{precision:0}},x:{grid:{display:false},ticks:{font:{size:10}}}}}
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y} temuan`}}},
+      scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{precision:0}},x:{grid:{display:false},ticks:{font:{size:11}}}}}
   });
 }
 
@@ -911,21 +937,46 @@ function renderAreaTrend(){
   const period=document.getElementById('area-period').value;
   const data=period==='filter'?filtered:filterByPeriod(allData,period);
   const areas=[...new Set(data.map(r=>r.area).filter(Boolean))];
-  const dateMap={};
-  data.forEach(r=>{if(r.dt)dateMap[toYMD(r.dt)]=1;});
-  const dates=Object.keys(dateMap).sort();
-  const fmtLabel=d=>{const p=d.split('-');const mo=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];return`${parseInt(p[2])} ${mo[parseInt(p[1])-1]}`;};
-  const datasets=areas.map((area,i)=>{
-    const amap={};
-    data.filter(r=>r.area===area).forEach(r=>{if(r.dt)amap[toYMD(r.dt)]=(amap[toYMD(r.dt)]||0)+1;});
-    return{label:area,data:dates.map(d=>amap[d]||0),borderColor:CHART_COLORS[i%CHART_COLORS.length],backgroundColor:'transparent',tension:.3,pointRadius:3,borderWidth:2};
-  });
+  const mo=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+
+  // Gunakan monthly jika mode filter dan ada multiple bulan
+  const useMonthly=period==='filter'&&selectedPeriodes.length>1&&!selectedPeriodes.includes('7');
+
+  let labels=[], datasets=[];
+  if(useMonthly){
+    // Group by bulan
+    const allMonths=[...new Set(data.map(r=>r.dt?toYMD(r.dt).substring(0,7):null).filter(Boolean))].sort();
+    labels=allMonths.map(m=>{const p=m.split('-');return`${mo[parseInt(p[1])-1]} ${p[0]}`;});
+    datasets=areas.map((area,i)=>{
+      const amap={};
+      data.filter(r=>r.area===area).forEach(r=>{if(r.dt){const k=toYMD(r.dt).substring(0,7);amap[k]=(amap[k]||0)+1;}});
+      return{label:area,data:allMonths.map(m=>amap[m]||0),borderColor:CHART_COLORS[i%CHART_COLORS.length],backgroundColor:CHART_COLORS[i%CHART_COLORS.length]+'22',tension:.3,pointRadius:5,borderWidth:2.5,fill:false};
+    });
+  } else {
+    // Group by tanggal
+    const dateMap={};
+    data.forEach(r=>{if(r.dt)dateMap[toYMD(r.dt)]=1;});
+    const dates=Object.keys(dateMap).sort();
+    labels=dates.map(d=>{const p=d.split('-');return`${parseInt(p[2])} ${mo[parseInt(p[1])-1]}`;});
+    datasets=areas.map((area,i)=>{
+      const amap={};
+      data.filter(r=>r.area===area).forEach(r=>{if(r.dt)amap[toYMD(r.dt)]=(amap[toYMD(r.dt)]||0)+1;});
+      return{label:area,data:dates.map(d=>amap[d]||0),borderColor:CHART_COLORS[i%CHART_COLORS.length],backgroundColor:'transparent',tension:.3,pointRadius:3,borderWidth:2};
+    });
+  }
+
   if(areaTrendCh)areaTrendCh.destroy();
   areaTrendCh=new Chart(document.getElementById('areaTrendChart').getContext('2d'),{
-    type:'line',data:{labels:dates.map(fmtLabel),datasets},
+    type:useMonthly?'bar':'line',
+    data:{labels,datasets:useMonthly?datasets.map(ds=>({...ds,fill:true,type:'bar',backgroundColor:ds.borderColor+'99',borderRadius:4})):datasets},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},
-      scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{precision:0}},x:{grid:{display:false},ticks:{font:{size:10}}}}}
+      scales:{
+        y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{precision:0}},
+        x:{grid:{display:false},ticks:{font:{size:useMonthly?12:10}}},
+        ...(useMonthly?{}:{})
+      }
+    }
   });
 }
 
