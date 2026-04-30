@@ -192,6 +192,34 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .delay-cell{font-weight:700;color:#b91c1c}
 .no-data{text-align:center;padding:30px;color:var(--text3);font-size:13px}
 
+/* PERIODE CHECKBOX */
+.periode-btn{display:flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;font-family:var(--font);transition:all .15s}
+.periode-btn:hover{border-color:var(--blue);color:var(--blue)}
+.periode-btn.active{border-color:var(--blue);color:var(--blue);background:#e8f0fe}
+.periode-badge{background:var(--blue);color:#fff;border-radius:999px;padding:1px 7px;font-size:11px;font-weight:700}
+.periode-panel{display:none;background:var(--surface);border-bottom:1px solid var(--border);padding:12px 28px;box-shadow:0 4px 8px rgba(0,0,0,.06)}
+.periode-panel.open{display:block}
+.periode-panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.periode-panel-title{font-size:13px;font-weight:700;color:var(--text)}
+.periode-actions{display:flex;gap:8px}
+.periode-chips{display:flex;flex-wrap:wrap;gap:8px}
+.periode-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--bg);cursor:pointer;font-size:12px;font-weight:500;color:var(--text2);transition:all .15s;user-select:none}
+.periode-chip:hover{border-color:var(--blue);color:var(--blue)}
+.periode-chip.checked{border-color:var(--blue);background:#e8f0fe;color:var(--blue);font-weight:700}
+.periode-chip input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--blue);flex-shrink:0}
+
+/* EXPANDABLE PANEL */
+.expand-btn{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--blue);cursor:pointer;padding:8px 0;border-top:1px solid var(--border);margin-top:12px;background:none;border-left:none;border-right:none;border-bottom:none;font-family:var(--font);width:100%;text-align:left}
+.expand-btn:hover{opacity:.8}
+.expand-panel{display:none;margin-top:8px}
+.expand-panel.open{display:block}
+.exp-table{width:100%;border-collapse:collapse;font-size:12px}
+.exp-table th{padding:7px 10px;font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--text3);text-transform:uppercase;background:var(--bg);border-bottom:2px solid var(--border);text-align:left;white-space:nowrap}
+.exp-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-weight:500}
+.exp-table tr:last-child td{border-bottom:none}
+.exp-table tr:hover td{background:#f7f9ff}
+.exp-wrap{max-height:240px;overflow-y:auto}
+
 /* LOADING */
 #loading-overlay{position:fixed;inset:0;background:rgba(240,243,250,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:14px}
 .loader{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
@@ -240,12 +268,28 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 
   <!-- FILTER BAR -->
   <div class="filter-bar">
-    <input type="date" id="f-date">
+    <input type="date" id="f-date" title="Filter tanggal spesifik">
+    <button class="periode-btn" id="btn-periode" onclick="togglePeriodePanel()">
+      📆 Periode <span class="periode-badge" id="periode-badge" style="display:none">0</span>
+    </button>
     <select id="f-shift"><option value="">Semua Shift</option><option value="SHIFT 1">Shift 1</option><option value="SHIFT 2">Shift 2</option></select>
     <select id="f-area"><option value="">Semua Area</option></select>
     <select id="f-armada"><option value="">All Armada</option></select>
     <button class="btn btn-apply" onclick="applyFilter()">Apply</button>
     <button class="btn btn-reset" onclick="loadData()"><span id="ri">↻</span> Refresh</button>
+  </div>
+
+  <!-- PERIODE PANEL -->
+  <div class="periode-panel" id="periode-panel">
+    <div class="periode-panel-header">
+      <div class="periode-panel-title">Pilih Periode</div>
+      <div class="periode-actions">
+        <button class="btn btn-reset" style="font-size:12px;padding:4px 10px" onclick="selectAllPeriode()">Pilih Semua</button>
+        <button class="btn btn-reset" style="font-size:12px;padding:4px 10px" onclick="clearAllPeriode()">Hapus Semua</button>
+        <button class="btn btn-apply" style="font-size:12px;padding:4px 12px" onclick="applyPeriode()">Terapkan</button>
+      </div>
+    </div>
+    <div class="periode-chips" id="periode-chips"></div>
   </div>
 
   <div class="content">
@@ -281,7 +325,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
         <div id="lt-bars"></div>
         <div class="lt-summary">
           <div class="lt-sum-item"><div class="lt-sum-val" id="lt-avg">-</div><div class="lt-sum-lbl">Rata-rata Loading Time</div></div>
-          <div class="lt-sum-item"><div class="lt-sum-val" id="lt-target">2.0 Jam</div><div class="lt-sum-lbl">Target Loading Time</div></div>
+          <div class="lt-sum-item"><div class="lt-sum-val">Per Jenis</div><div class="lt-sum-lbl">Target Loading Time</div></div>
+        </div>
+        <button class="expand-btn" onclick="toggleExpand('lt-detail')">📋 Lihat Detail per Armada <span id="lt-arrow">▼</span></button>
+        <div class="expand-panel" id="lt-detail">
+          <div class="exp-wrap"><table class="exp-table">
+            <thead><tr><th>Transno</th><th>Jenis Armada</th><th>Target</th><th>Loading Time</th><th>Status</th><th>Carrier</th></tr></thead>
+            <tbody id="lt-detail-tbody"></tbody>
+          </table></div>
         </div>
       </div>
 
@@ -297,6 +348,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
         <div class="qw-avg" id="qw-avg">-</div>
         <div id="qw-bars"></div>
         <div class="qw-warn" id="qw-warn" style="display:none"></div>
+        <button class="expand-btn" onclick="toggleExpand('qw-detail')">📋 Lihat Detail Armada Waiting <span id="qw-arrow">▼</span></button>
+        <div class="expand-panel" id="qw-detail">
+          <div class="exp-wrap"><table class="exp-table">
+            <thead><tr><th>Transno</th><th>Carrier</th><th>Check In</th><th>Open</th><th>Waiting</th><th>Kategori</th></tr></thead>
+            <tbody id="qw-detail-tbody"></tbody>
+          </table></div>
+        </div>
       </div>
     </div>
 
@@ -314,6 +372,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
             <tbody id="carrier-tbody"></tbody>
             <tfoot><tr id="carrier-tfoot"></tr></tfoot>
           </table>
+          <button class="expand-btn" onclick="toggleExpand('carrier-detail')">📋 Lihat Detail Armada Terlambat <span id="carrier-arrow">▼</span></button>
+          <div class="expand-panel" id="carrier-detail">
+            <div class="exp-wrap"><table class="exp-table">
+              <thead><tr><th>Transno</th><th>Carrier</th><th>Plan Delivery</th><th>Check In</th><th>Delay</th><th>Kode Aging</th><th>Hit/Miss</th></tr></thead>
+              <tbody id="carrier-detail-tbody"></tbody>
+            </table></div>
+          </div>
         </div>
       </div>
 
@@ -376,10 +441,107 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 <script>
 const CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vT1YwOyPQa1twBR3ms6LrmdxwMeGJ8K3xLmYsPkoO6g5ngC6F5ZhpJhwNPx8_cNhzbszqcIhAR-vGxf/pub?gid=435013118&single=true&output=csv';
 const STATUS_COLORS={'SELESAI':'#16a34a','KELUAR DC':'#16a34a','PROSES':'#1a56db','ANTRI':'#f59e0b','BELUM DATANG':'#dc2626'};
+const TARGET_LOADING={
+  'CONT-40':240,'WINGBOX':180,'FUSO':120,'CONT-20':120,
+  'CDD LONG CHASSIS':90,'CIELC':75,'CDE':45,'CDE LONG CHASSIS':60,
+  'MIN VAN OPS':30,'MINI VAN BOX':30,'PICKUP':30,'PICKUP EXTRA':30,'MINIVANBOX':20,
+};
+function getTargetLoading(jenisArmada){
+  if(!jenisArmada)return 120;
+  const j=jenisArmada.toUpperCase().trim();
+  for(const[k,v] of Object.entries(TARGET_LOADING)){
+    if(j.includes(k)||k.includes(j))return v;
+  }
+  return 120; // default
+}
 const BATCH_CLS={'1':'bp1','2':'bp2','3':'bp3','4':'bp4'};
 const KODE_ORDER={'0–1 jam':0,'2–4 jam':1,'5–6 jam':2,'7 up':3,'H+1':4,'H+2':5,'H+3':6};
 let allData=[],filtered=[],curPage=1;
 let donutCh=null,throughputCh=null;
+let selectedPeriodes=[];
+
+// ── PERIODE FUNCTIONS ──
+function populatePeriode(){
+  const mo=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
+  const dates=allData.map(r=>r.dt).filter(Boolean).sort((a,b)=>a-b);
+  if(!dates.length)return;
+  const first=dates[0],last=dates[dates.length-1];
+  let html=`<label class="periode-chip" id="pchip-7">
+    <input type="checkbox" value="7" onchange="onChipChange(this)"><span>7 Hari Terakhir</span></label>`;
+  let y=first.getFullYear(),m=first.getMonth();
+  while(y<last.getFullYear()||(y===last.getFullYear()&&m<=last.getMonth())){
+    const val=`${y}-${String(m+1).padStart(2,'0')}`;
+    html+=`<label class="periode-chip" id="pchip-${val.replace('-','_')}">
+      <input type="checkbox" value="${val}" onchange="onChipChange(this)"><span>${mo[m]} ${y}</span></label>`;
+    m++;if(m>11){m=0;y++;}
+  }
+  document.getElementById('periode-chips').innerHTML=html;
+}
+
+function onChipChange(cb){
+  const val=cb.value,lbl=cb.closest('label');
+  if(cb.checked){lbl.classList.add('checked');if(!selectedPeriodes.includes(val))selectedPeriodes.push(val);}
+  else{lbl.classList.remove('checked');selectedPeriodes=selectedPeriodes.filter(v=>v!==val);}
+  updatePeriodeBadge();
+}
+
+function togglePeriodePanel(){
+  const p=document.getElementById('periode-panel');
+  p.classList.toggle('open');
+  document.getElementById('btn-periode').classList.toggle('active',p.classList.contains('open'));
+}
+
+function selectAllPeriode(){
+  selectedPeriodes=[];
+  document.querySelectorAll('#periode-chips input[type=checkbox]').forEach(cb=>{
+    cb.checked=true;cb.closest('label').classList.add('checked');
+    selectedPeriodes.push(cb.value);
+  });
+  updatePeriodeBadge();
+}
+
+function clearAllPeriode(){
+  selectedPeriodes=[];
+  document.querySelectorAll('#periode-chips input[type=checkbox]').forEach(cb=>{
+    cb.checked=false;cb.closest('label').classList.remove('checked');
+  });
+  updatePeriodeBadge();
+}
+
+function updatePeriodeBadge(){
+  const badge=document.getElementById('periode-badge');
+  const btn=document.getElementById('btn-periode');
+  if(selectedPeriodes.length>0){
+    badge.style.display='inline';badge.textContent=selectedPeriodes.length;
+    btn.classList.add('active');
+  } else {
+    badge.style.display='none';btn.classList.remove('active');
+  }
+}
+
+function applyPeriode(){
+  document.getElementById('periode-panel').classList.remove('open');
+  document.getElementById('btn-periode').classList.remove('active');
+  if(selectedPeriodes.length>0)document.getElementById('f-date').value='';
+  applyFilter();
+}
+
+// ── EXPAND FUNCTIONS ──
+function toggleExpand(id){
+  const panel=document.getElementById(id);
+  const isOpen=panel.classList.contains('open');
+  panel.classList.toggle('open');
+  // Update arrow
+  const arrowMap={'lt-detail':'lt-arrow','qw-detail':'qw-arrow','carrier-detail':'carrier-arrow'};
+  const arrow=document.getElementById(arrowMap[id]);
+  if(arrow)arrow.textContent=isOpen?'▼':'▲';
+  // Render detail saat dibuka
+  if(!isOpen){
+    if(id==='lt-detail')renderLTDetail();
+    if(id==='qw-detail')renderQWDetail();
+    if(id==='carrier-detail')renderCarrierDetail();
+  }
+}
 
 function toggleSidebar(){
   document.getElementById('sidebar').classList.toggle('collapsed');
@@ -536,7 +698,7 @@ async function loadData(){
         loadingTime:loadingTimeStr, loadingMin,
         queueMin, agingMin, kodeAging, hitMiss,
         batch:['1','2','3','4'].includes(batch)?batch:'',
-        targetLoading:gf(r,I.targetLoading),
+        targetLoading:gf(r,I.targetLoading)||getTargetLoading(g(r,I.jenisArmada)),
       };
     }).filter(r=>r.tgl);
 
@@ -550,6 +712,7 @@ async function loadData(){
     setOpts('f-armada',[...new Set(allData.map(r=>r.jenisArmada).filter(Boolean))].sort(),'All Armada');
     setOpts('tbl-shipping',[...new Set(allData.map(r=>r.shipping).filter(Boolean))].sort(),'Shipping Line ▾');
     setOpts('tbl-carrier',[...new Set(allData.map(r=>r.carrier).filter(Boolean))].sort(),'Carrier ▾');
+    populatePeriode();
 
     // Auto set tanggal terbaru
     const dates=allData.map(r=>r.dt).filter(Boolean).sort((a,b)=>b-a);
@@ -567,8 +730,29 @@ function applyFilter(){
   const fShift=document.getElementById('f-shift').value;
   const fArea=document.getElementById('f-area').value;
   const fArmada=document.getElementById('f-armada').value;
+
+  // Periode: build set of valid dates
+  let periodeSet=null;
+  if(selectedPeriodes.length>0){
+    const today=new Date();today.setHours(0,0,0,0);
+    periodeSet=new Set();
+    selectedPeriodes.forEach(p=>{
+      if(p==='7'){
+        for(let i=0;i<7;i++){const d=new Date(today);d.setDate(d.getDate()-i);periodeSet.add(toYMD(d));}
+      } else {
+        // YYYY-MM format - store as month prefix
+        periodeSet.add('m:'+p);
+      }
+    });
+  }
+
   filtered=allData.filter(r=>{
     if(fDate&&toYMD(r.dt)!==fDate)return false;
+    if(periodeSet&&r.dt){
+      const ymd=toYMD(r.dt);
+      const ym=ymd.substring(0,7);
+      if(!periodeSet.has(ymd)&&!periodeSet.has('m:'+ym))return false;
+    }
     if(fShift&&r.shift!==fShift)return false;
     if(fArea&&r.area!==fArea)return false;
     if(fArmada&&r.jenisArmada!==fArmada)return false;
@@ -580,6 +764,15 @@ function applyFilter(){
 function renderAll(){
   renderKPI();renderDonut();renderLT();renderThroughput();renderQueue();
   renderCarrierDelay();renderBatchSummary();renderTable();
+  // Reset expand panels
+  ['lt-detail','qw-detail','carrier-detail'].forEach(id=>{
+    const p=document.getElementById(id);
+    if(p&&p.classList.contains('open')){
+      if(id==='lt-detail')renderLTDetail();
+      if(id==='qw-detail')renderQWDetail();
+      if(id==='carrier-detail')renderCarrierDetail();
+    }
+  });
 }
 
 // ── KPI ──
@@ -814,6 +1007,58 @@ function renderBatchSummary(){
     <td style="text-align:center"><strong>${Math.round(tot.caseId)}</strong></td>
     <td style="text-align:center"><strong>${tot.cbm.toFixed(2)}</strong></td>
     <td><div style="font-size:11px;color:var(--text3)">${totPct}% (${tot.selesai}/${tot.armada})</div><div class="prog-mini"><div class="prog-mini-fill" style="width:${totPct}%"></div></div></td>`;
+}
+
+// ── EXPAND DETAIL RENDERS ──
+function renderLTDetail(){
+  const d=filtered.filter(r=>r.loadingMin!==null&&r.loadingMin>0).sort((a,b)=>b.loadingMin-a.loadingMin);
+  const statusCls=r=>{
+    if(r.loadingMin<=r.targetLoading)return'color:#16a34a;font-weight:700';
+    if(r.loadingMin<=r.targetLoading+60)return'color:#f59e0b;font-weight:700';
+    return'color:#dc2626;font-weight:700';
+  };
+  const statusLbl=r=>{
+    if(r.loadingMin<=r.targetLoading)return'✅ On Target';
+    if(r.loadingMin<=r.targetLoading+60)return'⚠️ Slight Delay';
+    return'❌ Over SLA';
+  };
+  document.getElementById('lt-detail-tbody').innerHTML=d.length?d.map(r=>`<tr>
+    <td style="font-weight:600">${r.transno}</td>
+    <td>${r.jenisArmada||'-'}</td>
+    <td style="color:var(--text2)">${r.targetLoading} menit</td>
+    <td style="${statusCls(r)}">${formatJam(r.loadingMin)}</td>
+    <td style="${statusCls(r)}">${statusLbl(r)}</td>
+    <td>${r.carrier||'-'}</td>
+  </tr>`).join(''):'<tr><td colspan="6" class="no-data">Tidak ada data</td></tr>';
+}
+
+function renderQWDetail(){
+  const d=filtered.filter(r=>r.queueMin!==null&&r.queueMin>=0).sort((a,b)=>b.queueMin-a.queueMin);
+  const cat=m=>m<60?{lbl:'0–1 Jam',cls:'color:#16a34a'}:m<120?{lbl:'1–2 Jam',cls:'color:#f59e0b'}:{lbl:'> 2 Jam',cls:'color:#dc2626;font-weight:700'};
+  document.getElementById('qw-detail-tbody').innerHTML=d.length?d.map(r=>{
+    const c=cat(r.queueMin);
+    return`<tr>
+      <td style="font-weight:600">${r.transno}</td>
+      <td>${r.carrier||'-'}</td>
+      <td>${r.checkIn||'-'}</td>
+      <td>${r.open||'-'}</td>
+      <td style="${c.cls}">${formatJam(r.queueMin)}</td>
+      <td><span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:${r.queueMin>=120?'#fef2f2':r.queueMin>=60?'#fff7ed':'#f0fdf4'};color:${r.queueMin>=120?'#b91c1c':r.queueMin>=60?'#c2410c':'#15803d'}">${c.lbl}</span></td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="6" class="no-data">Tidak ada data</td></tr>';
+}
+
+function renderCarrierDetail(){
+  const d=filtered.filter(r=>r.hitMiss==='MISS'||r.agingMin>0).sort((a,b)=>b.agingMin-a.agingMin);
+  document.getElementById('carrier-detail-tbody').innerHTML=d.length?d.map(r=>`<tr>
+    <td style="font-weight:600">${r.transno}</td>
+    <td>${r.carrier||'-'}</td>
+    <td style="font-size:11px">${r.planDel?r.planDel.substring(0,16):'-'}</td>
+    <td>${r.checkIn||'-'}</td>
+    <td style="color:#dc2626;font-weight:700">${formatJam(r.agingMin)}</td>
+    <td><span style="font-size:11px;background:#fef2f2;color:#b91c1c;padding:2px 7px;border-radius:999px;font-weight:700">${r.kodeAging||'-'}</span></td>
+    <td><span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:${r.hitMiss==='HIT'?'#f0fdf4':'#fef2f2'};color:${r.hitMiss==='HIT'?'#15803d':'#b91c1c'}">${r.hitMiss||'-'}</span></td>
+  </tr>`).join(''):'<tr><td colspan="7" class="no-data">Tidak ada data</td></tr>';
 }
 
 // ── DETAIL TABLE ──
