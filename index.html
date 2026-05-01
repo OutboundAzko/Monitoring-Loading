@@ -209,146 +209,148 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .periode-chip input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--blue);flex-shrink:0}
 
 /* ============================================ */
-/* IMPROVED EXPANDABLE PANEL STYLES */
+/* MODAL POPUP STYLES - LEBAR 90% */
 /* ============================================ */
-.expand-btn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
-  padding: 10px 14px;
-  margin-top: 16px;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-family: var(--font);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--blue);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.expand-btn:hover {
-  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
-  border-color: var(--blue);
-  transform: translateY(-1px);
-}
-
-.expand-btn span {
-  transition: transform 0.2s ease;
-}
-
-.expand-panel {
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
   display: none;
-  margin-top: 14px;
-  border-radius: var(--radius-sm);
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.modal-overlay.active {
+  display: flex;
+  opacity: 1;
+}
+
+.modal-container {
+  background: var(--surface);
+  border-radius: var(--radius);
+  width: 90%;
+  max-width: 1400px;
+  height: 90%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  transform: scale(0.95);
+  transition: transform 0.25s ease;
   overflow: hidden;
-  background: var(--bg);
-  border: 1px solid var(--border);
 }
 
-.expand-panel.open {
-  display: block;
-  animation: slideDown 0.25s ease-out;
+.modal-overlay.active .modal-container {
+  transform: scale(1);
 }
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.expand-panel-header {
+.modal-header {
+  padding: 18px 24px;
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  padding: 12px 16px;
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid rgba(255,255,255,0.1);
+  flex-shrink: 0;
 }
 
-.expand-panel-header h4 {
-  color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  margin: 0;
+.modal-header h2 {
+  font-size: 18px;
+  font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  margin: 0;
 }
 
-.expand-panel-header .count-badge {
+.modal-header .modal-badge {
   background: rgba(255,255,255,0.2);
-  padding: 2px 8px;
-  border-radius: 20px;
-  font-size: 11px;
+  padding: 4px 12px;
+  border-radius: 30px;
+  font-size: 12px;
   font-weight: 500;
 }
 
-.expand-panel-header .close-detail {
+.modal-close {
   background: rgba(255,255,255,0.1);
   border: none;
   color: #fff;
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 20px;
   cursor: pointer;
-  font-size: 14px;
   transition: all 0.15s;
-}
-
-.expand-panel-header .close-detail:hover {
-  background: rgba(255,255,255,0.25);
-}
-
-.expand-panel-summary {
   display: flex;
-  gap: 16px;
-  padding: 12px 16px;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover {
+  background: rgba(255,255,255,0.25);
+  transform: rotate(90deg);
+}
+
+.modal-summary {
+  display: flex;
+  gap: 20px;
+  padding: 16px 24px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.modal-summary-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   background: white;
-  border-bottom: 1px solid #e2e8f4;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
 }
 
-.expand-panel-summary .summary-item {
-  flex: 1;
-  text-align: center;
+.modal-summary-item .label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.expand-panel-summary .summary-value {
-  font-size: 18px;
+.modal-summary-item .value {
+  font-size: 20px;
   font-weight: 800;
+  color: var(--text);
 }
 
-.expand-panel-summary .summary-value.good { color: #2e7d32; }
-.expand-panel-summary .summary-value.warning { color: #ef6c00; }
-.expand-panel-summary .summary-value.danger { color: #c62828; }
-
-.expand-panel-summary .summary-label {
-  font-size: 10px;
-  color: #64748b;
-  margin-top: 4px;
+.modal-summary-item .unit {
+  font-size: 11px;
+  color: var(--text3);
 }
 
-.exp-wrap {
-  max-height: 320px;
-  overflow-y: auto;
-  padding: 0;
+.modal-content {
+  flex: 1;
+  overflow: auto;
+  padding: 20px 24px;
 }
 
-/* Enhanced detail table */
-.detail-table {
+.modal-content table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: 13px;
 }
 
-.detail-table th {
+.modal-content th {
   position: sticky;
   top: 0;
   background: var(--surface);
@@ -363,57 +365,70 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
   white-space: nowrap;
 }
 
-.detail-table td {
+.modal-content td {
   padding: 10px 12px;
   border-bottom: 1px solid var(--border);
   color: var(--text);
-  transition: background 0.1s;
 }
 
-.detail-table tbody tr:hover td {
+.modal-content tbody tr:hover td {
   background: #f8fafc;
 }
 
-/* Status indicator pills */
-.status-pill {
-  display: inline-flex;
+.modal-footer {
+  padding: 12px 24px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text3);
+  flex-shrink: 0;
+}
+
+.modal-export-btn {
+  background: var(--blue);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
+}
+
+.modal-export-btn:hover {
+  opacity: 0.9;
+}
+
+/* Tombol detail yang lebih menarik */
+.detail-btn {
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  border: none;
+  padding: 6px 14px;
   border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
+  color: var(--blue);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  margin-left: 8px;
 }
 
-.status-pill.on-target { background: #e8f5e9; color: #2e7d32; }
-.status-pill.slight { background: #fff3e0; color: #ef6c00; }
-.status-pill.over { background: #ffebee; color: #c62828; }
-.status-pill.waiting-good { background: #e8f5e9; color: #2e7d32; }
-.status-pill.waiting-warning { background: #fff3e0; color: #ef6c00; }
-.status-pill.waiting-danger { background: #ffebee; color: #c62828; }
-
-/* Metric highlight */
-.metric-highlight {
-  font-weight: 700;
-  font-size: 13px;
+.detail-btn:hover {
+  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+  transform: translateY(-1px);
 }
 
-.metric-highlight.good { color: #2e7d32; }
-.metric-highlight.warning { color: #ef6c00; }
-.metric-highlight.danger { color: #c62828; }
-
-/* Empty state */
-.empty-state {
-  text-align: center;
-  padding: 40px;
-  color: var(--text3);
-}
-
-.empty-state svg {
-  width: 48px;
-  height: 48px;
-  margin-bottom: 12px;
-  opacity: 0.5;
+.card-header {
+  flex-wrap: wrap;
 }
 
 /* LOADING */
@@ -427,6 +442,24 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 <div id="loading-overlay">
   <div class="loader"></div>
   <p>Memuat data operasional...</p>
+</div>
+
+<!-- MODAL POPUP -->
+<div id="detailModal" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2 id="modalTitle">📋 Detail Data</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-summary" id="modalSummary"></div>
+    <div class="modal-content" id="modalContent">
+      <div style="text-align:center;padding:40px;color:var(--text3)">Memuat data...</div>
+    </div>
+    <div class="modal-footer">
+      <div id="modalInfo"></div>
+      <button class="modal-export-btn" onclick="exportModalData()">📥 Export CSV</button>
+    </div>
+  </div>
 </div>
 
 <!-- SIDEBAR -->
@@ -517,17 +550,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       </div>
 
       <div class="card">
-        <div class="card-header"><div class="card-title">Loading Time Performance</div></div>
+        <div class="card-header">
+          <div class="card-title">Loading Time Performance</div>
+          <button class="detail-btn" onclick="openModal('lt')">🔍 Lihat Detail</button>
+        </div>
         <div id="lt-bars"></div>
         <div class="lt-summary">
           <div class="lt-sum-item"><div class="lt-sum-val" id="lt-avg">-</div><div class="lt-sum-lbl">Rata-rata Loading Time</div></div>
           <div class="lt-sum-item"><div class="lt-sum-val">Per Jenis</div><div class="lt-sum-lbl">Target Loading Time</div></div>
         </div>
-        <button class="expand-btn" onclick="toggleExpand('lt-detail')">
-          <span>📋 Lihat Detail per Armada</span>
-          <span id="lt-arrow">▼</span>
-        </button>
-        <div class="expand-panel" id="lt-detail"></div>
       </div>
 
       <div class="card">
@@ -537,16 +568,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       </div>
 
       <div class="card">
-        <div class="card-header"><div class="card-title">Queue Waiting Time (Check In → Open)</div></div>
+        <div class="card-header">
+          <div class="card-title">Queue Waiting Time (Check In → Open)</div>
+          <button class="detail-btn" onclick="openModal('qw')">🔍 Lihat Detail</button>
+        </div>
         <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Rata-rata Waiting Time</div>
         <div class="qw-avg" id="qw-avg">-</div>
         <div id="qw-bars"></div>
         <div class="qw-warn" id="qw-warn" style="display:none"></div>
-        <button class="expand-btn" onclick="toggleExpand('qw-detail')">
-          <span>📋 Lihat Detail Armada Waiting</span>
-          <span id="qw-arrow">▼</span>
-        </button>
-        <div class="expand-panel" id="qw-detail"></div>
       </div>
     </div>
 
@@ -555,6 +584,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       <div class="card">
         <div class="card-header">
           <div class="card-title">Carrier Delay Analysis <span style="font-size:11px;font-weight:400;color:var(--text3)">(Plan Delivery → Stuffing Time vs Check In)</span></div>
+          <button class="detail-btn" onclick="openModal('carrier')">🔍 Lihat Detail</button>
         </div>
         <div style="overflow-x:auto;max-height:280px;overflow-y:auto">
           <table class="delay-table">
@@ -566,11 +596,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
             <tbody id="carrier-tbody"></tbody>
             <tfoot><tr id="carrier-tfoot"></tr></tfoot>
           </table>
-          <button class="expand-btn" onclick="toggleExpand('carrier-detail')">
-            <span>📋 Lihat Detail Armada Terlambat</span>
-            <span id="carrier-arrow">▼</span>
-          </button>
-          <div class="expand-panel" id="carrier-detail"></div>
         </div>
       </div>
 
@@ -578,7 +603,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
         <div class="card-header"><div class="card-title">Summary Operasional (Per Batch)</div></div>
         <div style="overflow-x:auto">
           <table class="batch-table">
-            <thead><tr><th>Batch</th><th>Total Armada</th><th>Total Case ID</th><th>Total CBM</th><th>Progress</th></tr></thead>
+            <thead><tr><th>Batch</th><th>Total Armada</th><th>Total Case ID</th><th>Total CBM</th><th>Progress</th><tr></thead>
             <tbody id="batch-tbody"></tbody>
             <tfoot><tr id="batch-tfoot"></tr></tfoot>
           </table>
@@ -649,10 +674,229 @@ function getTargetLoading(jenisArmada){
   return 120;
 }
 const BATCH_CLS={'1':'bp1','2':'bp2','3':'bp3','4':'bp4'};
-const KODE_ORDER={'0–1 jam':0,'2–4 jam':1,'5–6 jam':2,'7 up':3,'H+1':4,'H+2':5,'H+3':6};
 let allData=[],filtered=[],curPage=1;
 let donutCh=null,throughputCh=null;
 let selectedPeriodes=[];
+let currentModalData = [];
+let currentModalType = '';
+
+// ── MODAL FUNCTIONS ──
+function openModal(type) {
+  currentModalType = type;
+  const modal = document.getElementById('detailModal');
+  const title = document.getElementById('modalTitle');
+  const summaryDiv = document.getElementById('modalSummary');
+  const contentDiv = document.getElementById('modalContent');
+  const infoDiv = document.getElementById('modalInfo');
+  
+  // Set title and prepare data
+  if (type === 'lt') {
+    title.innerHTML = '📋 Loading Time Performance - Detail Armada';
+    prepareLTModalData();
+  } else if (type === 'qw') {
+    title.innerHTML = '⏱️ Queue Waiting Time - Detail Armada';
+    prepareQWModalData();
+  } else if (type === 'carrier') {
+    title.innerHTML = '🚨 Carrier Delay Analysis - Detail Armada Terlambat';
+    prepareCarrierModalData();
+  }
+  
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  const modal = document.getElementById('detailModal');
+  modal.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function prepareLTModalData() {
+  const d = filtered.filter(r => r.loadingMin !== null && r.loadingMin > 0).sort((a,b) => b.loadingMin - a.loadingMin);
+  currentModalData = d;
+  
+  const onTarget = d.filter(r => r.loadingMin <= r.targetLoading).length;
+  const slight = d.filter(r => r.loadingMin > r.targetLoading && r.loadingMin <= r.targetLoading + 60).length;
+  const overSLA = d.filter(r => r.loadingMin > r.targetLoading + 60).length;
+  const avgLT = d.length ? Math.round(d.reduce((a,r) => a + r.loadingMin, 0) / d.length) : 0;
+  
+  document.getElementById('modalSummary').innerHTML = `
+    <div class="modal-summary-item"><span class="label">Total Armada</span><span class="value">${d.length}</span></div>
+    <div class="modal-summary-item"><span class="label">Rata-rata Loading</span><span class="value">${(avgLT/60).toFixed(1)}</span><span class="unit">Jam</span></div>
+    <div class="modal-summary-item"><span class="label">✅ On Target</span><span class="value" style="color:#2e7d32">${onTarget}</span></div>
+    <div class="modal-summary-item"><span class="label">⚠️ Slight Delay</span><span class="value" style="color:#ef6c00">${slight}</span></div>
+    <div class="modal-summary-item"><span class="label">❌ Over SLA</span><span class="value" style="color:#c62828">${overSLA}</span></div>
+  `;
+  
+  const getStatusClass = (r) => {
+    if (r.loadingMin <= r.targetLoading) return 'good';
+    if (r.loadingMin <= r.targetLoading + 60) return 'warning';
+    return 'danger';
+  };
+  
+  const getStatusLabel = (r) => {
+    if (r.loadingMin <= r.targetLoading) return 'On Target';
+    if (r.loadingMin <= r.targetLoading + 60) return 'Slight Delay';
+    return 'Over SLA';
+  };
+  
+  document.getElementById('modalContent').innerHTML = `
+    <table>
+      <thead>
+        <tr><th>No. Transaksi</th><th>Jenis Armada</th><th>Target</th><th>Loading Time</th><th>Status</th><th>Carrier</th><th>Shift</th><th>Tgl Muat</th></tr>
+      </thead>
+      <tbody>
+        ${d.map(r => `
+          <tr>
+            <td style="font-weight:600">${r.transno || '-'}</td>
+            <td>${r.jenisArmada || '-'}</td>
+            <td><span style="color:#64748b">${r.targetLoading} menit</span></td>
+            <td><span class="metric-highlight ${getStatusClass(r)}">${formatJam(r.loadingMin)}</span></td>
+            <td><span class="status-pill ${getStatusClass(r)}">${getStatusLabel(r)}</span></td>
+            <td>${r.carrier || '-'}</td>
+            <td>${r.shift || '-'}</td>
+            <td>${r.tgl || '-'}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  document.getElementById('modalInfo').innerHTML = `📊 Menampilkan ${d.length} data armada`;
+}
+
+function prepareQWModalData() {
+  const d = filtered.filter(r => r.queueMin !== null && r.queueMin >= 0).sort((a,b) => b.queueMin - a.queueMin);
+  currentModalData = d;
+  
+  const avgWait = d.length ? Math.round(d.reduce((a, r) => a + r.queueMin, 0) / d.length) : 0;
+  const under1h = d.filter(r => r.queueMin < 60).length;
+  const under2h = d.filter(r => r.queueMin >= 60 && r.queueMin < 120).length;
+  const over2h = d.filter(r => r.queueMin >= 120).length;
+  
+  const getWaitClass = (minutes) => {
+    if (minutes < 60) return 'good';
+    if (minutes < 120) return 'warning';
+    return 'danger';
+  };
+  
+  const getWaitLabel = (minutes) => {
+    if (minutes < 60) return '0-1 Jam';
+    if (minutes < 120) return '1-2 Jam';
+    return '> 2 Jam';
+  };
+  
+  document.getElementById('modalSummary').innerHTML = `
+    <div class="modal-summary-item"><span class="label">Total Armada</span><span class="value">${d.length}</span></div>
+    <div class="modal-summary-item"><span class="label">Rata-rata Waiting</span><span class="value">${formatJam(avgWait)}</span></div>
+    <div class="modal-summary-item"><span class="label">🟢 0-1 Jam</span><span class="value" style="color:#2e7d32">${under1h}</span></div>
+    <div class="modal-summary-item"><span class="label">🟡 1-2 Jam</span><span class="value" style="color:#ef6c00">${under2h}</span></div>
+    <div class="modal-summary-item"><span class="label">🔴 > 2 Jam</span><span class="value" style="color:#c62828">${over2h}</span></div>
+  `;
+  
+  document.getElementById('modalContent').innerHTML = `
+    <table>
+      <thead>
+        <tr><th>No. Transaksi</th><th>Carrier</th><th>Check In</th><th>Open</th><th>Waiting Time</th><th>Kategori</th><th>Shift</th><th>Tgl Muat</th></tr>
+      </thead>
+      <tbody>
+        ${d.map(r => `
+          <tr>
+            <td style="font-weight:600">${r.transno || '-'}</td>
+            <td>${r.carrier || '-'}</td>
+            <td>${r.checkIn || '-'}</td>
+            <td>${r.open || '-'}</td>
+            <td><span class="metric-highlight ${getWaitClass(r.queueMin)}">${formatJam(r.queueMin)}</span></td>
+            <td><span class="status-pill ${getWaitClass(r.queueMin)}">${getWaitLabel(r.queueMin)}</span></td>
+            <td>${r.shift || '-'}</td>
+            <td>${r.tgl || '-'}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  document.getElementById('modalInfo').innerHTML = `⏱️ Menampilkan ${d.length} data queue waiting`;
+}
+
+function prepareCarrierModalData() {
+  const d = filtered.filter(r => r.hitMiss === 'MISS' || r.agingMin > 0).sort((a,b) => b.agingMin - a.agingMin);
+  currentModalData = d;
+  
+  const avgDelay = d.length ? Math.round(d.reduce((a, r) => a + (r.agingMin || 0), 0) / d.length) : 0;
+  
+  document.getElementById('modalSummary').innerHTML = `
+    <div class="modal-summary-item"><span class="label">Total Terlambat</span><span class="value" style="color:#c62828">${d.length}</span></div>
+    <div class="modal-summary-item"><span class="label">Rata-rata Delay</span><span class="value" style="color:#ef6c00">${formatJam(avgDelay)}</span></div>
+  `;
+  
+  document.getElementById('modalContent').innerHTML = `
+    <table>
+      <thead>
+        <tr><th>No. Transaksi</th><th>Carrier</th><th>Plan Delivery</th><th>Check In</th><th>Delay</th><th>Kode Aging</th><th>Status</th><th>Shift</th><th>Tgl Muat</th></tr>
+      </thead>
+      <tbody>
+        ${d.map(r => `
+          <tr>
+            <td style="font-weight:600">${r.transno || '-'}</td>
+            <td>${r.carrier || '-'}</td>
+            <td style="font-size:11px">${r.planDel ? r.planDel.substring(0, 16) : '-'}</td>
+            <td style="font-size:11px">${r.checkIn || '-'}</td>
+            <td><span class="metric-highlight danger">${formatJam(r.agingMin)}</span></td>
+            <td><span class="status-pill over">${r.kodeAging || '-'}</span></td>
+            <td><span class="status-pill over">MISS</span></td>
+            <td>${r.shift || '-'}</td>
+            <td>${r.tgl || '-'}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  document.getElementById('modalInfo').innerHTML = `🚨 Menampilkan ${d.length} data armada yang terlambat`;
+}
+
+function exportModalData() {
+  if (!currentModalData.length) {
+    alert('Tidak ada data untuk diekspor');
+    return;
+  }
+  
+  let headers = [];
+  let rows = [];
+  
+  if (currentModalType === 'lt') {
+    headers = ['No. Transaksi', 'Jenis Armada', 'Target (menit)', 'Loading Time (menit)', 'Status', 'Carrier', 'Shift', 'Tanggal Muat'];
+    rows = currentModalData.map(r => [
+      r.transno || '', r.jenisArmada || '', r.targetLoading || 0, 
+      r.loadingMin || 0, 
+      r.loadingMin <= r.targetLoading ? 'On Target' : (r.loadingMin <= r.targetLoading + 60 ? 'Slight Delay' : 'Over SLA'),
+      r.carrier || '', r.shift || '', r.tgl || ''
+    ]);
+  } else if (currentModalType === 'qw') {
+    headers = ['No. Transaksi', 'Carrier', 'Check In', 'Open', 'Waiting Time (menit)', 'Kategori', 'Shift', 'Tanggal Muat'];
+    rows = currentModalData.map(r => [
+      r.transno || '', r.carrier || '', r.checkIn || '', r.open || '', 
+      r.queueMin || 0,
+      r.queueMin < 60 ? '0-1 Jam' : (r.queueMin < 120 ? '1-2 Jam' : '> 2 Jam'),
+      r.shift || '', r.tgl || ''
+    ]);
+  } else {
+    headers = ['No. Transaksi', 'Carrier', 'Plan Delivery', 'Check In', 'Delay (menit)', 'Kode Aging', 'Status', 'Shift', 'Tanggal Muat'];
+    rows = currentModalData.map(r => [
+      r.transno || '', r.carrier || '', r.planDel || '', r.checkIn || '', 
+      r.agingMin || 0, r.kodeAging || '', 'MISS', r.shift || '', r.tgl || ''
+    ]);
+  }
+  
+  const csvContent = [headers, ...rows].map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.href = url;
+  link.setAttribute('download', `dashboard_${currentModalType}_${new Date().toISOString().slice(0,19)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
 
 // ── PERIODE FUNCTIONS ──
 function populatePeriode(){
@@ -720,147 +964,6 @@ function applyPeriode(){
   applyFilter();
 }
 
-// ── EXPAND FUNCTIONS ──
-function toggleExpand(id) {
-  const panel = document.getElementById(id);
-  const isOpen = panel.classList.contains('open');
-  const arrowMap = {'lt-detail':'lt-arrow','qw-detail':'qw-arrow','carrier-detail':'carrier-arrow'};
-  const arrowSpan = document.getElementById(arrowMap[id]);
-  
-  if (!isOpen) {
-    if (id === 'lt-detail') renderLTDetailEnhanced();
-    if (id === 'qw-detail') renderQWDetailEnhanced();
-    if (id === 'carrier-detail') renderCarrierDetailEnhanced();
-    panel.classList.add('open');
-    if (arrowSpan) arrowSpan.textContent = '▲';
-    setTimeout(() => { panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 100);
-  } else {
-    panel.classList.remove('open');
-    if (arrowSpan) arrowSpan.textContent = '▼';
-  }
-}
-
-// Enhanced LT Detail
-function renderLTDetailEnhanced() {
-  const d = filtered.filter(r => r.loadingMin !== null && r.loadingMin > 0).sort((a,b) => b.loadingMin - a.loadingMin);
-  const getStatusClass = (r) => {
-    if (r.loadingMin <= r.targetLoading) return 'on-target';
-    if (r.loadingMin <= r.targetLoading + 60) return 'slight';
-    return 'over';
-  };
-  const getStatusLabel = (r) => {
-    if (r.loadingMin <= r.targetLoading) return 'On Target';
-    if (r.loadingMin <= r.targetLoading + 60) return 'Slight Delay';
-    return 'Over SLA';
-  };
-  const totalOnTarget = d.filter(r => r.loadingMin <= r.targetLoading).length;
-  const totalSlight = d.filter(r => r.loadingMin > r.targetLoading && r.loadingMin <= r.targetLoading + 60).length;
-  const totalOver = d.filter(r => r.loadingMin > r.targetLoading + 60).length;
-  const avgLT = d.length ? Math.round(d.reduce((a,r) => a + r.loadingMin, 0) / d.length) : 0;
-
-  const html = `
-    <div class="expand-panel-header">
-      <h4>📋 Detail Loading Time Performance <span class="count-badge">${d.length} Armada</span></h4>
-      <button class="close-detail" onclick="document.getElementById('lt-detail').classList.remove('open');document.getElementById('lt-arrow').textContent='▼';">✕</button>
-    </div>
-    <div class="expand-panel-summary">
-      <div class="summary-item"><div class="summary-value good">${formatJam(avgLT)}</div><div class="summary-label">Rata-rata Loading</div></div>
-      <div class="summary-item"><div class="summary-value good">${totalOnTarget}</div><div class="summary-label">✅ On Target</div></div>
-      <div class="summary-item"><div class="summary-value warning">${totalSlight}</div><div class="summary-label">⚠️ Slight Delay</div></div>
-      <div class="summary-item"><div class="summary-value danger">${totalOver}</div><div class="summary-label">❌ Over SLA</div></div>
-    </div>
-    <div class="exp-wrap">
-      <table class="detail-table">
-        <thead><tr><th>No. Transaksi</th><th>Jenis Armada</th><th>Target</th><th>Loading Time</th><th>Status</th><th>Carrier</th></tr></thead>
-        <tbody>${d.length ? d.map(r => `<tr>
-          <td style="font-weight:600">${r.transno || '-'}</td>
-          <td>${r.jenisArmada || '-'}</td>
-          <td><span style="color:#64748b">${r.targetLoading} menit</span></td>
-          <td><span class="metric-highlight ${getStatusClass(r)}">${formatJam(r.loadingMin)}</span></td>
-          <td><span class="status-pill ${getStatusClass(r)}">${getStatusLabel(r)}</span></td>
-          <td>${r.carrier || '-'}</td>
-        </tr>`).join('') : '<tr><td colspan="6" class="empty-state">Tidak ada data loading time</td></tr>'}</tbody>
-      </table>
-    </div>
-  `;
-  document.getElementById('lt-detail').innerHTML = html;
-}
-
-// Enhanced Queue Detail
-function renderQWDetailEnhanced() {
-  const d = filtered.filter(r => r.queueMin !== null && r.queueMin >= 0).sort((a,b) => b.queueMin - a.queueMin);
-  const getWaitClass = (minutes) => {
-    if (minutes < 60) return 'waiting-good';
-    if (minutes < 120) return 'waiting-warning';
-    return 'waiting-danger';
-  };
-  const getWaitLabel = (minutes) => {
-    if (minutes < 60) return '0–1 Jam';
-    if (minutes < 120) return '1–2 Jam';
-    return '> 2 Jam';
-  };
-  const avgWait = d.length ? Math.round(d.reduce((a, r) => a + r.queueMin, 0) / d.length) : 0;
-  const totalOver2h = d.filter(r => r.queueMin >= 120).length;
-
-  const html = `
-    <div class="expand-panel-header">
-      <h4>⏱️ Detail Queue Waiting Time <span class="count-badge">${d.length} Armada</span></h4>
-      <button class="close-detail" onclick="document.getElementById('qw-detail').classList.remove('open');document.getElementById('qw-arrow').textContent='▼';">✕</button>
-    </div>
-    <div class="expand-panel-summary">
-      <div class="summary-item"><div class="summary-value ${avgWait < 60 ? 'good' : (avgWait < 120 ? 'warning' : 'danger')}">${formatJam(avgWait)}</div><div class="summary-label">Rata-rata Waiting</div></div>
-      <div class="summary-item"><div class="summary-value danger">${totalOver2h}</div><div class="summary-label">⚠️ Waiting > 2 Jam</div></div>
-    </div>
-    <div class="exp-wrap">
-      <table class="detail-table">
-        <thead><tr><th>No. Transaksi</th><th>Carrier</th><th>Check In</th><th>Open</th><th>Waiting Time</th><th>Kategori</th></tr></thead>
-        <tbody>${d.length ? d.map(r => `<tr>
-          <td style="font-weight:600">${r.transno || '-'}</td>
-          <td>${r.carrier || '-'}</td>
-          <td>${r.checkIn || '-'}</td>
-          <td>${r.open || '-'}</td>
-          <td><span class="metric-highlight ${getWaitClass(r.queueMin)}">${formatJam(r.queueMin)}</span></td>
-          <td><span class="status-pill ${getWaitClass(r.queueMin)}">${getWaitLabel(r.queueMin)}</span></td>
-        </tr>`).join('') : '<tr><td colspan="6" class="empty-state">Tidak ada data queue waiting</td></tr>'}</tbody>
-      </table>
-    </div>
-  `;
-  document.getElementById('qw-detail').innerHTML = html;
-}
-
-// Enhanced Carrier Detail
-function renderCarrierDetailEnhanced() {
-  const d = filtered.filter(r => r.hitMiss === 'MISS' || r.agingMin > 0).sort((a,b) => b.agingMin - a.agingMin);
-  const totalDelay = d.length;
-  const avgDelay = totalDelay ? Math.round(d.reduce((a, r) => a + (r.agingMin || 0), 0) / totalDelay) : 0;
-
-  const html = `
-    <div class="expand-panel-header">
-      <h4>🚨 Detail Armada Terlambat <span class="count-badge">${totalDelay} Armada</span></h4>
-      <button class="close-detail" onclick="document.getElementById('carrier-detail').classList.remove('open');document.getElementById('carrier-arrow').textContent='▼';">✕</button>
-    </div>
-    <div class="expand-panel-summary">
-      <div class="summary-item"><div class="summary-value danger">${totalDelay}</div><div class="summary-label">Total Keterlambatan</div></div>
-      <div class="summary-item"><div class="summary-value warning">${formatJam(avgDelay)}</div><div class="summary-label">Rata-rata Delay</div></div>
-    </div>
-    <div class="exp-wrap">
-      <table class="detail-table">
-        <thead><tr><th>No. Transaksi</th><th>Carrier</th><th>Plan Delivery</th><th>Check In</th><th>Delay</th><th>Kode Aging</th><th>Status</th></tr></thead>
-        <tbody>${d.length ? d.map(r => `<tr>
-          <td style="font-weight:600">${r.transno || '-'}</td>
-          <td>${r.carrier || '-'}</td>
-          <td style="font-size:11px">${r.planDel ? r.planDel.substring(0, 16) : '-'}</td>
-          <td style="font-size:11px">${r.checkIn || '-'}</td>
-          <td><span class="metric-highlight danger">${formatJam(r.agingMin)}</span></td>
-          <td><span class="status-pill over">${r.kodeAging || '-'}</span></td>
-          <td><span class="status-pill over">MISS</span></td>
-        </tr>`).join('') : '<tr><td colspan="7" class="empty-state">Tidak ada data keterlambatan</td></tr>'}</tbody>
-      </table>
-    </div>
-  `;
-  document.getElementById('carrier-detail').innerHTML = html;
-}
-
 function toggleSidebar(){
   document.getElementById('sidebar').classList.toggle('collapsed');
   document.getElementById('main').classList.toggle('expanded');
@@ -900,17 +1003,12 @@ function timeToFloat(s){
   return t.h+t.m/60;
 }
 
-function diffMinutes(t1,t2){
-  if(t1===null||t2===null)return null;
-  return Math.round((t2-t1)*60);
-}
-
 function formatJam(menit){
   if(menit===null||isNaN(menit))return'-';
   const h=Math.floor(Math.abs(menit)/60);
   const m=Math.abs(menit)%60;
   const sign=menit<0?'-':'';
-  return h>0?`${sign}${h}.${String(m).padStart(2,'0')} Jam`:`${sign}0.${String(m).padStart(2,'0')} Jam`;
+  return h>0?`${sign}${h} jam ${m} menit`:`${sign}0 jam ${m} menit`;
 }
 
 // ── LOAD DATA ──
@@ -1289,11 +1387,11 @@ function renderBatchSummary(){
 
   const totPct=tot.armada>0?Math.round(tot.selesai/tot.armada*100):0;
   document.getElementById('batch-tfoot').innerHTML=`
-    <tr><strong>TOTAL</strong></td>
+    <tr><td><strong>TOTAL</strong></td>
     <td style="text-align:center"><strong>${tot.armada}</strong></td>
     <td style="text-align:center"><strong>${Math.round(tot.caseId)}</strong></td>
     <td style="text-align:center"><strong>${tot.cbm.toFixed(2)}</strong></td>
-    <td><div style="font-size:11px;color:var(--text3)">${totPct}% (${tot.selesai}/${tot.armada})</div><div class="prog-mini"><div class="prog-mini-fill" style="width:${totPct}%"></div></div></td>`;
+    <td><div style="font-size:11px;color:var(--text3)">${totPct}% (${tot.selesai}/${tot.armada})</div><div class="prog-mini"><div class="prog-mini-fill" style="width:${totPct}%"></div></div></td></tr>`;
 }
 
 // ── DETAIL TABLE ──
