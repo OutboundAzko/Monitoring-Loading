@@ -208,17 +208,213 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .periode-chip.checked{border-color:var(--blue);background:#e8f0fe;color:var(--blue);font-weight:700}
 .periode-chip input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--blue);flex-shrink:0}
 
-/* EXPANDABLE PANEL */
-.expand-btn{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--blue);cursor:pointer;padding:8px 0;border-top:1px solid var(--border);margin-top:12px;background:none;border-left:none;border-right:none;border-bottom:none;font-family:var(--font);width:100%;text-align:left}
-.expand-btn:hover{opacity:.8}
-.expand-panel{display:none;margin-top:8px}
-.expand-panel.open{display:block}
-.exp-table{width:100%;border-collapse:collapse;font-size:12px}
-.exp-table th{padding:7px 10px;font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--text3);text-transform:uppercase;background:var(--bg);border-bottom:2px solid var(--border);text-align:left;white-space:nowrap}
-.exp-table td{padding:7px 10px;border-bottom:1px solid var(--border);font-weight:500}
-.exp-table tr:last-child td{border-bottom:none}
-.exp-table tr:hover td{background:#f7f9ff}
-.exp-wrap{max-height:240px;overflow-y:auto}
+/* ============================================ */
+/* IMPROVED EXPANDABLE PANEL STYLES */
+/* ============================================ */
+.expand-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  margin-top: 16px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--blue);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.expand-btn:hover {
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  border-color: var(--blue);
+  transform: translateY(-1px);
+}
+
+.expand-btn span {
+  transition: transform 0.2s ease;
+}
+
+.expand-panel {
+  display: none;
+  margin-top: 14px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.expand-panel.open {
+  display: block;
+  animation: slideDown 0.25s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.expand-panel-header {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.expand-panel-header h4 {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.expand-panel-header .count-badge {
+  background: rgba(255,255,255,0.2);
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.expand-panel-header .close-detail {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: #fff;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s;
+}
+
+.expand-panel-header .close-detail:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+.expand-panel-summary {
+  display: flex;
+  gap: 16px;
+  padding: 12px 16px;
+  background: white;
+  border-bottom: 1px solid #e2e8f4;
+}
+
+.expand-panel-summary .summary-item {
+  flex: 1;
+  text-align: center;
+}
+
+.expand-panel-summary .summary-value {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.expand-panel-summary .summary-value.good { color: #2e7d32; }
+.expand-panel-summary .summary-value.warning { color: #ef6c00; }
+.expand-panel-summary .summary-value.danger { color: #c62828; }
+
+.expand-panel-summary .summary-label {
+  font-size: 10px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.exp-wrap {
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0;
+}
+
+/* Enhanced detail table */
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.detail-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface);
+  padding: 12px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text2);
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+
+.detail-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  transition: background 0.1s;
+}
+
+.detail-table tbody tr:hover td {
+  background: #f8fafc;
+}
+
+/* Status indicator pills */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.status-pill.on-target { background: #e8f5e9; color: #2e7d32; }
+.status-pill.slight { background: #fff3e0; color: #ef6c00; }
+.status-pill.over { background: #ffebee; color: #c62828; }
+.status-pill.waiting-good { background: #e8f5e9; color: #2e7d32; }
+.status-pill.waiting-warning { background: #fff3e0; color: #ef6c00; }
+.status-pill.waiting-danger { background: #ffebee; color: #c62828; }
+
+/* Metric highlight */
+.metric-highlight {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.metric-highlight.good { color: #2e7d32; }
+.metric-highlight.warning { color: #ef6c00; }
+.metric-highlight.danger { color: #c62828; }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: var(--text3);
+}
+
+.empty-state svg {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
 
 /* LOADING */
 #loading-overlay{position:fixed;inset:0;background:rgba(240,243,250,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:14px}
@@ -242,9 +438,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
   </div>
   <div class="sb-menu">
     <div class="sb-section">Menu</div>
-    <a class="mi active" href="index.html"><span class="ico">📦</span><span class="lbl">Monitoring Loading</span></a>
-    <a class="mi" href="temuan.html"><span class="ico">🔍</span><span class="lbl">Temuan Penyimpangan</span></a>
-    <a class="mi" href="produktivitas.html"><span class="ico">📊</span><span class="lbl">Produktivitas MPP</span></a>
+    <a class="mi active" href="javascript:void(0)"><span class="ico">📦</span><span class="lbl">Monitoring Loading</span></a>
+    <a class="mi" href="javascript:void(0)"><span class="ico">🔍</span><span class="lbl">Temuan Penyimpangan</span></a>
+    <a class="mi" href="javascript:void(0)"><span class="ico">📊</span><span class="lbl">Produktivitas MPP</span></a>
   </div>
   <div class="sb-bottom">
     <div class="mi" style="cursor:default">
@@ -327,13 +523,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
           <div class="lt-sum-item"><div class="lt-sum-val" id="lt-avg">-</div><div class="lt-sum-lbl">Rata-rata Loading Time</div></div>
           <div class="lt-sum-item"><div class="lt-sum-val">Per Jenis</div><div class="lt-sum-lbl">Target Loading Time</div></div>
         </div>
-        <button class="expand-btn" onclick="toggleExpand('lt-detail')">📋 Lihat Detail per Armada <span id="lt-arrow">▼</span></button>
-        <div class="expand-panel" id="lt-detail">
-          <div class="exp-wrap"><table class="exp-table">
-            <thead><tr><th>Transno</th><th>Jenis Armada</th><th>Target</th><th>Loading Time</th><th>Status</th><th>Carrier</th></tr></thead>
-            <tbody id="lt-detail-tbody"></tbody>
-          </table></div>
-        </div>
+        <button class="expand-btn" onclick="toggleExpand('lt-detail')">
+          <span>📋 Lihat Detail per Armada</span>
+          <span id="lt-arrow">▼</span>
+        </button>
+        <div class="expand-panel" id="lt-detail"></div>
       </div>
 
       <div class="card">
@@ -348,13 +542,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
         <div class="qw-avg" id="qw-avg">-</div>
         <div id="qw-bars"></div>
         <div class="qw-warn" id="qw-warn" style="display:none"></div>
-        <button class="expand-btn" onclick="toggleExpand('qw-detail')">📋 Lihat Detail Armada Waiting <span id="qw-arrow">▼</span></button>
-        <div class="expand-panel" id="qw-detail">
-          <div class="exp-wrap"><table class="exp-table">
-            <thead><tr><th>Transno</th><th>Carrier</th><th>Check In</th><th>Open</th><th>Waiting</th><th>Kategori</th></tr></thead>
-            <tbody id="qw-detail-tbody"></tbody>
-          </table></div>
-        </div>
+        <button class="expand-btn" onclick="toggleExpand('qw-detail')">
+          <span>📋 Lihat Detail Armada Waiting</span>
+          <span id="qw-arrow">▼</span>
+        </button>
+        <div class="expand-panel" id="qw-detail"></div>
       </div>
     </div>
 
@@ -366,19 +558,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
         </div>
         <div style="overflow-x:auto;max-height:280px;overflow-y:auto">
           <table class="delay-table">
-            <thead><tr>
-              <th>Carrier ID</th><th>0–1 Jam</th><th>2–4 Jam</th><th>>5 Jam</th><th>H+1</th><th>H+2</th><th>H+3</th><th>Total Terlambat</th><th>% Terlambat</th>
-            </tr></thead>
+            <thead>
+              <tr>
+                <th>Carrier ID</th><th>0–1 Jam</th><th>2–4 Jam</th><th>>5 Jam</th><th>H+1</th><th>H+2</th><th>H+3</th><th>Total Terlambat</th><th>% Terlambat</th>
+              </tr>
+            </thead>
             <tbody id="carrier-tbody"></tbody>
             <tfoot><tr id="carrier-tfoot"></tr></tfoot>
           </table>
-          <button class="expand-btn" onclick="toggleExpand('carrier-detail')">📋 Lihat Detail Armada Terlambat <span id="carrier-arrow">▼</span></button>
-          <div class="expand-panel" id="carrier-detail">
-            <div class="exp-wrap"><table class="exp-table">
-              <thead><tr><th>Transno</th><th>Carrier</th><th>Plan Delivery</th><th>Check In</th><th>Delay</th><th>Kode Aging</th><th>Hit/Miss</th></tr></thead>
-              <tbody id="carrier-detail-tbody"></tbody>
-            </table></div>
-          </div>
+          <button class="expand-btn" onclick="toggleExpand('carrier-detail')">
+            <span>📋 Lihat Detail Armada Terlambat</span>
+            <span id="carrier-arrow">▼</span>
+          </button>
+          <div class="expand-panel" id="carrier-detail"></div>
         </div>
       </div>
 
@@ -424,12 +616,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       </div>
       <div class="tbl-wrap">
         <table class="det-tbl">
-          <thead><tr>
-            <th>Tgl Muat</th><th>Shift</th><th>Transno</th><th>Shipping Line</th><th>Carrier</th>
-            <th>Status</th><th>Check In</th><th>Open</th><th>Close</th><th>Check Out</th>
-            <th>Loading Time</th><th>Plan Delivery</th><th>Delay</th><th>Stuffing Time</th>
-            <th>Hit/Miss</th><th>Jenis Armada</th><th>CBM</th><th>Area</th>
-          </tr></thead>
+          <thead>
+            <tr>
+              <th>Tgl Muat</th><th>Shift</th><th>Transno</th><th>Shipping Line</th><th>Carrier</th>
+              <th>Status</th><th>Check In</th><th>Open</th><th>Close</th><th>Check Out</th>
+              <th>Loading Time</th><th>Plan Delivery</th><th>Delay</th><th>Stuffing Time</th>
+              <th>Hit/Miss</th><th>Jenis Armada</th><th>CBM</th><th>Area</th>
+            </tr>
+          </thead>
           <tbody id="tbl-body"></tbody>
         </table>
       </div>
@@ -452,7 +646,7 @@ function getTargetLoading(jenisArmada){
   for(const[k,v] of Object.entries(TARGET_LOADING)){
     if(j.includes(k)||k.includes(j))return v;
   }
-  return 120; // default
+  return 120;
 }
 const BATCH_CLS={'1':'bp1','2':'bp2','3':'bp3','4':'bp4'};
 const KODE_ORDER={'0–1 jam':0,'2–4 jam':1,'5–6 jam':2,'7 up':3,'H+1':4,'H+2':5,'H+3':6};
@@ -527,20 +721,144 @@ function applyPeriode(){
 }
 
 // ── EXPAND FUNCTIONS ──
-function toggleExpand(id){
-  const panel=document.getElementById(id);
-  const isOpen=panel.classList.contains('open');
-  panel.classList.toggle('open');
-  // Update arrow
-  const arrowMap={'lt-detail':'lt-arrow','qw-detail':'qw-arrow','carrier-detail':'carrier-arrow'};
-  const arrow=document.getElementById(arrowMap[id]);
-  if(arrow)arrow.textContent=isOpen?'▼':'▲';
-  // Render detail saat dibuka
-  if(!isOpen){
-    if(id==='lt-detail')renderLTDetail();
-    if(id==='qw-detail')renderQWDetail();
-    if(id==='carrier-detail')renderCarrierDetail();
+function toggleExpand(id) {
+  const panel = document.getElementById(id);
+  const isOpen = panel.classList.contains('open');
+  const arrowMap = {'lt-detail':'lt-arrow','qw-detail':'qw-arrow','carrier-detail':'carrier-arrow'};
+  const arrowSpan = document.getElementById(arrowMap[id]);
+  
+  if (!isOpen) {
+    if (id === 'lt-detail') renderLTDetailEnhanced();
+    if (id === 'qw-detail') renderQWDetailEnhanced();
+    if (id === 'carrier-detail') renderCarrierDetailEnhanced();
+    panel.classList.add('open');
+    if (arrowSpan) arrowSpan.textContent = '▲';
+    setTimeout(() => { panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }, 100);
+  } else {
+    panel.classList.remove('open');
+    if (arrowSpan) arrowSpan.textContent = '▼';
   }
+}
+
+// Enhanced LT Detail
+function renderLTDetailEnhanced() {
+  const d = filtered.filter(r => r.loadingMin !== null && r.loadingMin > 0).sort((a,b) => b.loadingMin - a.loadingMin);
+  const getStatusClass = (r) => {
+    if (r.loadingMin <= r.targetLoading) return 'on-target';
+    if (r.loadingMin <= r.targetLoading + 60) return 'slight';
+    return 'over';
+  };
+  const getStatusLabel = (r) => {
+    if (r.loadingMin <= r.targetLoading) return 'On Target';
+    if (r.loadingMin <= r.targetLoading + 60) return 'Slight Delay';
+    return 'Over SLA';
+  };
+  const totalOnTarget = d.filter(r => r.loadingMin <= r.targetLoading).length;
+  const totalSlight = d.filter(r => r.loadingMin > r.targetLoading && r.loadingMin <= r.targetLoading + 60).length;
+  const totalOver = d.filter(r => r.loadingMin > r.targetLoading + 60).length;
+  const avgLT = d.length ? Math.round(d.reduce((a,r) => a + r.loadingMin, 0) / d.length) : 0;
+
+  const html = `
+    <div class="expand-panel-header">
+      <h4>📋 Detail Loading Time Performance <span class="count-badge">${d.length} Armada</span></h4>
+      <button class="close-detail" onclick="document.getElementById('lt-detail').classList.remove('open');document.getElementById('lt-arrow').textContent='▼';">✕</button>
+    </div>
+    <div class="expand-panel-summary">
+      <div class="summary-item"><div class="summary-value good">${formatJam(avgLT)}</div><div class="summary-label">Rata-rata Loading</div></div>
+      <div class="summary-item"><div class="summary-value good">${totalOnTarget}</div><div class="summary-label">✅ On Target</div></div>
+      <div class="summary-item"><div class="summary-value warning">${totalSlight}</div><div class="summary-label">⚠️ Slight Delay</div></div>
+      <div class="summary-item"><div class="summary-value danger">${totalOver}</div><div class="summary-label">❌ Over SLA</div></div>
+    </div>
+    <div class="exp-wrap">
+      <table class="detail-table">
+        <thead><tr><th>No. Transaksi</th><th>Jenis Armada</th><th>Target</th><th>Loading Time</th><th>Status</th><th>Carrier</th></tr></thead>
+        <tbody>${d.length ? d.map(r => `<tr>
+          <td style="font-weight:600">${r.transno || '-'}</td>
+          <td>${r.jenisArmada || '-'}</td>
+          <td><span style="color:#64748b">${r.targetLoading} menit</span></td>
+          <td><span class="metric-highlight ${getStatusClass(r)}">${formatJam(r.loadingMin)}</span></td>
+          <td><span class="status-pill ${getStatusClass(r)}">${getStatusLabel(r)}</span></td>
+          <td>${r.carrier || '-'}</td>
+        </tr>`).join('') : '<tr><td colspan="6" class="empty-state">Tidak ada data loading time</td></tr>'}</tbody>
+      </table>
+    </div>
+  `;
+  document.getElementById('lt-detail').innerHTML = html;
+}
+
+// Enhanced Queue Detail
+function renderQWDetailEnhanced() {
+  const d = filtered.filter(r => r.queueMin !== null && r.queueMin >= 0).sort((a,b) => b.queueMin - a.queueMin);
+  const getWaitClass = (minutes) => {
+    if (minutes < 60) return 'waiting-good';
+    if (minutes < 120) return 'waiting-warning';
+    return 'waiting-danger';
+  };
+  const getWaitLabel = (minutes) => {
+    if (minutes < 60) return '0–1 Jam';
+    if (minutes < 120) return '1–2 Jam';
+    return '> 2 Jam';
+  };
+  const avgWait = d.length ? Math.round(d.reduce((a, r) => a + r.queueMin, 0) / d.length) : 0;
+  const totalOver2h = d.filter(r => r.queueMin >= 120).length;
+
+  const html = `
+    <div class="expand-panel-header">
+      <h4>⏱️ Detail Queue Waiting Time <span class="count-badge">${d.length} Armada</span></h4>
+      <button class="close-detail" onclick="document.getElementById('qw-detail').classList.remove('open');document.getElementById('qw-arrow').textContent='▼';">✕</button>
+    </div>
+    <div class="expand-panel-summary">
+      <div class="summary-item"><div class="summary-value ${avgWait < 60 ? 'good' : (avgWait < 120 ? 'warning' : 'danger')}">${formatJam(avgWait)}</div><div class="summary-label">Rata-rata Waiting</div></div>
+      <div class="summary-item"><div class="summary-value danger">${totalOver2h}</div><div class="summary-label">⚠️ Waiting > 2 Jam</div></div>
+    </div>
+    <div class="exp-wrap">
+      <table class="detail-table">
+        <thead><tr><th>No. Transaksi</th><th>Carrier</th><th>Check In</th><th>Open</th><th>Waiting Time</th><th>Kategori</th></tr></thead>
+        <tbody>${d.length ? d.map(r => `<tr>
+          <td style="font-weight:600">${r.transno || '-'}</td>
+          <td>${r.carrier || '-'}</td>
+          <td>${r.checkIn || '-'}</td>
+          <td>${r.open || '-'}</td>
+          <td><span class="metric-highlight ${getWaitClass(r.queueMin)}">${formatJam(r.queueMin)}</span></td>
+          <td><span class="status-pill ${getWaitClass(r.queueMin)}">${getWaitLabel(r.queueMin)}</span></td>
+        </tr>`).join('') : '<tr><td colspan="6" class="empty-state">Tidak ada data queue waiting</td></tr>'}</tbody>
+      </table>
+    </div>
+  `;
+  document.getElementById('qw-detail').innerHTML = html;
+}
+
+// Enhanced Carrier Detail
+function renderCarrierDetailEnhanced() {
+  const d = filtered.filter(r => r.hitMiss === 'MISS' || r.agingMin > 0).sort((a,b) => b.agingMin - a.agingMin);
+  const totalDelay = d.length;
+  const avgDelay = totalDelay ? Math.round(d.reduce((a, r) => a + (r.agingMin || 0), 0) / totalDelay) : 0;
+
+  const html = `
+    <div class="expand-panel-header">
+      <h4>🚨 Detail Armada Terlambat <span class="count-badge">${totalDelay} Armada</span></h4>
+      <button class="close-detail" onclick="document.getElementById('carrier-detail').classList.remove('open');document.getElementById('carrier-arrow').textContent='▼';">✕</button>
+    </div>
+    <div class="expand-panel-summary">
+      <div class="summary-item"><div class="summary-value danger">${totalDelay}</div><div class="summary-label">Total Keterlambatan</div></div>
+      <div class="summary-item"><div class="summary-value warning">${formatJam(avgDelay)}</div><div class="summary-label">Rata-rata Delay</div></div>
+    </div>
+    <div class="exp-wrap">
+      <table class="detail-table">
+        <thead><tr><th>No. Transaksi</th><th>Carrier</th><th>Plan Delivery</th><th>Check In</th><th>Delay</th><th>Kode Aging</th><th>Status</th></tr></thead>
+        <tbody>${d.length ? d.map(r => `<tr>
+          <td style="font-weight:600">${r.transno || '-'}</td>
+          <td>${r.carrier || '-'}</td>
+          <td style="font-size:11px">${r.planDel ? r.planDel.substring(0, 16) : '-'}</td>
+          <td style="font-size:11px">${r.checkIn || '-'}</td>
+          <td><span class="metric-highlight danger">${formatJam(r.agingMin)}</span></td>
+          <td><span class="status-pill over">${r.kodeAging || '-'}</span></td>
+          <td><span class="status-pill over">MISS</span></td>
+        </tr>`).join('') : '<tr><td colspan="7" class="empty-state">Tidak ada data keterlambatan</td></tr>'}</tbody>
+      </table>
+    </div>
+  `;
+  document.getElementById('carrier-detail').innerHTML = html;
 }
 
 function toggleSidebar(){
@@ -569,7 +887,6 @@ function parseDateStr(s){
 function toYMD(dt){if(!dt)return'';return`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;}
 
 function parseTime(s){
-  // Format: "2026-03-31 7:16" atau "07.16" atau "08:00:00"
   if(!s||!s.trim())return null;
   s=s.trim();
   if(s.includes(' ')){const p=s.split(' ');const t=p[1];const tp=t.split(':');return{h:parseInt(tp[0]),m:parseInt(tp[1]||0)};}
@@ -584,7 +901,6 @@ function timeToFloat(s){
 }
 
 function diffMinutes(t1,t2){
-  // t1,t2 dalam format timeToFloat (jam desimal)
   if(t1===null||t2===null)return null;
   return Math.round((t2-t1)*60);
 }
@@ -607,7 +923,6 @@ async function loadData(){
     const parsed=Papa.parse(txt,{header:false,skipEmptyLines:true});
     const rows=parsed.data;
     const H=rows[0].map(c=>(c||'').trim().toUpperCase().replace(/\s+/g,' ').replace(/\n/g,' '));
-    console.log('[HEADERS]',H);
 
     const I={
       tgl:H.findIndex(h=>h==='TANGGAL MUAT'||h==='TGL'),
@@ -637,9 +952,7 @@ async function loadData(){
       kodeAging:H.findIndex(h=>h==='KODE AGING'),
       hitMiss:H.findIndex(h=>h==='HIT / MISS'),
     };
-    // Fix: STUFFING TIME punya newline
     if(I.stuffing<0){I.stuffing=H.findIndex(h=>h.includes('STUFFING')&&h.includes('TIME'));}
-    console.log('[IDX]',I);
 
     const g=(r,i)=>i>=0&&i<r.length?(r[i]||'').trim():'';
     const gf=(r,i)=>i>=0?parseFloat((r[i]||'0').toString().replace(/,/g,'').replace(/#VALUE!/g,'0'))||0:0;
@@ -657,7 +970,6 @@ async function loadData(){
       const stuffingTimeStr=g(r,I.stuffing);
       const loadingTimeStr=g(r,I.loadingTime);
 
-      // Hitung durasi queue: checkIn → open (dalam menit)
       const checkInF=timeToFloat(checkInStr);
       const openF=timeToFloat(openStr);
       const closeF=timeToFloat(closeStr);
@@ -666,17 +978,15 @@ async function loadData(){
       let queueMin=null;
       if(checkInF!==null&&openF!==null){
         queueMin=Math.round((openF-checkInF)*60);
-        if(queueMin<0)queueMin+=24*60; // overnight
+        if(queueMin<0)queueMin+=24*60;
       }
 
-      // Loading time: parse dari format "01.02" = 1jam 2menit
       let loadingMin=null;
       if(loadingTimeStr&&loadingTimeStr!=='#VALUE!'&&loadingTimeStr!=='00.00'){
         const lp=loadingTimeStr.split('.');
         if(lp.length===2)loadingMin=parseInt(lp[0])*60+parseInt(lp[1].padEnd(2,'0').substring(0,2));
       }
 
-      // Delay = aging time (menit)
       const agingMin=gf(r,I.agingTime);
       const kodeAging=g(r,I.kodeAging);
       const hitMiss=g(r,I.hitMiss)||g(r,I.kedatangan);
@@ -702,9 +1012,6 @@ async function loadData(){
       };
     }).filter(r=>r.tgl);
 
-    console.log('[DATA] Loaded:',allData.length,'sample:',allData[2]);
-
-    // Populate filter options
     const setOpts=(id,vals,all)=>{
       document.getElementById(id).innerHTML=`<option value="">${all}</option>`+vals.map(v=>`<option value="${v}">${v}</option>`).join('');
     };
@@ -714,7 +1021,6 @@ async function loadData(){
     setOpts('tbl-carrier',[...new Set(allData.map(r=>r.carrier).filter(Boolean))].sort(),'Carrier ▾');
     populatePeriode();
 
-    // Auto set tanggal terbaru
     const dates=allData.map(r=>r.dt).filter(Boolean).sort((a,b)=>b-a);
     if(dates.length)document.getElementById('f-date').value=toYMD(dates[0]);
 
@@ -731,7 +1037,6 @@ function applyFilter(){
   const fArea=document.getElementById('f-area').value;
   const fArmada=document.getElementById('f-armada').value;
 
-  // Periode: build set of valid dates
   let periodeSet=null;
   if(selectedPeriodes.length>0){
     const today=new Date();today.setHours(0,0,0,0);
@@ -740,7 +1045,6 @@ function applyFilter(){
       if(p==='7'){
         for(let i=0;i<7;i++){const d=new Date(today);d.setDate(d.getDate()-i);periodeSet.add(toYMD(d));}
       } else {
-        // YYYY-MM format - store as month prefix
         periodeSet.add('m:'+p);
       }
     });
@@ -764,15 +1068,6 @@ function applyFilter(){
 function renderAll(){
   renderKPI();renderDonut();renderLT();renderThroughput();renderQueue();
   renderCarrierDelay();renderBatchSummary();renderTable();
-  // Reset expand panels
-  ['lt-detail','qw-detail','carrier-detail'].forEach(id=>{
-    const p=document.getElementById(id);
-    if(p&&p.classList.contains('open')){
-      if(id==='lt-detail')renderLTDetail();
-      if(id==='qw-detail')renderQWDetail();
-      if(id==='carrier-detail')renderCarrierDetail();
-    }
-  });
 }
 
 // ── KPI ──
@@ -782,7 +1077,6 @@ function renderKPI(){
   const hitArr=d.filter(r=>r.hitMiss&&r.checkIn);
   const hitCount=hitArr.filter(r=>r.hitMiss==='HIT').length;
   const hitRate=hitArr.length>0?Math.round(hitCount/hitArr.length*100):0;
-  const missRate=100-hitRate;
   const ltArr=d.filter(r=>r.loadingMin!==null&&r.loadingMin>0);
   const avgLT=ltArr.length?Math.round(ltArr.reduce((a,r)=>a+r.loadingMin,0)/ltArr.length):0;
   const avgLTJam=(avgLT/60).toFixed(1);
@@ -819,7 +1113,6 @@ function renderKPI(){
     </div>`;
 }
 
-// ── DONUT STATUS ──
 function renderDonut(){
   const d=filtered,total=d.length;
   const groups={
@@ -850,7 +1143,6 @@ function renderDonut(){
   });
 }
 
-// ── LOADING TIME PERFORMANCE ──
 function renderLT(){
   const d=filtered.filter(r=>r.loadingMin!==null&&r.loadingMin>0&&r.targetLoading>0);
   const onTarget=d.filter(r=>r.loadingMin<=r.targetLoading).length;
@@ -868,7 +1160,6 @@ function renderLT(){
   document.getElementById('lt-avg').textContent=(avgLT/60).toFixed(1)+' Jam';
 }
 
-// ── THROUGHPUT PER JAM ──
 function renderThroughput(){
   const d=filtered.filter(r=>r.close&&r.close.includes(' '));
   const hourMap={};
@@ -907,7 +1198,6 @@ function renderThroughput(){
     <div><div style="font-size:13px;font-weight:700">${avgCBMPerJam}</div><div style="font-size:10px;color:var(--text3)">CBM/Jam</div></div>`;
 }
 
-// ── QUEUE WAITING TIME ──
 function renderQueue(){
   const d=filtered.filter(r=>r.queueMin!==null&&r.queueMin>=0);
   const avg=d.length?Math.round(d.reduce((a,r)=>a+r.queueMin,0)/d.length):0;
@@ -931,9 +1221,7 @@ function renderQueue(){
   } else warnEl.style.display='none';
 }
 
-// ── CARRIER DELAY ──
 function renderCarrierDelay(){
-  // Grouping berdasarkan KODE AGING per carrier
   const carriers={};
   filtered.forEach(r=>{
     if(!r.carrier||!r.hitMiss)return;
@@ -960,17 +1248,16 @@ function renderCarrierDelay(){
       <td style="text-align:center;font-weight:700">${v.delay}</td>
       <td><span class="delay-pct ${pctCls(pct)}">${pct}%</span></td>
     </tr>`;
-  }).join('')||'<tr><td colspan="9" class="no-data">Tidak ada data</td></tr>';
+  }).join('')||'<tr><td colspan="9" class="no-data">Tidak ada数据</td></tr>';
 
   const totPct=totals.total>0?Math.round(totals.delay/totals.total*100):0;
   document.getElementById('carrier-tfoot').innerHTML=`
-    <td><strong>TOTAL</strong></td>
+    <tr><strong>TOTAL</strong></td>
     ${kodes.map(k=>`<td style="text-align:center"><strong>${totals.byKode[k]||0}</strong></td>`).join('')}
     <td style="text-align:center"><strong>${totals.delay}</strong></td>
     <td><span class="delay-pct ${pctCls(totPct)}">${totPct}%</span></td>`;
 }
 
-// ── BATCH SUMMARY ──
 function renderBatchSummary(){
   const batches=['1','2','3','4'];
   const bmap={};
@@ -1002,63 +1289,11 @@ function renderBatchSummary(){
 
   const totPct=tot.armada>0?Math.round(tot.selesai/tot.armada*100):0;
   document.getElementById('batch-tfoot').innerHTML=`
-    <td><strong>TOTAL</strong></td>
+    <tr><strong>TOTAL</strong></td>
     <td style="text-align:center"><strong>${tot.armada}</strong></td>
     <td style="text-align:center"><strong>${Math.round(tot.caseId)}</strong></td>
     <td style="text-align:center"><strong>${tot.cbm.toFixed(2)}</strong></td>
     <td><div style="font-size:11px;color:var(--text3)">${totPct}% (${tot.selesai}/${tot.armada})</div><div class="prog-mini"><div class="prog-mini-fill" style="width:${totPct}%"></div></div></td>`;
-}
-
-// ── EXPAND DETAIL RENDERS ──
-function renderLTDetail(){
-  const d=filtered.filter(r=>r.loadingMin!==null&&r.loadingMin>0).sort((a,b)=>b.loadingMin-a.loadingMin);
-  const statusCls=r=>{
-    if(r.loadingMin<=r.targetLoading)return'color:#16a34a;font-weight:700';
-    if(r.loadingMin<=r.targetLoading+60)return'color:#f59e0b;font-weight:700';
-    return'color:#dc2626;font-weight:700';
-  };
-  const statusLbl=r=>{
-    if(r.loadingMin<=r.targetLoading)return'✅ On Target';
-    if(r.loadingMin<=r.targetLoading+60)return'⚠️ Slight Delay';
-    return'❌ Over SLA';
-  };
-  document.getElementById('lt-detail-tbody').innerHTML=d.length?d.map(r=>`<tr>
-    <td style="font-weight:600">${r.transno}</td>
-    <td>${r.jenisArmada||'-'}</td>
-    <td style="color:var(--text2)">${r.targetLoading} menit</td>
-    <td style="${statusCls(r)}">${formatJam(r.loadingMin)}</td>
-    <td style="${statusCls(r)}">${statusLbl(r)}</td>
-    <td>${r.carrier||'-'}</td>
-  </tr>`).join(''):'<tr><td colspan="6" class="no-data">Tidak ada data</td></tr>';
-}
-
-function renderQWDetail(){
-  const d=filtered.filter(r=>r.queueMin!==null&&r.queueMin>=0).sort((a,b)=>b.queueMin-a.queueMin);
-  const cat=m=>m<60?{lbl:'0–1 Jam',cls:'color:#16a34a'}:m<120?{lbl:'1–2 Jam',cls:'color:#f59e0b'}:{lbl:'> 2 Jam',cls:'color:#dc2626;font-weight:700'};
-  document.getElementById('qw-detail-tbody').innerHTML=d.length?d.map(r=>{
-    const c=cat(r.queueMin);
-    return`<tr>
-      <td style="font-weight:600">${r.transno}</td>
-      <td>${r.carrier||'-'}</td>
-      <td>${r.checkIn||'-'}</td>
-      <td>${r.open||'-'}</td>
-      <td style="${c.cls}">${formatJam(r.queueMin)}</td>
-      <td><span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:${r.queueMin>=120?'#fef2f2':r.queueMin>=60?'#fff7ed':'#f0fdf4'};color:${r.queueMin>=120?'#b91c1c':r.queueMin>=60?'#c2410c':'#15803d'}">${c.lbl}</span></td>
-    </tr>`;
-  }).join(''):'<tr><td colspan="6" class="no-data">Tidak ada data</td></tr>';
-}
-
-function renderCarrierDetail(){
-  const d=filtered.filter(r=>r.hitMiss==='MISS'||r.agingMin>0).sort((a,b)=>b.agingMin-a.agingMin);
-  document.getElementById('carrier-detail-tbody').innerHTML=d.length?d.map(r=>`<tr>
-    <td style="font-weight:600">${r.transno}</td>
-    <td>${r.carrier||'-'}</td>
-    <td style="font-size:11px">${r.planDel?r.planDel.substring(0,16):'-'}</td>
-    <td>${r.checkIn||'-'}</td>
-    <td style="color:#dc2626;font-weight:700">${formatJam(r.agingMin)}</td>
-    <td><span style="font-size:11px;background:#fef2f2;color:#b91c1c;padding:2px 7px;border-radius:999px;font-weight:700">${r.kodeAging||'-'}</span></td>
-    <td><span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:${r.hitMiss==='HIT'?'#f0fdf4':'#fef2f2'};color:${r.hitMiss==='HIT'?'#15803d':'#b91c1c'}">${r.hitMiss||'-'}</span></td>
-  </tr>`).join(''):'<tr><td colspan="7" class="no-data">Tidak ada data</td></tr>';
 }
 
 // ── DETAIL TABLE ──
@@ -1116,9 +1351,8 @@ function renderTable(){
       <td>${r.cbm.toFixed(2)}</td>
       <td>${r.area||'-'}</td>
     </tr>`;
-  }).join(''):'<tr><td colspan="18" class="no-data">Tidak ada data</td></tr>';
+  }).join(''):'<tr><td colspan="18" class="no-data">Tidak ada数据</td></tr>';
 
-  // Pagination
   let pg=`<span style="white-space:nowrap">${Math.min(start+1,d.length)}-${Math.min(start+pageSize,d.length)} dari ${d.length}</span>`;
   pg+=`<button class="pgb" onclick="goPage(${curPage-1})" ${curPage<=1?'disabled':''}>‹</button>`;
   const maxShow=5;const half=Math.floor(maxShow/2);
