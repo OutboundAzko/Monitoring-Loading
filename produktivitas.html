@@ -221,7 +221,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       <div class="kpi-row" id="checker-kpi">
         <div class="kpi blue"><div class="kpi-label">Total Checker</div><div class="kpi-value">-</div><div class="kpi-sub">Orang aktif</div></div>
         <div class="kpi blue"><div class="kpi-label">Total Case ID</div><div class="kpi-value">-</div><div class="kpi-sub">Seluruh periode</div></div>
-        <div class="kpi orange"><div class="kpi-label">Avg Case/MPP/Hari</div><div class="kpi-value">-</div><div class="kpi-sub">Target: 800 Case</div></div>
+        <div class="kpi orange"><div class="kpi-label">Avg Case ID/MPP/Hari</div><div class="kpi-value">-</div><div class="kpi-sub">Target: 800 Case</div></div>
         <div class="kpi orange"><div class="kpi-label">Capai Target</div><div class="kpi-value">-</div><div class="kpi-sub">Orang ≥ 100%</div></div>
       </div>
       <div class="inner-filter">
@@ -468,7 +468,7 @@ function renderChecker(){
   document.getElementById('checker-kpi').innerHTML=`
     <div class="kpi blue"><div class="kpi-label">Total Checker</div><div class="kpi-value">${persons.length}</div><div class="kpi-sub">Orang aktif</div></div>
     <div class="kpi blue"><div class="kpi-label">Total Case ID</div><div class="kpi-value">${total.toLocaleString()}</div><div class="kpi-sub">Seluruh periode</div></div>
-    <div class="kpi ${avgAll>=TARGET_CASE?'green':'orange'}"><div class="kpi-label">Avg Case/MPP/Hari</div><div class="kpi-value">${Math.round(avgAll).toLocaleString()}</div><div class="kpi-sub">Target: ${TARGET_CASE}</div></div>
+    <div class="kpi ${avgAll>=TARGET_CASE?'green':'orange'}"><div class="kpi-label">Avg Case ID/MPP/Hari</div><div class="kpi-value">${Math.round(avgAll).toLocaleString()}</div><div class="kpi-sub">Target: ${TARGET_CASE}</div></div>
     <div class="kpi ${good===persons.length&&persons.length>0?'green':'orange'}"><div class="kpi-label">Capai Target</div><div class="kpi-value">${good}/${persons.length}</div><div class="kpi-sub">Orang ≥ 100%</div></div>`;
 
   const sorted=[...persons].sort((a,b)=>b.avg-a.avg);
