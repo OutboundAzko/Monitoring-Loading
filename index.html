@@ -599,7 +599,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
         <div style="overflow-x:auto;max-height:280px;overflow-y:auto">
           <table class="delay-table">
             <thead>
-              <tr><th>Carrier ID</th><th>0–1 Jam</th><th>2–4 Jam</th><th>>5 Jam</th><th>H+1</th><th>H+2</th><th>H+3</th><th>Total Terlambat</th><th>% Terlambat</th></tr>
+              <tr><th>Carrier ID</th><th>0–1 Jam</th><th>2–4 Jam</th><th>>5 Jam</th><th>H+1</th><th>H+2</th><th>H+3</th><th>Total Armada</th><th>Total Terlambat</th><th>% Terlambat</th></tr>
             </thead>
             <tbody id="carrier-tbody"></tbody>
             <tfoot><tr id="carrier-tfoot"></tr></tfoot>
@@ -1310,6 +1310,8 @@ function renderQueue(){
 function renderCarrierDelay(){
   const carriers={};
   const carrierTotals={};
+  
+  // Hitung total armada per carrier dari filtered data
   filtered.forEach(r=>{
     if(r.carrier){
       carrierTotals[r.carrier]=(carrierTotals[r.carrier]||0)+1;
@@ -1322,22 +1324,41 @@ function renderCarrierDelay(){
       }
     }
   });
+  
   const kodes=['0–1 jam','2–4 jam','>5 jam','H+1','H+2','H+3'];
   const sorted=Object.entries(carriers).sort((a,b)=>b[1].total-a[1].total);
-  const totals={total:0,delay:0,byKode:{}};
+  const totals={totalArmada:0,totalDelay:0,byKode:{}};
+  
   sorted.forEach(([c,v])=>{
-    totals.total+=carrierTotals[c]||0;
-    totals.delay+=v.total;
+    totals.totalArmada+=carrierTotals[c]||0;
+    totals.totalDelay+=v.total;
     kodes.forEach(k=>totals.byKode[k]=(totals.byKode[k]||0)+(v.byKode[k]||0));
   });
+  
   const pctCls=p=>p>=40?'dpct-red':p>=25?'dpct-orange':p>=10?'dpct-yellow':'dpct-green';
+  
   document.getElementById('carrier-tbody').innerHTML=sorted.map(([c,v])=>{
     const totalCarrier=carrierTotals[c]||1;
     const pct=Math.round(v.total/totalCarrier*100);
-    return`<tr><td style="font-weight:600">${c}</td>${kodes.map(k=>`<td style="text-align:center">${v.byKode[k]||0}</td>`).join('')}<td style="text-align:center;font-weight:700">${v.total}</td><td><span class="delay-pct ${pctCls(pct)}">${pct}%</span></td></tr>`;
-  }).join('')||'<tr><td colspan="9" class="no-data">Tidak ada data keterlambatan</td></tr>';
-  const totPct=totals.total>0?Math.round(totals.delay/totals.total*100):0;
-  document.getElementById('carrier-tfoot').innerHTML=`<tr><td><strong>TOTAL</strong></td>${kodes.map(k=>`<td style="text-align:center"><strong>${totals.byKode[k]||0}</strong></td>`).join('')}<td style="text-align:center"><strong>${totals.delay}</strong></td><td><span class="delay-pct ${pctCls(totPct)}">${totPct}%</span></td></tr>`;
+    return`<tr>
+      <td style="font-weight:600">${c}</td>
+      ${kodes.map(k=>`<td style="text-align:center">${v.byKode[k]||0}</td>`).join('')}
+      <td style="text-align:center;font-weight:600">${totalCarrier}</td>
+      <td style="text-align:center;font-weight:700;color:#c62828">${v.total}</td>
+      <td style="text-align:center"><span class="delay-pct ${pctCls(pct)}">${pct}%</span></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="10" class="no-data">Tidak ada data keterlambatan</td></tr>';
+  
+  const totPct=totals.totalArmada>0?Math.round(totals.totalDelay/totals.totalArmada*100):0;
+  document.getElementById('carrier-tfoot').innerHTML=`
+    <tr><td><strong>TOTAL</strong></td>
+    ${kodes.map(k=>`<td style="text-align:center"><strong>${totals.byKode[k]||0}</strong></td>`).join('')}
+    <td style="text-align:center"><strong>${totals.totalArmada}</strong></td>
+    <td style="text-align:center"><strong>${totals.totalDelay}</strong></td>
+    <td style="text-align:center"><span class="delay-pct ${pctCls(totPct)}">${totPct}%</span></td>
+   </tr>`;
+  
+  // Update Chart
   if(carrierChart) carrierChart.destroy();
   const topCarriers=sorted.slice(0,5);
   carrierChart=new Chart(document.getElementById('carrierChart').getContext('2d'),{
@@ -1346,6 +1367,7 @@ function renderCarrierDelay(){
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'Jumlah Armada Terlambat',font:{size:10}},ticks:{stepSize:1,precision:0}},x:{ticks:{font:{size:10}}}}}
   });
 }
+  
 function renderBatchSummary(){
   const batches=['1','2','3','4'];
   const bmap={};
