@@ -208,6 +208,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .periode-chip.checked{border-color:var(--blue);background:#e8f0fe;color:var(--blue);font-weight:700}
 .periode-chip input[type=checkbox]{width:14px;height:14px;cursor:pointer;accent-color:var(--blue);flex-shrink:0}
 
+
+/* CARRIER CHART */
+.carrier-chart-container{background:var(--bg);border-radius:var(--radius-sm);padding:12px;margin-bottom:16px}
+.carrier-chart-wrap{height:200px;position:relative}
+  
 /* ============================================ */
 /* MODAL POPUP STYLES - LEBAR 90% */
 /* ============================================ */
@@ -471,9 +476,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
   </div>
   <div class="sb-menu">
     <div class="sb-section">Menu</div>
-    <a class="mi active" href="javascript:void(0)"><span class="ico">📦</span><span class="lbl">Monitoring Loading</span></a>
-    <a class="mi" href="javascript:void(0)"><span class="ico">🔍</span><span class="lbl">Temuan Penyimpangan</span></a>
-    <a class="mi" href="javascript:void(0)"><span class="ico">📊</span><span class="lbl">Produktivitas MPP</span></a>
+    <a class="mi active" href="index.html"><span class="ico">📦</span><span class="lbl">Monitoring Loading</span></a>
+    <a class="mi" href="temuan.html"><span class="ico">🔍</span><span class="lbl">Temuan Penyimpangan</span></a>
+    <a class="mi" href="produktivitas.html"><span class="ico">📊</span><span class="lbl">Produktivitas MPP</span></a>
   </div>
   <div class="sb-bottom">
     <div class="mi" style="cursor:default">
@@ -557,7 +562,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
         <div id="lt-bars"></div>
         <div class="lt-summary">
           <div class="lt-sum-item"><div class="lt-sum-val" id="lt-avg">-</div><div class="lt-sum-lbl">Rata-rata Loading Time</div></div>
-          <div class="lt-sum-item"><div class="lt-sum-val">Per Jenis</div><div class="lt-sum-lbl">Target Loading Time</div></div>
+          <div class="lt-sum-item"><div class="lt-sum-val" id="lt-sla">-</div><div class="lt-sum-lbl">SLA Achievement</div></div>
         </div>
       </div>
 
@@ -583,15 +588,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
     <div class="grid-21">
       <div class="card">
         <div class="card-header">
-          <div class="card-title">Carrier Delay Analysis <span style="font-size:11px;font-weight:400;color:var(--text3)">(Plan Delivery → Stuffing Time vs Check In)</span></div>
+          <div class="card-title">Carrier Delay Analysis</div>
           <button class="detail-btn" onclick="openModal('carrier')">🔍 Lihat Detail</button>
+        </div>
+        <div class="carrier-chart-container">
+          <div class="carrier-chart-wrap">
+            <canvas id="carrierChart"></canvas>
+          </div>
         </div>
         <div style="overflow-x:auto;max-height:280px;overflow-y:auto">
           <table class="delay-table">
             <thead>
-              <tr>
-                <th>Carrier ID</th><th>0–1 Jam</th><th>2–4 Jam</th><th>>5 Jam</th><th>H+1</th><th>H+2</th><th>H+3</th><th>Total Terlambat</th><th>% Terlambat</th>
-              </tr>
+              <tr><th>Carrier ID</th><th>0–1 Jam</th><th>2–4 Jam</th><th>>5 Jam</th><th>H+1</th><th>H+2</th><th>H+3</th><th>Total Terlambat</th><th>% Terlambat</th></tr>
             </thead>
             <tbody id="carrier-tbody"></tbody>
             <tfoot><tr id="carrier-tfoot"></tr></tfoot>
@@ -675,7 +683,7 @@ function getTargetLoading(jenisArmada){
 }
 const BATCH_CLS={'1':'bp1','2':'bp2','3':'bp3','4':'bp4'};
 let allData=[],filtered=[],curPage=1;
-let donutCh=null,throughputCh=null;
+let donutCh=null,throughputCh=null,carrierChart=null;
 let selectedPeriodes=[];
 let currentModalData = [];
 let currentModalType = '';
@@ -818,39 +826,21 @@ function prepareQWModalData() {
 }
 
 function prepareCarrierModalData() {
-  const d = filtered.filter(r => r.hitMiss === 'MISS' || r.agingMin > 0).sort((a,b) => b.agingMin - a.agingMin);
+  const d = filtered.filter(r => r.hitMiss === 'MISS').sort((a,b) => a.shift > b.shift ? 1 : -1);
   currentModalData = d;
-  
   const avgDelay = d.length ? Math.round(d.reduce((a, r) => a + (r.agingMin || 0), 0) / d.length) : 0;
-  
   document.getElementById('modalSummary').innerHTML = `
     <div class="modal-summary-item"><span class="label">Total Terlambat</span><span class="value" style="color:#c62828">${d.length}</span></div>
     <div class="modal-summary-item"><span class="label">Rata-rata Delay</span><span class="value" style="color:#ef6c00">${formatJam(avgDelay)}</span></div>
   `;
-  
+  const stuffingOnly = r => { if(!r.stuffingTime) return '-'; const p = r.stuffingTime.split(' '); return p.length>1 ? p[1].substring(0,5) : p[0]; };
   document.getElementById('modalContent').innerHTML = `
     <table>
-      <thead>
-        <tr><th>No. Transaksi</th><th>Carrier</th><th>Plan Delivery</th><th>Check In</th><th>Delay</th><th>Kode Aging</th><th>Status</th><th>Shift</th><th>Tgl Muat</th></tr>
-      </thead>
-      <tbody>
-        ${d.map(r => `
-          <tr>
-            <td style="font-weight:600">${r.transno || '-'}</td>
-            <td>${r.carrier || '-'}</td>
-            <td style="font-size:11px">${r.planDel ? r.planDel.substring(0, 16) : '-'}</td>
-            <td style="font-size:11px">${r.checkIn || '-'}</td>
-            <td><span class="metric-highlight danger">${formatJam(r.agingMin)}</span></td>
-            <td><span class="status-pill over">${r.kodeAging || '-'}</span></td>
-            <td><span class="status-pill over">MISS</span></td>
-            <td>${r.shift || '-'}</td>
-            <td>${r.tgl || '-'}</td>
-          </tr>
-        `).join('')}
-      </tbody>
+      <thead><tr><th>No. Transaksi</th><th>Carrier</th><th>Stuffing Time</th><th>Check In</th><th>Delay</th><th>Kode Aging</th><th>Status</th><th>Shift</th><th>Tgl Muat</th></tr></thead>
+      <tbody>${d.map(r => `<tr><td style="font-weight:600">${r.transno||'-'}</td><td>${r.carrier||'-'}</td><td>${stuffingOnly(r)}</td><td>${r.checkIn||'-'}</td><td><span class="metric-highlight danger">${formatJam(r.agingMin)}</span></td><td><span class="status-pill over">${r.kodeAging||'-'}</span></td><td><span class="status-pill over">MISS</span></td><td>${r.shift||'-'}</td><td>${r.tgl||'-'}</td></tr>`).join('')}</tbody>
     </table>
   `;
-  document.getElementById('modalInfo').innerHTML = `🚨 Menampilkan ${d.length} data armada yang terlambat`;
+  document.getElementById('modalInfo').innerHTML = `🚨 Menampilkan ${d.length} data armada terlambat (diurutkan berdasarkan Shift)`;
 }
 
 function exportModalData() {
@@ -878,10 +868,10 @@ function exportModalData() {
       r.queueMin < 60 ? '0-1 Jam' : (r.queueMin < 120 ? '1-2 Jam' : '> 2 Jam'),
       r.shift || '', r.tgl || ''
     ]);
-  } else {
-    headers = ['No. Transaksi', 'Carrier', 'Plan Delivery', 'Check In', 'Delay (menit)', 'Kode Aging', 'Status', 'Shift', 'Tanggal Muat'];
+   } else {
+    headers = ['No. Transaksi', 'Carrier', 'Stuffing Time', 'Check In', 'Delay (menit)', 'Kode Aging', 'Status', 'Shift', 'Tanggal Muat'];
     rows = currentModalData.map(r => [
-      r.transno || '', r.carrier || '', r.planDel || '', r.checkIn || '', 
+      r.transno || '', r.carrier || '', r.stuffingTime || '', r.checkIn || '', 
       r.agingMin || 0, r.kodeAging || '', 'MISS', r.shift || '', r.tgl || ''
     ]);
   }
@@ -1172,15 +1162,14 @@ function renderAll(){
 function renderKPI(){
   const d=filtered,total=d.length;
   const selesai=d.filter(r=>r.status==='SELESAI'||r.status==='KELUAR DC').length;
-  const hitArr=d.filter(r=>r.hitMiss&&r.checkIn);
-  const hitCount=hitArr.filter(r=>r.hitMiss==='HIT').length;
-  const hitRate=hitArr.length>0?Math.round(hitCount/hitArr.length*100):0;
+  const missCount=d.filter(r=>r.hitMiss==='MISS').length;
+  const hitRate=total>0?Math.round((total-missCount)/total*100):0;
   const ltArr=d.filter(r=>r.loadingMin!==null&&r.loadingMin>0);
   const avgLT=ltArr.length?Math.round(ltArr.reduce((a,r)=>a+r.loadingMin,0)/ltArr.length):0;
   const avgLTJam=(avgLT/60).toFixed(1);
   const overSLA=ltArr.filter(r=>r.loadingMin>r.targetLoading&&r.targetLoading>0).length;
-  const delayRate=total>0?Math.round(overSLA/total*100):0;
-  const agingArr=d.filter(r=>r.agingMin>0);
+  const delayRate=ltArr.length>0?Math.round(overSLA/ltArr.length*100):0;
+  const agingArr=d.filter(r=>r.hitMiss==='MISS'&&r.agingMin>0);
   const avgAging=agingArr.length?Math.round(agingArr.reduce((a,r)=>a+r.agingMin,0)/agingArr.length):0;
 
   document.getElementById('kpi-grid').innerHTML=`
@@ -1192,22 +1181,22 @@ function renderKPI(){
     <div class="kpi ${hitRate>=80?'c-green':'c-orange'}"><span class="kpi-icon-bg">✅</span>
       <div class="kpi-label">On Time Departure</div>
       <div class="kpi-value">${hitRate}%</div>
-      <div class="kpi-sub"><span class="kpi-badge">▲ ${hitRate}% dari total</span></div>
+      <div class="kpi-sub"><span class="kpi-badge">MISS: ${missCount}</span></div>
     </div>
     <div class="kpi c-purple"><span class="kpi-icon-bg">⏱️</span>
-      <div class="kpi-label">Avg Loading Time (Open–Close)</div>
+      <div class="kpi-label">Avg Loading Time</div>
       <div class="kpi-value">${avgLTJam} Jam</div>
-      <div class="kpi-sub"><span class="kpi-target">Target: 2 Jam</span>${avgLT>120?'<span class="kpi-badge" style="background:rgba(255,100,100,.3)">▲ '+(avgLTJam-2).toFixed(1)+' Jam</span>':''}</div>
+      <div class="kpi-sub"><span class="kpi-badge">${ltArr.length} Armada</span></div>
     </div>
     <div class="kpi ${delayRate>20?'c-red':'c-orange'}"><span class="kpi-icon-bg">⚠️</span>
-      <div class="kpi-label">Delay Rate</div>
+      <div class="kpi-label">Delay Rate (Loading > SLA)</div>
       <div class="kpi-value">${delayRate}%</div>
-      <div class="kpi-sub"><span class="kpi-badge">▲ ${overSLA} Armada Over SLA</span></div>
+      <div class="kpi-sub"><span class="kpi-badge">${overSLA} Armada</span></div>
     </div>
     <div class="kpi c-teal"><span class="kpi-icon-bg">⏰</span>
-      <div class="kpi-label">Avg Delay</div>
+      <div class="kpi-label">Avg Delay (MISS only)</div>
       <div class="kpi-value">${(avgAging/60).toFixed(1)} Jam</div>
-      <div class="kpi-sub"><span class="kpi-badge">${avgAging} Menit rata-rata</span></div>
+      <div class="kpi-sub"><span class="kpi-badge">${avgAging} Menit</span></div>
     </div>`;
 }
 
@@ -1244,18 +1233,17 @@ function renderDonut(){
 function renderLT(){
   const d=filtered.filter(r=>r.loadingMin!==null&&r.loadingMin>0&&r.targetLoading>0);
   const onTarget=d.filter(r=>r.loadingMin<=r.targetLoading).length;
-  const slight=d.filter(r=>r.loadingMin>r.targetLoading&&r.loadingMin<=r.targetLoading+60).length;
-  const overSLA=d.filter(r=>r.loadingMin>r.targetLoading+60).length;
+  const miss=d.length-onTarget;
   const total=d.length||1;
   const pctOn=Math.round(onTarget/total*100);
-  const pctSl=Math.round(slight/total*100);
-  const pctOv=Math.round(overSLA/total*100);
+  const pctMiss=Math.round(miss/total*100);
   const avgLT=d.length?d.reduce((a,r)=>a+r.loadingMin,0)/d.length:0;
+  const sla=total>0?Math.round(onTarget/total*100):0;
   document.getElementById('lt-bars').innerHTML=`
-    <div class="lt-row"><div class="lt-label">On Target (≤ Target)</div><div class="lt-bar-bg"><div class="lt-bar-fill" style="width:${pctOn}%;background:#16a34a"></div></div><div class="lt-val" style="color:#16a34a">${onTarget} (${pctOn}%)</div></div>
-    <div class="lt-row"><div class="lt-label">Slight Delay (> Target s.d 1jam)</div><div class="lt-bar-bg"><div class="lt-bar-fill" style="width:${pctSl}%;background:#f59e0b"></div></div><div class="lt-val" style="color:#f59e0b">${slight} (${pctSl}%)</div></div>
-    <div class="lt-row"><div class="lt-label">Over SLA (> 1jam)</div><div class="lt-bar-bg"><div class="lt-bar-fill" style="width:${pctOv}%;background:#dc2626"></div></div><div class="lt-val" style="color:#dc2626">${overSLA} (${pctOv}%)</div></div>`;
+    <div class="lt-row"><div class="lt-label">On Target</div><div class="lt-bar-bg"><div class="lt-bar-fill" style="width:${pctOn}%;background:#16a34a"></div></div><div class="lt-val" style="color:#16a34a">${onTarget} (${pctOn}%)</div></div>
+    <div class="lt-row"><div class="lt-label">Miss</div><div class="lt-bar-bg"><div class="lt-bar-fill" style="width:${pctMiss}%;background:#dc2626"></div></div><div class="lt-val" style="color:#dc2626">${miss} (${pctMiss}%)</div></div>`;
   document.getElementById('lt-avg').textContent=(avgLT/60).toFixed(1)+' Jam';
+  document.getElementById('lt-sla').textContent=sla+'%';
 }
 
 function renderThroughput(){
@@ -1321,41 +1309,43 @@ function renderQueue(){
 
 function renderCarrierDelay(){
   const carriers={};
+  const carrierTotals={};
   filtered.forEach(r=>{
-    if(!r.carrier||!r.hitMiss)return;
-    if(!carriers[r.carrier])carriers[r.carrier]={total:0,delay:0,byKode:{}};
-    carriers[r.carrier].total++;
-    if(r.hitMiss==='MISS'||r.agingMin<0){
-      carriers[r.carrier].delay++;
-      const kode=r.kodeAging||'0–1 jam';
-      carriers[r.carrier].byKode[kode]=(carriers[r.carrier].byKode[kode]||0)+1;
+    if(r.carrier){
+      carrierTotals[r.carrier]=(carrierTotals[r.carrier]||0)+1;
+      if(r.hitMiss==='MISS'){
+        if(!carriers[r.carrier]) carriers[r.carrier]={total:0,byKode:{}};
+        carriers[r.carrier].total++;
+        let kode=r.kodeAging||'0–1 jam';
+        if(kode==='5–6 jam'||kode==='7 up') kode='>5 jam';
+        carriers[r.carrier].byKode[kode]=(carriers[r.carrier].byKode[kode]||0)+1;
+      }
     }
   });
-  const kodes=['0–1 jam','2–4 jam','5–6 jam','H+1','H+2','H+3'];
-  const sorted=Object.entries(carriers).sort((a,b)=>b[1].delay-a[1].delay);
+  const kodes=['0–1 jam','2–4 jam','>5 jam','H+1','H+2','H+3'];
+  const sorted=Object.entries(carriers).sort((a,b)=>b[1].total-a[1].total);
   const totals={total:0,delay:0,byKode:{}};
-  sorted.forEach(([,v])=>{totals.total+=v.total;totals.delay+=v.delay;kodes.forEach(k=>totals.byKode[k]=(totals.byKode[k]||0)+(v.byKode[k]||0));});
-
+  sorted.forEach(([c,v])=>{
+    totals.total+=carrierTotals[c]||0;
+    totals.delay+=v.total;
+    kodes.forEach(k=>totals.byKode[k]=(totals.byKode[k]||0)+(v.byKode[k]||0));
+  });
   const pctCls=p=>p>=40?'dpct-red':p>=25?'dpct-orange':p>=10?'dpct-yellow':'dpct-green';
-
   document.getElementById('carrier-tbody').innerHTML=sorted.map(([c,v])=>{
-    const pct=v.total>0?Math.round(v.delay/v.total*100):0;
-    return`<tr>
-      <td style="font-weight:600">${c}</td>
-      ${kodes.map(k=>`<td style="text-align:center">${v.byKode[k]||0}</td>`).join('')}
-      <td style="text-align:center;font-weight:700">${v.delay}</td>
-      <td><span class="delay-pct ${pctCls(pct)}">${pct}%</span></td>
-    </tr>`;
-  }).join('')||'<tr><td colspan="9" class="no-data">Tidak ada数据</td></tr>';
-
+    const totalCarrier=carrierTotals[c]||1;
+    const pct=Math.round(v.total/totalCarrier*100);
+    return`<tr><td style="font-weight:600">${c}</td>${kodes.map(k=>`<td style="text-align:center">${v.byKode[k]||0}</td>`).join('')}<td style="text-align:center;font-weight:700">${v.total}</td><td><span class="delay-pct ${pctCls(pct)}">${pct}%</span></td></tr>`;
+  }).join('')||'<tr><td colspan="9" class="no-data">Tidak ada data keterlambatan</td></tr>';
   const totPct=totals.total>0?Math.round(totals.delay/totals.total*100):0;
-  document.getElementById('carrier-tfoot').innerHTML=`
-    <tr><strong>TOTAL</strong></td>
-    ${kodes.map(k=>`<td style="text-align:center"><strong>${totals.byKode[k]||0}</strong></td>`).join('')}
-    <td style="text-align:center"><strong>${totals.delay}</strong></td>
-    <td><span class="delay-pct ${pctCls(totPct)}">${totPct}%</span></td>`;
+  document.getElementById('carrier-tfoot').innerHTML=`<tr><td><strong>TOTAL</strong></td>${kodes.map(k=>`<td style="text-align:center"><strong>${totals.byKode[k]||0}</strong></td>`).join('')}<td style="text-align:center"><strong>${totals.delay}</strong></td><td><span class="delay-pct ${pctCls(totPct)}">${totPct}%</span></td></tr>`;
+  if(carrierChart) carrierChart.destroy();
+  const topCarriers=sorted.slice(0,5);
+  carrierChart=new Chart(document.getElementById('carrierChart').getContext('2d'),{
+    type:'bar',
+    data:{labels:topCarriers.map(([c])=>c),datasets:[{label:'Total Keterlambatan',data:topCarriers.map(([,v])=>v.total),backgroundColor:'#ef4444',borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,title:{display:true,text:'Jumlah Armada Terlambat',font:{size:10}},ticks:{stepSize:1,precision:0}},x:{ticks:{font:{size:10}}}}}
+  });
 }
-
 function renderBatchSummary(){
   const batches=['1','2','3','4'];
   const bmap={};
