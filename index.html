@@ -1502,7 +1502,6 @@ function renderTable(){
       <td>${fmtDT(r.checkOut)}</td>
       <td>${ltHtml}</td>
       <td><span class="hit-badge ${hitMissClass}">${hitMissStatus}</span></td>
-      <td style="font-size:11px">${r.planDel?r.planDel.substring(0,16):'-'}</td>
       <td>${delayHtml}</td>
       <td style="font-weight:600;color:var(--blue)">${r.stuffingTime?r.stuffingTime.substring(0,5):'-'}</td>
       <td><span class="${kedatanganClass}" style="font-weight:700">${kedatanganText}</span></td>
@@ -1510,9 +1509,9 @@ function renderTable(){
       <td>${r.cbm.toFixed(2)}</td>
       <td>${r.area||'-'}</td>
     </tr>`;
-  }).join(''):'<tr><td colspan="19" class="no-data">Tidak ada data</td></tr>';
+  }).join(''):'<tr><td colspan="17" class="no-data">Tidak ada数据</td></tr>';
 
-  // Pagination (tetap sama seperti sebelumnya)
+  // Pagination
   let pg=`<span style="white-space:nowrap">${Math.min(start+1,d.length)}-${Math.min(start+pageSize,d.length)} dari ${d.length}</span>`;
   pg+=`<button class="pgb" onclick="goPage(${curPage-1})" ${curPage<=1?'disabled':''}>‹</button>`;
   const maxShow=5;const half=Math.floor(maxShow/2);
@@ -1524,6 +1523,7 @@ function renderTable(){
   pg+=`<button class="pgb" onclick="goPage(${curPage+1})" ${curPage>=tp?'disabled':''}>›</button>`;
   document.getElementById('pagi').innerHTML=pg;
 }
+  
 loadData();
 </script>
 </body>
