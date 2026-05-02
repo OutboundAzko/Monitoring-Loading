@@ -720,32 +720,29 @@ function closeModal() {
 }
 
 function prepareLTModalData() {
-  const d = filtered.filter(r => r.loadingMin !== null && r.loadingMin > 0).sort((a,b) => b.loadingMin - a.loadingMin);
+  const d = filtered.filter(r => r.loadingMin !== null && r.loadingMin > 0)
+    .sort((a,b) => a.shift > b.shift ? 1 : -1);
   currentModalData = d;
   
   const onTarget = d.filter(r => r.loadingMin <= r.targetLoading).length;
-  const slight = d.filter(r => r.loadingMin > r.targetLoading && r.loadingMin <= r.targetLoading + 60).length;
-  const overSLA = d.filter(r => r.loadingMin > r.targetLoading + 60).length;
+  const miss = d.length - onTarget;
   const avgLT = d.length ? Math.round(d.reduce((a,r) => a + r.loadingMin, 0) / d.length) : 0;
   
   document.getElementById('modalSummary').innerHTML = `
     <div class="modal-summary-item"><span class="label">Total Armada</span><span class="value">${d.length}</span></div>
     <div class="modal-summary-item"><span class="label">Rata-rata Loading</span><span class="value">${(avgLT/60).toFixed(1)}</span><span class="unit">Jam</span></div>
     <div class="modal-summary-item"><span class="label">✅ On Target</span><span class="value" style="color:#2e7d32">${onTarget}</span></div>
-    <div class="modal-summary-item"><span class="label">⚠️ Slight Delay</span><span class="value" style="color:#ef6c00">${slight}</span></div>
-    <div class="modal-summary-item"><span class="label">❌ Over SLA</span><span class="value" style="color:#c62828">${overSLA}</span></div>
+    <div class="modal-summary-item"><span class="label">❌ Miss</span><span class="value" style="color:#c62828">${miss}</span></div>
   `;
   
   const getStatusClass = (r) => {
     if (r.loadingMin <= r.targetLoading) return 'good';
-    if (r.loadingMin <= r.targetLoading + 60) return 'warning';
     return 'danger';
   };
   
   const getStatusLabel = (r) => {
     if (r.loadingMin <= r.targetLoading) return 'On Target';
-    if (r.loadingMin <= r.targetLoading + 60) return 'Slight Delay';
-    return 'Over SLA';
+    return 'Miss';
   };
   
   document.getElementById('modalContent').innerHTML = `
@@ -759,8 +756,8 @@ function prepareLTModalData() {
             <td style="font-weight:600">${r.transno || '-'}</td>
             <td>${r.jenisArmada || '-'}</td>
             <td><span style="color:#64748b">${r.targetLoading} menit</span></td>
-            <td><span class="metric-highlight ${getStatusClass(r)}">${formatJam(r.loadingMin)}</span></td>
-            <td><span class="status-pill ${getStatusClass(r)}">${getStatusLabel(r)}</span></td>
+            <td><span class="metric-highlight ${getStatusClass(r)}" style="color:${getStatusClass(r) === 'good' ? '#2e7d32' : '#c62828'}">${formatJam(r.loadingMin)}</span></td>
+            <td><span class="status-pill ${getStatusClass(r) === 'good' ? 'on-target' : 'miss'}" style="background:${getStatusClass(r) === 'good' ? '#e8f5e9' : '#ffebee'}; color:${getStatusClass(r) === 'good' ? '#2e7d32' : '#c62828'}">${getStatusLabel(r)}</span></td>
             <td>${r.carrier || '-'}</td>
             <td>${r.shift || '-'}</td>
             <td>${r.tgl || '-'}</td>
@@ -769,11 +766,12 @@ function prepareLTModalData() {
       </tbody>
     </table>
   `;
-  document.getElementById('modalInfo').innerHTML = `📊 Menampilkan ${d.length} data armada`;
+  document.getElementById('modalInfo').innerHTML = `📊 Menampilkan ${d.length} data armada (diurutkan berdasarkan Shift)`;
 }
 
 function prepareQWModalData() {
-  const d = filtered.filter(r => r.queueMin !== null && r.queueMin >= 0).sort((a,b) => b.queueMin - a.queueMin);
+  const d = filtered.filter(r => r.queueMin !== null && r.queueMin >= 0)
+    .sort((a,b) => a.shift > b.shift ? 1 : -1);
   currentModalData = d;
   
   const avgWait = d.length ? Math.round(d.reduce((a, r) => a + r.queueMin, 0) / d.length) : 0;
@@ -793,6 +791,19 @@ function prepareQWModalData() {
     return '> 2 Jam';
   };
   
+  const getWaitColor = (minutes) => {
+    if (minutes < 60) return '#2e7d32';
+    if (minutes < 120) return '#ef6c00';
+    return '#c62828';
+  };
+  
+  // Fungsi untuk ambil stuffing time (jam saja)
+  const stuffingOnly = r => { 
+    if(!r.stuffingTime) return '-'; 
+    const p = r.stuffingTime.split(' '); 
+    return p.length>1 ? p[1].substring(0,5) : p[0]; 
+  };
+  
   document.getElementById('modalSummary').innerHTML = `
     <div class="modal-summary-item"><span class="label">Total Armada</span><span class="value">${d.length}</span></div>
     <div class="modal-summary-item"><span class="label">Rata-rata Waiting</span><span class="value">${formatJam(avgWait)}</span></div>
@@ -802,19 +813,20 @@ function prepareQWModalData() {
   `;
   
   document.getElementById('modalContent').innerHTML = `
-    <table>
+    </table>
       <thead>
-        <tr><th>No. Transaksi</th><th>Carrier</th><th>Check In</th><th>Open</th><th>Waiting Time</th><th>Kategori</th><th>Shift</th><th>Tgl Muat</th></tr>
+        <tr><th>No. Transaksi</th><th>Carrier</th><th>Stuffing Time</th><th>Check In</th><th>Open</th><th>Waiting Time</th><th>Kategori</th><th>Shift</th><th>Tgl Muat</th></tr>
       </thead>
       <tbody>
         ${d.map(r => `
           <tr>
             <td style="font-weight:600">${r.transno || '-'}</td>
             <td>${r.carrier || '-'}</td>
+            <td>${stuffingOnly(r)}</td>
             <td>${r.checkIn || '-'}</td>
             <td>${r.open || '-'}</td>
-            <td><span class="metric-highlight ${getWaitClass(r.queueMin)}">${formatJam(r.queueMin)}</span></td>
-            <td><span class="status-pill ${getWaitClass(r.queueMin)}">${getWaitLabel(r.queueMin)}</span></td>
+            <td><span class="metric-highlight ${getWaitClass(r.queueMin)}" style="color:${getWaitColor(r.queueMin)}">${formatJam(r.queueMin)}</span></td>
+            <td><span class="status-pill" style="background:${getWaitColor(r.queueMin)}20; color:${getWaitColor(r.queueMin)}; font-weight:600">${getWaitLabel(r.queueMin)}</span></td>
             <td>${r.shift || '-'}</td>
             <td>${r.tgl || '-'}</td>
           </tr>
@@ -822,7 +834,7 @@ function prepareQWModalData() {
       </tbody>
     </table>
   `;
-  document.getElementById('modalInfo').innerHTML = `⏱️ Menampilkan ${d.length} data queue waiting`;
+  document.getElementById('modalInfo').innerHTML = `⏱️ Menampilkan ${d.length} data queue waiting (diurutkan berdasarkan Shift)`;
 }
 
 function prepareCarrierModalData() {
