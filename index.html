@@ -653,8 +653,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
             <tr>
               <th>Tgl Muat</th><th>Shift</th><th>Transno</th><th>Shipping Line</th><th>Carrier</th>
               <th>Status</th><th>Check In</th><th>Open</th><th>Close</th><th>Check Out</th>
-              <th>Loading Time</th><th>Plan Delivery</th><th>Delay</th><th>Stuffing Time</th>
-              <th>Hit/Miss</th><th>Jenis Armada</th><th>CBM</th><th>Area</th>
+              <th>Loading Time</th><th>Hit/Miss</th><th>Kedatangan</th><th>Delay</th><th>Stuffing Time</th>
+              <th>Jenis Armada</th><th>CBM</th><th>Area</th>
             </tr>
           </thead>
           <tbody id="tbl-body"></tbody>
@@ -1437,10 +1437,58 @@ function renderTable(){
 
   document.getElementById('tbl-body').innerHTML=page.length?page.map(r=>{
     const st=stCls[r.status]||'';
-    const hm=r.hitMiss==='HIT'?'<span class="hit-badge hit">HIT</span>':r.hitMiss==='MISS'?'<span class="hit-badge miss">MISS</span>':'-';
-    const delay=r.agingMin>0?`<span style="color:#dc2626;font-weight:700">${formatJam(r.agingMin)}</span>`:(r.agingMin<0?`<span style="color:#16a34a;font-weight:700">${formatJam(r.agingMin)}</span>`:'<span style="color:var(--text3)">-</span>');
-    const lt=r.loadingMin!==null&&r.loadingMin>0?`<span style="font-weight:700;color:${r.loadingMin>r.targetLoading+60?'#dc2626':r.loadingMin>r.targetLoading?'#f59e0b':'#16a34a'}">${formatJam(r.loadingMin)}</span>`:'<span style="color:var(--text3)">-</span>';
+    
+    // Hit/Miss berdasarkan Loading Time Performance
+    let hitMissStatus = '';
+    let hitMissClass = '';
+    if (r.loadingMin !== null && r.loadingMin > 0 && r.targetLoading > 0) {
+      if (r.loadingMin <= r.targetLoading) {
+        hitMissStatus = 'HIT';
+        hitMissClass = 'hit';
+      } else {
+        hitMissStatus = 'MISS';
+        hitMissClass = 'miss';
+      }
+    } else {
+      hitMissStatus = '-';
+      hitMissClass = '';
+    }
+    
+    // Delay dengan warna (merah = terlambat, hijau = lebih awal)
+    let delayHtml = '';
+    if (r.agingMin > 0) {
+      delayHtml = `<span style="color:#dc2626;font-weight:700">${formatJam(r.agingMin)}</span>`;
+    } else if (r.agingMin < 0) {
+      delayHtml = `<span style="color:#16a34a;font-weight:700">${formatJam(r.agingMin)}</span>`;
+    } else {
+      delayHtml = '<span style="color:var(--text3)">-</span>';
+    }
+    
+    // Kedatangan (Lebih Awal / Terlambat)
+    let kedatanganText = '';
+    let kedatanganClass = '';
+    if (r.agingMin > 0) {
+      kedatanganText = 'TERLAMBAT';
+      kedatanganClass = 'delay-cell';
+    } else if (r.agingMin < 0) {
+      kedatanganText = 'LEBIH AWAL';
+      kedatanganClass = 'hit';
+    } else {
+      kedatanganText = 'TEPAT';
+      kedatanganClass = '';
+    }
+    
+    // Loading Time dengan warna (hijau = on target, merah = miss)
+    let ltHtml = '';
+    if (r.loadingMin !== null && r.loadingMin > 0) {
+      const isOnTarget = r.loadingMin <= r.targetLoading;
+      ltHtml = `<span style="font-weight:700;color:${isOnTarget ? '#16a34a' : '#dc2626'}">${formatJam(r.loadingMin)}</span>`;
+    } else {
+      ltHtml = '<span style="color:var(--text3)">-</span>';
+    }
+    
     const fmtDT=s=>{if(!s)return'-';const p=s.split(' ');return p.length>1?p[1].substring(0,5):s;};
+    
     return`<tr>
       <td>${r.tgl}</td>
       <td><span style="font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px;background:${r.shift==='SHIFT 1'?'#e8f0fe':'#f3e8ff'};color:${r.shift==='SHIFT 1'?'#1a56db':'#7c3aed'}">${r.shift}</span></td>
@@ -1452,17 +1500,19 @@ function renderTable(){
       <td>${fmtDT(r.open)}</td>
       <td>${fmtDT(r.close)}</td>
       <td>${fmtDT(r.checkOut)}</td>
-      <td>${lt}</td>
+      <td>${ltHtml}</td>
+      <td><span class="hit-badge ${hitMissClass}">${hitMissStatus}</span></td>
       <td style="font-size:11px">${r.planDel?r.planDel.substring(0,16):'-'}</td>
-      <td>${delay}</td>
+      <td>${delayHtml}</td>
       <td style="font-weight:600;color:var(--blue)">${r.stuffingTime?r.stuffingTime.substring(0,5):'-'}</td>
-      <td>${hm}</td>
+      <td><span class="${kedatanganClass}" style="font-weight:700">${kedatanganText}</span></td>
       <td style="font-size:11px">${r.jenisArmada||'-'}</td>
       <td>${r.cbm.toFixed(2)}</td>
       <td>${r.area||'-'}</td>
     </tr>`;
-  }).join(''):'<tr><td colspan="18" class="no-data">Tidak ada数据</td></tr>';
+  }).join(''):'<tr><td colspan="19" class="no-data">Tidak ada data</td></tr>';
 
+  // Pagination (tetap sama seperti sebelumnya)
   let pg=`<span style="white-space:nowrap">${Math.min(start+1,d.length)}-${Math.min(start+pageSize,d.length)} dari ${d.length}</span>`;
   pg+=`<button class="pgb" onclick="goPage(${curPage-1})" ${curPage<=1?'disabled':''}>‹</button>`;
   const maxShow=5;const half=Math.floor(maxShow/2);
@@ -1474,7 +1524,6 @@ function renderTable(){
   pg+=`<button class="pgb" onclick="goPage(${curPage+1})" ${curPage>=tp?'disabled':''}>›</button>`;
   document.getElementById('pagi').innerHTML=pg;
 }
-
 loadData();
 </script>
 </body>
