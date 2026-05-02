@@ -997,8 +997,18 @@ function formatJam(menit){
   if(menit===null||isNaN(menit))return'-';
   const h=Math.floor(Math.abs(menit)/60);
   const m=Math.abs(menit)%60;
-  const sign=menit<0?'-':'';
-  return h>0?`${sign}${h} jam ${m} menit`:`${sign}0 jam ${m} menit`;
+  
+  // Jika menit NEGATIF (datang lebih awal) → tampilkan dengan tanda PLUS (+)
+  // Jika menit POSITIF (terlambat) → tampilkan dengan tanda MINUS (-)
+  if (menit < 0) {
+    // Lebih awal → tampilkan + (positif)
+    return h>0 ? `+${h} jam ${m} menit` : `+0 jam ${m} menit`;
+  } else if (menit > 0) {
+    // Terlambat → tampilkan - (negatif)
+    return h>0 ? `-${h} jam ${m} menit` : `-0 jam ${m} menit`;
+  } else {
+    return '0 jam 0 menit';
+  }
 }
 
 // ── LOAD DATA ──
