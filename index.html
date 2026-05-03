@@ -1111,9 +1111,44 @@ async function loadData(){
         if(lp.length===2)loadingMin=parseInt(lp[0])*60+parseInt(lp[1].padEnd(2,'0').substring(0,2));
       }
 
-      const agingMin=gf(r,I.agingTime);
-      const kodeAging=g(r,I.kodeAging);
-      const hitMiss=g(r,I.hitMiss)||g(r,I.kedatangan);
+      // Hitung delay sendiri: CheckIn vs StuffingTime (lebih akurat dari kolom AGING TIME)
+      // Delay = CheckIn - StuffingTime (menit)
+      // Positif = terlambat (MISS), Negatif = lebih awal/tepat waktu (HIT)
+      let agingMin=null;
+      let hitMiss='';
+      const stuffingF=timeToFloat(stuffingTimeStr);
+      if(checkInF!==null&&stuffingF!==null){
+        // Hitung selisih dalam menit
+        let diffMin=Math.round((checkInF-stuffingF)*60);
+        // Handle kasus overnight: jika selisih > 12 jam atau < -12 jam, kemungkinan beda hari
+        // Jika checkIn < stuffing dan selisih > 12 jam → checkIn hari berikutnya
+        if(diffMin<-720)diffMin+=24*60; // checkIn setelah midnight, stuffing sebelumnya
+        // Jika diffMin masih sangat besar (>24 jam), kemungkinan data bermasalah → gunakan dari sheet
+        if(Math.abs(diffMin)>1440){
+          // Fallback ke nilai dari sheet
+          agingMin=gf(r,I.agingTime);
+        } else {
+          agingMin=diffMin;
+        }
+        hitMiss=agingMin>0?'MISS':'HIT';
+      } else {
+        // Tidak ada checkIn → ambil dari kolom sheet
+        agingMin=gf(r,I.agingTime);
+        hitMiss=g(r,I.hitMiss)||g(r,I.kedatangan);
+      }
+      // Hitung kode aging berdasarkan delay
+      let kodeAging='';
+      if(agingMin!==null&&agingMin>0){
+        const h=agingMin/60;
+        if(h<=1)kodeAging='0–1 jam';
+        else if(h<=4)kodeAging='2–4 jam';
+        else if(h<=6)kodeAging='5–6 jam';
+        else if(h<=24)kodeAging='H+1';
+        else if(h<=48)kodeAging='H+2';
+        else kodeAging='H+3';
+      } else if(agingMin!==null&&agingMin<=0){
+        kodeAging='On Time';
+      }
       const batch=g(r,I.batchLoading);
 
       return{
