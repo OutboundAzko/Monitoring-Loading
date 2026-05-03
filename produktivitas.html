@@ -54,114 +54,150 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 /* HEADER */
 .header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:var(--shadow)}
 .header-title{font-size:16px;font-weight:700;color:var(--text)}
-.header-right{display:flex;align-items:center;gap:12px}
-.icon-btn{width:36px;height:36px;border-radius:50%;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .avatar{width:36px;height:36px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
-#last-update{font-size:11px;color:var(--text3)}
 
 /* LOADING OVERLAY */
 #loading-overlay{position:fixed;inset:0;background:rgba(240,243,250,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:14px}
-.loader{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+#loading-overlay .loader{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 #loading-overlay p{font-size:14px;color:var(--text2);font-weight:500}
 
-/* FILTER BAR */
-.filter-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.filter-bar input,.filter-bar select{padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:var(--font);color:var(--text);background:var(--bg)}
-.filter-bar input:focus,.filter-bar select:focus{outline:none;border-color:var(--blue)}
-.btn{padding:8px 18px;border:none;border-radius:8px;font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer}
+/* FILTER */
+.filter-wrap{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.filter-wrap input,.filter-wrap select{padding:7px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);color:var(--text);background:var(--bg)}
+.filter-wrap input:focus,.filter-wrap select:focus{outline:none;border-color:var(--blue)}
+.btn{padding:8px 18px;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer}
 .btn-primary{background:var(--blue);color:#fff}
 .btn-primary:hover{opacity:.88}
 .btn-secondary{background:var(--bg);color:var(--text2);border:1px solid var(--border)}
-.periode-btn{display:flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);cursor:pointer;font-size:13px}
-.periode-badge{background:var(--blue);color:#fff;border-radius:20px;padding:1px 7px;font-size:11px}
-.periode-panel{display:none;background:var(--surface);border-bottom:1px solid var(--border);padding:12px 28px}
-.periode-panel.open{display:block}
-.periode-panel-header{display:flex;justify-content:space-between;margin-bottom:10px}
-.periode-chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
-.periode-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);cursor:pointer;font-size:12px}
-.periode-chip:hover{border-color:var(--blue)}
-.periode-chip.checked{border-color:var(--blue);background:#e8f0fe;color:var(--blue)}
-.periode-chip input{width:14px;height:14px;cursor:pointer}
+#last-update{font-size:11px;color:var(--text3);margin-left:auto}
 
 /* CONTENT */
 .content{padding:20px 28px;flex:1}
 
-/* KPI CARDS */
-.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
-@media(max-width:1000px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:768px){.kpi-grid{grid-template-columns:1fr}}
-.kpi{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:16px 20px;box-shadow:var(--shadow)}
-.kpi-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:8px}
-.kpi-value{font-size:28px;font-weight:800;line-height:1;margin-bottom:4px}
-.kpi-sub{font-size:11px;color:var(--text2)}
-.kpi-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
-.badge-success{background:#e8f5e9;color:#2e7d32}
-.badge-warning{background:#fff3e0;color:#e65100}
-.badge-danger{background:#ffebee;color:#c62828}
-.kpi.blue .kpi-value{color:var(--blue)}
-.kpi.green .kpi-value{color:var(--green)}
-.kpi.orange .kpi-value{color:var(--orange)}
-
 /* TABS */
-.tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.tabs{display:flex;gap:8px;margin-bottom:20px}
 .tab{padding:9px 22px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-family:var(--font);transition:all .15s}
 .tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
 .tab-content{display:none}
 .tab-content.active{display:block}
 
-/* CARDS */
-.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:16px 20px;box-shadow:var(--shadow)}
+.kpi-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:8px}
+.kpi-value{font-size:30px;font-weight:800;line-height:1;margin-bottom:4px}
+.kpi-sub{font-size:12px;color:var(--text2)}
+.kpi.blue .kpi-value{color:var(--blue)}
+.kpi.green .kpi-value{color:var(--green)}
+.kpi.orange .kpi-value{color:var(--orange)}
+
+/* FILTER BAR */
+.inner-filter{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border)}
+.inner-filter label{font-size:12px;font-weight:600;color:var(--text2)}
+.inner-filter select,.inner-filter input{padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);background:var(--bg);color:var(--text)}
+
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:1000px){.grid-2{grid-template-columns:1fr}}
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:20px;box-shadow:var(--shadow)}
 .card-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px}
 .chart-wrap{position:relative;height:260px}
 .chart-wrap-lg{position:relative;height:300px}
-.grid-2{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-bottom:16px}
-@media(max-width:1000px){.grid-2{grid-template-columns:1fr}}
 
-/* TABLES */
+/* TABLE */
 .rank-table{width:100%;border-collapse:collapse}
-.rank-table th{font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--text3);text-transform:uppercase;padding:10px 12px;background:var(--bg);border-bottom:2px solid var(--border);text-align:left}
+.rank-table th{font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--text3);text-transform:uppercase;padding:8px 12px;background:var(--bg);border-bottom:2px solid var(--border);text-align:left}
 .rank-table td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12.5px;font-weight:500}
+.rank-table tr:last-child td{border-bottom:none}
 .rank-table tr:hover td{background:#f7f9ff}
 .rank-num{color:var(--text3);font-weight:700}
 .rank-name{font-weight:600}
 .rank-val{font-weight:700;color:var(--blue)}
-.badge{display:inline-flex;align-items:center;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700}
 .badge-green{background:#e8f5e9;color:#2e7d32}
 .badge-orange{background:#fff3e0;color:#e65100}
 .badge-red{background:#ffebee;color:#c62828}
 
-/* RESPONSIVE SMARTPHONE */
-@media (max-width: 768px){
-  .sidebar{transform:translateX(-100%);transition:transform 0.3s ease;z-index:1000}
-  .sidebar.open{transform:translateX(0)}
-  .main{margin-left:0 !important;width:100%}
-  .mobile-menu-btn{display:flex !important;position:fixed;top:15px;left:15px;z-index:1001;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:18px;box-shadow:var(--shadow)}
-  .filter-bar{padding:10px 16px}
-  .filter-bar input,.filter-bar select,.btn{padding:5px 10px;font-size:11px}
-  .content{padding:12px 16px}
-  .card{padding:14px}
-  .card-title{font-size:13px}
-  .kpi-value{font-size:24px}
-  .chart-wrap{height:200px}
-  .rank-table th,.rank-table td{padding:6px 8px;font-size:10px}
-  .tab{padding:6px 14px;font-size:11px}
+/* ============================================ */
+/* SMARTPHONE FRIENDLY - RESPONSIVE */
+/* ============================================ */
+
+@media (max-width: 992px) {
+  .kpi-row { grid-template-columns: repeat(2, 1fr) !important; gap: 10px; }
+  .grid-2 { gap: 10px; }
+  .tabs { gap: 6px; }
+  .tab { padding: 6px 14px; font-size: 11px; }
+  .filter-wrap { padding: 10px 16px; }
+  .filter-wrap input, .filter-wrap select, .filter-wrap button { font-size: 12px; padding: 6px 10px; }
+  .content { padding: 12px 16px; }
 }
-@media (max-width: 480px){
-  .header-title{font-size:13px}
-  .avatar,.icon-btn{width:30px;height:30px;font-size:12px}
-  .kpi-label{font-size:9px}
-  .kpi-value{font-size:20px}
+
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .main {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+  .mobile-menu-btn {
+    display: flex !important;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 18px;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1001;
+    box-shadow: var(--shadow);
+  }
+  .kpi-row { grid-template-columns: 1fr !important; }
+  .kpi { padding: 12px 16px; }
+  .kpi-value { font-size: 24px; }
+  .card { padding: 14px; }
+  .card-title { font-size: 13px; }
+  .header { padding: 0 16px; }
+  .header-title { font-size: 14px; }
+  .avatar { width: 32px; height: 32px; font-size: 12px; }
+  .inner-filter { gap: 6px; flex-direction: column; align-items: stretch; }
+  .inner-filter select, .inner-filter button { width: 100%; }
+  .chart-wrap { height: 200px; }
+  .chart-wrap-lg { height: 240px; }
+  .rank-table th, .rank-table td { padding: 6px 8px; font-size: 10px; }
+}
+
+@media (max-width: 480px) {
+  .header-title { font-size: 12px; }
+  .filter-wrap { gap: 6px; }
+  .filter-wrap input, .filter-wrap select, .filter-wrap button { font-size: 10px; padding: 4px 8px; }
+  .btn-primary, .btn-secondary { padding: 5px 12px; font-size: 11px; }
+  .kpi-label { font-size: 9px; }
+  .kpi-value { font-size: 20px; }
+  .tab { padding: 5px 10px; font-size: 10px; }
+  .rank-table th, .rank-table td { padding: 4px 6px; font-size: 9px; }
+  .badge { padding: 1px 5px; font-size: 9px; }
 }
 </style>
 </head>
 <body>
 
 <!-- LOADING OVERLAY -->
-<div id="loading-overlay" style="display:none"><div class="loader"></div><p>Memuat data produktivitas...</p></div>
+<div id="loading-overlay" style="display: none;">
+  <div class="loader"></div>
+  <p>Memuat data produktivitas...</p>
+</div>
 
 <!-- Tombol menu untuk HP -->
-<button class="mobile-menu-btn" id="mobileMenuBtn" style="display:none;">☰</button>
+<button class="mobile-menu-btn" id="mobileMenuBtn" style="display: none;">☰</button>
 
 <!-- SIDEBAR -->
 <nav class="sidebar" id="sidebar">
@@ -197,482 +233,356 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 <div class="main" id="main">
   <header class="header">
     <div class="header-title">📊 Produktivitas MPP</div>
-    <div class="header-right">
+    <div style="display:flex;align-items:center;gap:12px">
       <span id="last-update"></span>
       <div class="avatar">AD</div>
     </div>
   </header>
 
-  <!-- FILTER BAR -->
-  <div class="filter-bar">
-    <input type="date" id="f-date" title="Filter tanggal spesifik">
-    <button class="periode-btn" id="btn-periode" onclick="togglePeriodePanel()">📆 Periode <span class="periode-badge" id="periode-badge" style="display:none">0</span></button>
-    <select id="f-shift"><option value="">Semua Shift</option><option value="SHIFT 1">Shift 1</option><option value="SHIFT 2">Shift 2</option></select>
-    <button class="btn btn-primary" onclick="applyFilter()">Apply</button>
-    <button class="btn btn-secondary" onclick="loadData()">🔄 Refresh</button>
-  </div>
-
-  <!-- PERIODE PANEL -->
-  <div class="periode-panel" id="periode-panel">
-    <div class="periode-panel-header">
-      <div class="periode-panel-title">Pilih Periode</div>
-      <div class="periode-actions">
-        <button class="btn btn-secondary" style="font-size:12px;padding:4px 10px" onclick="selectAllPeriode()">Pilih Semua</button>
-        <button class="btn btn-secondary" style="font-size:12px;padding:4px 10px" onclick="clearAllPeriode()">Hapus Semua</button>
-        <button class="btn btn-primary" style="font-size:12px;padding:4px 12px" onclick="applyPeriode()">Terapkan</button>
-      </div>
-    </div>
-    <div class="periode-chips" id="periode-chips"></div>
+  <div class="filter-wrap">
+    <button class="btn btn-primary" onclick="loadAll()">🔄 Refresh Data</button>
+    <span id="status-msg" style="font-size:12px;color:var(--text2)">Klik Refresh Data untuk memuat data</span>
   </div>
 
   <div class="content">
-    <!-- KPI RINGKASAN HARI INI -->
-    <div class="kpi-grid" id="kpi-summary"></div>
-
     <!-- TABS -->
     <div class="tabs">
-      <button class="tab active" onclick="switchTab('loader',this)">📦 Loader (CBM)</button>
-      <button class="tab" onclick="switchTab('checker',this)">✅ Checker (Case ID)</button>
+      <button class="tab active" onclick="switchTab('loader',this)">📦 Loader LD (CBM)</button>
+      <button class="tab" onclick="switchTab('checker',this)">✅ Checker ST+BR (Case ID)</button>
     </div>
 
     <!-- TAB LOADER -->
     <div class="tab-content active" id="tab-loader">
-      <div class="card">
-        <div class="card-title">📈 Tren Produktivitas Loader (7 Hari)</div>
-        <div class="chart-wrap"><canvas id="loaderTrend"></canvas></div>
+      <div class="kpi-row" id="loader-kpi">
+        <div class="kpi blue"><div class="kpi-label">Total Loader</div><div class="kpi-value">-</div><div class="kpi-sub">Orang aktif</div></div>
+        <div class="kpi blue"><div class="kpi-label">Total CBM</div><div class="kpi-value">-</div><div class="kpi-sub">Seluruh periode</div></div>
+        <div class="kpi orange"><div class="kpi-label">Avg CBM/MPP/Hari</div><div class="kpi-value">-</div><div class="kpi-sub">Target: 25 CBM</div></div>
+        <div class="kpi orange"><div class="kpi-label">Capai Target</div><div class="kpi-value">-</div><div class="kpi-sub">Orang ≥ 100%</div></div>
+      </div>
+      <div class="inner-filter">
+        <label>Filter Nama:</label>
+        <select id="loader-name" onchange="renderLoader()"><option value="ALL">Semua Orang</option></select>
+        <label>Filter Tanggal:</label>
+        <select id="loader-date" onchange="renderLoader()" style="min-width:140px">
+          <option value="">Semua Tanggal</option>
+        </select>
+        <button class="btn btn-secondary" onclick="resetLoader()">Reset</button>
       </div>
       <div class="grid-2">
         <div class="card">
+          <div class="card-title">📈 Trend CBM/MPP Harian (Top 5)</div>
+          <div class="chart-wrap"><canvas id="loaderTrend"></canvas></div>
+        </div>
+        <div class="card">
           <div class="card-title">🏆 Ranking Loader</div>
-          <div style="overflow-y:auto;max-height:300px">
+          <div style="overflow-y:auto;max-height:280px">
             <table class="rank-table">
               <thead><tr><th>#</th><th>Nama</th><th>Total CBM</th><th>Avg/Hari</th><th>%Target</th></tr></thead>
               <tbody id="loader-rank"></tbody>
             </table>
           </div>
         </div>
-        <div class="card">
-          <div class="card-title">📊 Analisis Kebutuhan MPP Loader</div>
-          <table class="rank-table">
-            <thead><tr><th>Shift</th><th>Target CBM</th><th>Realisasi</th><th>Kebutuhan MPP</th><th>Status</th></tr></thead>
-            <tbody id="loader-mpp"></tbody>
-          </table>
-        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📊 Perbandingan CBM/MPP Semua Loader</div>
+        <div class="chart-wrap-lg"><canvas id="loaderBar"></canvas></div>
       </div>
     </div>
 
     <!-- TAB CHECKER -->
     <div class="tab-content" id="tab-checker">
-      <div class="card">
-        <div class="card-title">📈 Tren Produktivitas Checker (7 Hari)</div>
-        <div class="chart-wrap"><canvas id="checkerTrend"></canvas></div>
+      <div class="kpi-row" id="checker-kpi">
+        <div class="kpi blue"><div class="kpi-label">Total Checker</div><div class="kpi-value">-</div><div class="kpi-sub">Orang aktif</div></div>
+        <div class="kpi blue"><div class="kpi-label">Total Case ID</div><div class="kpi-value">-</div><div class="kpi-sub">Seluruh periode</div></div>
+        <div class="kpi orange"><div class="kpi-label">Avg Case ID/MPP/Hari</div><div class="kpi-value">-</div><div class="kpi-sub">Target: 800 Case</div></div>
+        <div class="kpi orange"><div class="kpi-label">Capai Target</div><div class="kpi-value">-</div><div class="kpi-sub">Orang ≥ 100%</div></div>
+      </div>
+      <div class="inner-filter">
+        <label>Filter Nama:</label>
+        <select id="checker-name" onchange="renderChecker()"><option value="ALL">Semua Orang</option></select>
+        <label>Filter Tanggal:</label>
+        <select id="checker-date" onchange="renderChecker()" style="min-width:140px">
+          <option value="">Semua Tanggal</option>
+        </select>
+        <button class="btn btn-secondary" onclick="resetChecker()">Reset</button>
       </div>
       <div class="grid-2">
         <div class="card">
+          <div class="card-title">📈 Trend Case ID/MPP Harian (Top 5)</div>
+          <div class="chart-wrap"><canvas id="checkerTrend"></canvas></div>
+        </div>
+        <div class="card">
           <div class="card-title">🏆 Ranking Checker</div>
-          <div style="overflow-y:auto;max-height:300px">
+          <div style="overflow-y:auto;max-height:280px">
             <table class="rank-table">
               <thead><tr><th>#</th><th>Nama</th><th>Total Case</th><th>Avg/Hari</th><th>%Target</th></tr></thead>
               <tbody id="checker-rank"></tbody>
             </table>
           </div>
         </div>
-        <div class="card">
-          <div class="card-title">📊 Analisis Kebutuhan MPP Checker</div>
-          <table class="rank-table">
-            <thead><tr><th>Shift</th><th>Target Case</th><th>Realisasi</th><th>Kebutuhan MPP</th><th>Status</th></tr></thead>
-            <tbody id="checker-mpp"></tbody>
-          </table>
-        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📊 Perbandingan Case ID Semua Checker</div>
+        <div class="chart-wrap-lg"><canvas id="checkerBar"></canvas></div>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-// ============================================
-// ⚠️ GANTI URL SHEET DI BAWAH INI ⚠️
-// ============================================
-const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT1YwOyPQa1twBR3ms6LrmdxwMeGJ8K3xLmYsPkoO6g5ngC6F5ZhpJhwNPx8_cNhzbszqcIhAR-vGxf/pub?gid=435013118&single=true&output=csv';
+const LOADER_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vT1YwOyPQa1twBR3ms6LrmdxwMeGJ8K3xLmYsPkoO6g5ngC6F5ZhpJhwNPx8_cNhzbszqcIhAR-vGxf/pub?gid=1638374890&single=true&output=csv';
+const CHECKER_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vT1YwOyPQa1twBR3ms6LrmdxwMeGJ8K3xLmYsPkoO6g5ngC6F5ZhpJhwNPx8_cNhzbszqcIhAR-vGxf/pub?gid=855868867&single=true&output=csv';
+const TARGET_CBM=25, TARGET_CASE=800;
+const COLORS=['#1a56db','#22c55e','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#84cc16','#ec4899','#14b8a6'];
 
-const TARGET_CBM = 25;
-const TARGET_CASE = 800;
-
-let allData = [];
-let filtered = [];
-let selectedPeriodes = [];
-let lTrendChart = null, cTrendChart = null;
-
-// ── HELPER FUNCTIONS ──
-function parseDateStr(s){
-  if(!s) return null;
-  const mo={Jan:1,Feb:2,Mar:3,Apr:4,Mei:5,May:5,Jun:6,Jul:7,Ags:8,Aug:8,Sep:9,Okt:10,Oct:10,Nov:11,Des:12,Dec:12};
-  const m=s.match(/^(\d{1,2})[-\/]([A-Za-z]+)[-\/](\d{2,4})$/);
-  if(m){const d=parseInt(m[1]),mn=mo[m[2]]||0,y=parseInt(m[3]),yr=y<100?2000+y:y;if(mn>0)return new Date(yr,mn-1,d);}
-  const dt=new Date(s);return isNaN(dt)?null:dt;
-}
-
-function toYMD(dt){if(!dt)return'';return`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;}
-
-function formatNumber(n){return n.toLocaleString('id-ID');}
-
-function getBatchFromStuffing(stuffingTime){
-  if(!stuffingTime) return null;
-  let hour = 0;
-  const timeStr = stuffingTime.trim();
-  if(timeStr.includes(':')){
-    hour = parseInt(timeStr.split(':')[0]);
-  } else if(timeStr.includes('.')){
-    hour = parseInt(timeStr.split('.')[0]);
-  } else {
-    return null;
-  }
-  if(hour >= 8 && hour < 13) return 1;
-  if(hour >= 13 && hour < 16) return 2;
-  if(hour >= 16 && hour < 19) return 3;
-  if(hour >= 19 || hour < 8) return 4;
-  return null;
-}
+let loaderData=[], checkerData=[];
+let lTrendChart=null, lBarChart=null, cTrendChart=null, cBarChart=null;
 
 // ── LOAD DATA ──
-async function loadData(){
+async function loadAll(){
   const overlay = document.getElementById('loading-overlay');
-  overlay.style.display = 'flex';
+  if(overlay) overlay.style.display='flex';
+  document.getElementById('status-msg').textContent='Memuat data...';
   try{
-    const r = await fetch(CSV_URL + '&cb=' + Date.now());
-    const txt = await r.text();
-    const parsed = Papa.parse(txt, {header:false, skipEmptyLines:true});
-    const rows = parsed.data;
-    const H = rows[0].map(c=>(c||'').trim().toUpperCase());
-    
-    const I = {
-      tgl: H.findIndex(h=>h==='TANGGAL MUAT'||h==='TGL'),
-      shift: H.findIndex(h=>h==='PENYELESAIAN'),
-      stuffing: H.findIndex(h=>h.includes('STUFFING TIME')||h==='STUFFING'),
-      cbm: H.findIndex(h=>h==='TOTAL CBM'),
-      caseid: H.findIndex(h=>h==='AKTUAL CASEID'),
-      carrier: H.findIndex(h=>h==='CARRIERID'),
-      transno: H.findIndex(h=>h==='TRANSNO'),
-      loader: H.findIndex(h=>h==='LOADER 1'||h==='LOADER1'),
-      checker: H.findIndex(h=>h==='CHEKER'||h==='CHECKER')
-    };
-    
-    const g = (r,i)=>i>=0&&i<r.length?(r[i]||'').trim():'';
-    const gf = (r,i)=>i>=0?parseFloat((r[i]||'0').replace(/,/g,''))||0:0;
-    
-    allData = rows.slice(1).filter(r=>{
-      const tgl = g(r,I.tgl);
-      return tgl.length>2 && !tgl.toUpperCase().includes('TANGGAL');
-    }).map(r=>{
-      const tgl = g(r,I.tgl);
-      const dt = parseDateStr(tgl);
-      const stuffingTime = g(r,I.stuffing);
-      const batch = getBatchFromStuffing(stuffingTime);
-      return {
-        tgl, dt, shift: g(r,I.shift),
-        stuffingTime, batch,
-        cbm: gf(r,I.cbm),
-        caseid: gf(r,I.caseid),
-        carrier: g(r,I.carrier),
-        transno: g(r,I.transno),
-        loader: g(r,I.loader),
-        checker: g(r,I.checker)
-      };
-    }).filter(r=>r.dt);
-    
-    console.log('Data loaded:', allData.length);
-    document.getElementById('last-update').textContent = 'Update: '+new Date().toLocaleTimeString('id-ID');
-    populatePeriode();
-    applyFilter();
+    await Promise.all([loadLoader(), loadChecker()]);
+    document.getElementById('last-update').textContent='Update: '+new Date().toLocaleTimeString('id-ID');
+    document.getElementById('status-msg').textContent='Data berhasil dimuat ✅';
+    renderLoader();
+    renderChecker();
   }catch(e){
+    document.getElementById('status-msg').textContent='Error: '+e.message;
     console.error(e);
-    alert('Error loading data: '+e.message);
   }
-  overlay.style.display = 'none';
+  if(overlay) overlay.style.display='none';
 }
 
-// ── PERIODE FUNCTIONS ──
-function populatePeriode(){
-  const mo=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
-  const dates=allData.map(r=>r.dt).filter(Boolean).sort((a,b)=>a-b);
-  if(!dates.length)return;
-  const first=dates[0],last=dates[dates.length-1];
-  let html=`<label class="periode-chip" id="pchip-7">
-    <input type="checkbox" value="7" onchange="onChipChange(this)"><span>7 Hari Terakhir</span></label>`;
-  let y=first.getFullYear(),m=first.getMonth();
-  while(y<last.getFullYear()||(y===last.getFullYear()&&m<=last.getMonth())){
-    const val=`${y}-${String(m+1).padStart(2,'0')}`;
-    html+=`<label class="periode-chip" id="pchip-${val.replace('-','_')}">
-      <input type="checkbox" value="${val}" onchange="onChipChange(this)"><span>${mo[m]} ${y}</span></label>`;
-    m++;if(m>11){m=0;y++;}
-  }
-  document.getElementById('periode-chips').innerHTML=html;
-}
+async function loadLoader(){
+  const r=await fetch(LOADER_URL+'&cb='+Date.now());
+  const txt=await r.text();
+  const rows=Papa.parse(txt,{header:false,skipEmptyLines:true}).data;
+  const hi=rows.findIndex(r=>r.some(c=>(c||'').trim().toUpperCase()==='TANGGAL'));
+  if(hi<0){console.error('Loader header not found');return;}
+  const H=rows[hi].map(c=>(c||'').trim().toUpperCase());
+  const tI=H.indexOf('TANGGAL');
+  const cbmI=H.indexOf('CBM');
+  const cbmMppI=H.findIndex(h=>h.includes('CBM')&&h.includes('MPP'));
+  const chekI=H.findIndex(h=>h==='CHEKER'||h==='CHECKER');
+  const ld1I=H.findIndex(h=>h==='LOADER 1'||h==='LOADER1');
+  const ld2I=H.findIndex(h=>h==='LOADER 2'||h==='LOADER2');
+  const mppI=H.indexOf('MPP');
+  console.log('[LOADER] H:',H);
 
-function onChipChange(cb){
-  const val=cb.value,lbl=cb.closest('label');
-  if(cb.checked){lbl.classList.add('checked');if(!selectedPeriodes.includes(val))selectedPeriodes.push(val);}
-  else{lbl.classList.remove('checked');selectedPeriodes=selectedPeriodes.filter(v=>v!==val);}
-  updatePeriodeBadge();
-}
+  const isName=v=>v&&v.length>3&&!v.match(/^[\d.,]+$/)&&!['CHEKER','CHECKER','LOADER','NIK','NAMA','MPP','BU','STATUS'].some(k=>v===k);
 
-function updatePeriodeBadge(){
-  const badge=document.getElementById('periode-badge');
-  if(selectedPeriodes.length>0){
-    badge.style.display='inline';
-    badge.textContent=selectedPeriodes.length;
-  } else {
-    badge.style.display='none';
-  }
-}
-
-function selectAllPeriode(){
-  selectedPeriodes=[];
-  document.querySelectorAll('#periode-chips input').forEach(cb=>{
-    cb.checked=true;
-    cb.closest('label').classList.add('checked');
-    selectedPeriodes.push(cb.value);
+  loaderData=rows.slice(hi+1).filter(r=>{
+    const tgl=(r[tI]||'').trim();
+    const cbm=parseFloat((r[cbmI]||'').replace(/,/g,''))||0;
+    return tgl.length>2&&cbm>0;
+  }).map(r=>{
+    const tgl=(r[tI]||'').trim();
+    const cbm=parseFloat((r[cbmI]||'').replace(/,/g,''))||0;
+    const cbmMpp=cbmMppI>=0?parseFloat((r[cbmMppI]||'').replace(/,/g,''))||0:0;
+    const mpp=parseFloat((r[mppI]||'2'))||2;
+    const people=[];
+    if(chekI>=0){const v=(r[chekI]||'').trim();if(isName(v))people.push(v);}
+    if(ld1I>=0){const v=(r[ld1I]||'').trim();if(isName(v)&&!people.includes(v))people.push(v);}
+    if(ld2I>=0){const v=(r[ld2I]||'').trim();if(isName(v)&&!people.includes(v))people.push(v);}
+    const cbmPerPerson=people.length>0?cbm/people.length:cbmMpp>0?cbmMpp:cbm/mpp;
+    return{tgl,cbm,cbmMpp:cbmPerPerson,people};
   });
-  updatePeriodeBadge();
-}
+  console.log('[LOADER] Records:',loaderData.length);
 
-function clearAllPeriode(){
-  selectedPeriodes=[];
-  document.querySelectorAll('#periode-chips input').forEach(cb=>{
-    cb.checked=false;
-    cb.closest('label').classList.remove('checked');
+  const names=[...new Set(loaderData.flatMap(r=>r.people))].filter(Boolean).sort();
+  const sel=document.getElementById('loader-name');
+  sel.innerHTML='<option value="ALL">Semua Orang</option>'+names.map(n=>`<option value="${n}">${n}</option>`).join('');
+
+  const dates=[...new Set(loaderData.map(r=>r.tgl))].sort((a,b)=>{
+    const mo={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+    const pa=a.split('-'),pb=b.split('-');
+    const ya=pa[2]?parseInt(pa[2]):2026,yb=pb[2]?parseInt(pb[2]):2026;
+    return ya*10000+(mo[pa[1]]||0)*100+parseInt(pa[0])-(yb*10000+(mo[pb[1]]||0)*100+parseInt(pb[0]));
   });
-  updatePeriodeBadge();
+  const dateSel=document.getElementById('loader-date');
+  dateSel.innerHTML='<option value="">Semua Tanggal</option>'+dates.map(d=>`<option value="${d}">${d}</option>`).join('');
 }
 
-function togglePeriodePanel(){
-  document.getElementById('periode-panel').classList.toggle('open');
-}
+async function loadChecker(){
+  const r=await fetch(CHECKER_URL+'&cb='+Date.now());
+  const txt=await r.text();
+  const rows=Papa.parse(txt,{header:false,skipEmptyLines:true}).data;
+  const hi=rows.findIndex(r=>r.some(c=>(c||'').trim().toUpperCase()==='NAMA'));
+  if(hi<0){console.error('Checker header not found');return;}
+  const H=rows[hi].map(c=>(c||'').trim());
+  const namaI=H.findIndex(h=>h.toUpperCase()==='NAMA');
+  const dateCols=[];
+  H.forEach((h,i)=>{if(h.match(/^\d+-[A-Za-z]+/))dateCols.push({i,d:h});});
+  const totalI=H.findIndex(h=>h.toUpperCase()==='TOTAL');
 
-function applyPeriode(){
-  document.getElementById('periode-panel').classList.remove('open');
-  if(selectedPeriodes.length>0) document.getElementById('f-date').value='';
-  applyFilter();
-}
-
-// ── FILTER & RENDER ──
-function applyFilter(){
-  const fDate = document.getElementById('f-date').value;
-  const fShift = document.getElementById('f-shift').value;
-  
-  let periodeSet = null;
-  if(selectedPeriodes.length > 0){
-    const today = new Date(); today.setHours(0,0,0,0);
-    periodeSet = new Set();
-    selectedPeriodes.forEach(p=>{
-      if(p === '7'){
-        for(let i=0;i<7;i++){const d=new Date(today);d.setDate(d.getDate()-i);periodeSet.add(toYMD(d));}
-      } else {
-        periodeSet.add('m:'+p);
-      }
+  checkerData=rows.slice(hi+1).filter(r=>{
+    const nama=(r[namaI]||'').trim();
+    return nama.length>2&&!nama.toUpperCase().includes('TOTAL')&&nama.toUpperCase()!=='NAMA';
+  }).map(r=>{
+    const nama=(r[namaI]||'').trim();
+    const daily={};
+    dateCols.forEach(d=>{
+      const v=parseFloat((r[d.i]||'').replace(/,/g,''))||0;
+      if(v>0)daily[d.d]=v;
     });
+    const total=totalI>=0?parseFloat((r[totalI]||'').replace(/,/g,''))||0:Object.values(daily).reduce((a,b)=>a+b,0);
+    const activeDays=Object.values(daily).filter(v=>v>0).length;
+    const avg=activeDays>0?total/activeDays:0;
+    return{nama,daily,total,activeDays,avg,pct:avg>0?Math.round(avg/TARGET_CASE*100):0};
+  }).filter(r=>r.total>0);
+  console.log('[CHECKER] Records:',checkerData.length);
+
+  const sel=document.getElementById('checker-name');
+  sel.innerHTML='<option value="ALL">Semua Orang</option>'+checkerData.map(p=>`<option value="${p.nama}">${p.nama}</option>`).join('');
+
+  const allDatesChecker=[...new Set(checkerData.flatMap(p=>Object.keys(p.daily)))].sort((a,b)=>{
+    const mo={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+    const pa=a.split('-'),pb=b.split('-');
+    return(mo[pa[1]]||0)*100+parseInt(pa[0])-(mo[pb[1]]||0)*100-parseInt(pb[0]);
+  });
+  const dateSel=document.getElementById('checker-date');
+  if(dateSel)dateSel.innerHTML='<option value="">Semua Tanggal</option>'+allDatesChecker.map(d=>`<option value="${d}">${d}</option>`).join('');
+}
+
+// ── RENDER LOADER ──
+function renderLoader(){
+  const fName=document.getElementById('loader-name').value;
+  const fDate=document.getElementById('loader-date').value;
+
+  const map={};
+  loaderData.forEach(row=>{
+    if(fDate&&row.tgl!==fDate)return;
+    if(!row.people.length)return;
+    const cbmPP=row.cbm/row.people.length;
+    row.people.forEach(name=>{
+      if(fName!=='ALL'&&name!==fName)return;
+      if(!map[name])map[name]={name,daily:{},total:0};
+      if(!map[name].daily[row.tgl])map[name].daily[row.tgl]=0;
+      map[name].daily[row.tgl]+=cbmPP;
+      map[name].total+=cbmPP;
+    });
+  });
+
+  const persons=Object.values(map).map(p=>{
+    const days=Object.values(p.daily).filter(v=>v>0).length;
+    const avg=days>0?p.total/days:0;
+    return{...p,days,avg,pct:avg>0?Math.round(avg/TARGET_CBM*100):0};
+  });
+
+  const total=persons.reduce((a,p)=>a+p.total,0);
+  const avgAll=persons.length?persons.reduce((a,p)=>a+p.avg,0)/persons.length:0;
+  const good=persons.filter(p=>p.pct>=100).length;
+
+  document.getElementById('loader-kpi').innerHTML=`
+    <div class="kpi blue"><div class="kpi-label">Total Loader</div><div class="kpi-value">${persons.length}</div><div class="kpi-sub">Orang aktif</div></div>
+    <div class="kpi blue"><div class="kpi-label">Total CBM</div><div class="kpi-value">${total.toFixed(1)}</div><div class="kpi-sub">Seluruh periode</div></div>
+    <div class="kpi ${avgAll>=TARGET_CBM?'green':'orange'}"><div class="kpi-label">Avg CBM/MPP/Hari</div><div class="kpi-value">${avgAll.toFixed(1)}</div><div class="kpi-sub">Target: ${TARGET_CBM} CBM</div></div>
+    <div class="kpi ${good===persons.length&&persons.length>0?'green':'orange'}"><div class="kpi-label">Capai Target</div><div class="kpi-value">${good}/${persons.length}</div><div class="kpi-sub">Orang ≥ 100%</div></div>`;
+
+  const sorted=[...persons].sort((a,b)=>b.avg-a.avg);
+  document.getElementById('loader-rank').innerHTML=sorted.length?sorted.map((p,i)=>{
+    const cls=p.pct>=100?'badge-green':p.pct>=80?'badge-orange':'badge-red';
+    return`<tr><td class="rank-num">${i+1}</td><td class="rank-name">${p.name}</td><td class="rank-val">${p.total.toFixed(1)}</td><td>${p.avg.toFixed(1)}/hari</td><td><span class="badge ${cls}">${p.pct}%</span></td></tr>`;
+  }).join(''):'<tr><td colspan="5" style="text-align:center;padding:20px;color:#9aa0b4">Tidak ada数据</td></tr>';
+
+  const allDates=[...new Set(loaderData.map(r=>r.tgl))].sort();
+  const showP=fName==='ALL'?sorted.slice(0,5):persons;
+  if(lTrendChart)lTrendChart.destroy();
+  lTrendChart=new Chart(document.getElementById('loaderTrend').getContext('2d'),{
+    type:'line',
+    data:{labels:allDates,datasets:[
+      ...showP.map((p,i)=>({label:p.name.split(' ').slice(0,2).join(' '),data:allDates.map(d=>p.daily[d]?+p.daily[d].toFixed(1):null),borderColor:COLORS[i%COLORS.length],backgroundColor:COLORS[i%COLORS.length]+'22',tension:.3,spanGaps:true,pointRadius:3,borderWidth:2})),
+      {label:'Target 25',data:allDates.map(()=>TARGET_CBM),borderColor:'#ef4444',borderDash:[6,3],borderWidth:1.5,pointRadius:0,fill:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false},ticks:{font:{size:10},maxRotation:45}}}}
+  });
+
+  if(lBarChart)lBarChart.destroy();
+  lBarChart=new Chart(document.getElementById('loaderBar').getContext('2d'),{
+    type:'bar',
+    data:{labels:sorted.map(p=>p.name.split(' ').slice(0,2).join(' ')),datasets:[{label:'Avg CBM/Hari',data:sorted.map(p=>+p.avg.toFixed(1)),backgroundColor:sorted.map(p=>p.pct>=100?'#22c55e99':p.pct>=80?'#f59e0b99':'#ef444499'),borderColor:sorted.map(p=>p.pct>=100?'#22c55e':p.pct>=80?'#f59e0b':'#ef4444'),borderWidth:1.5,borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},annotation:{annotations:{target:{type:'line',yMin:TARGET_CBM,yMax:TARGET_CBM,borderColor:'red',borderDash:[6,3],borderWidth:1.5}}}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false},ticks:{font:{size:11},maxRotation:30}}}}
+  });
+}
+
+// ── RENDER CHECKER ──
+function renderChecker(){
+  const fName=document.getElementById('checker-name').value;
+  const fDate=document.getElementById('checker-date')?.value||'';
+
+  let persons;
+  if(fDate){
+    persons=checkerData.map(p=>{
+      const dayVal=p.daily[fDate]||0;
+      return{...p,total:dayVal,activeDays:dayVal>0?1:0,avg:dayVal,pct:dayVal>0?Math.round(dayVal/TARGET_CASE*100):0};
+    }).filter(p=>fName==='ALL'?p.total>0:p.nama===fName);
+  } else {
+    persons=fName==='ALL'?checkerData:checkerData.filter(p=>p.nama===fName);
   }
-  
-  filtered = allData.filter(r=>{
-    if(fDate && toYMD(r.dt) !== fDate) return false;
-    if(periodeSet && r.dt){
-      const ymd = toYMD(r.dt);
-      const ym = ymd.substring(0,7);
-      if(!periodeSet.has(ymd) && !periodeSet.has('m:'+ym)) return false;
-    }
-    if(fShift && r.shift !== fShift) return false;
-    return true;
-  });
-  
-  renderAll();
-}
 
-function renderAll(){
-  renderKPISummary();
-  renderLoaderTab();
-  renderCheckerTab();
-}
+  const total=persons.reduce((a,p)=>a+p.total,0);
+  const avgAll=persons.length?persons.reduce((a,p)=>a+p.avg,0)/persons.length:0;
+  const good=persons.filter(p=>p.pct>=100).length;
 
-// ── KPI SUMMARY ──
-function renderKPISummary(){
-  const today = toYMD(new Date());
-  const todayData = filtered.filter(r => toYMD(r.dt) === today);
-  
-  let totalCBM = 0, totalCase = 0;
-  const loaderMap = new Map(), checkerMap = new Map();
-  
-  todayData.forEach(r=>{
-    totalCBM += r.cbm;
-    totalCase += r.caseid;
-    if(r.loader && r.loader !== '') loaderMap.set(r.loader, (loaderMap.get(r.loader)||0) + r.cbm);
-    if(r.checker && r.checker !== '') checkerMap.set(r.checker, (checkerMap.get(r.checker)||0) + r.caseid);
-  });
-  
-  const targetCBMNeed = Math.ceil(totalCBM / TARGET_CBM);
-  const targetCaseNeed = Math.ceil(totalCase / TARGET_CASE);
-  const actualLoader = loaderMap.size;
-  const actualChecker = checkerMap.size;
-  const loaderStatus = targetCBMNeed > actualLoader ? 'KURANG' : (targetCBMNeed < actualLoader ? 'OVER' : 'CUKUP');
-  const checkerStatus = targetCaseNeed > actualChecker ? 'KURANG' : (targetCaseNeed < actualChecker ? 'OVER' : 'CUKUP');
-  
-  document.getElementById('kpi-summary').innerHTML = `
-    <div class="kpi"><div class="kpi-label">Total CBM (Hari Ini)</div><div class="kpi-value">${formatNumber(totalCBM)}</div><div class="kpi-sub">Target: ${formatNumber(totalCBM)} CBM</div></div>
-    <div class="kpi"><div class="kpi-label">Total Case ID (Hari Ini)</div><div class="kpi-value">${formatNumber(totalCase)}</div><div class="kpi-sub">Target: ${formatNumber(totalCase)} Case</div></div>
-    <div class="kpi"><div class="kpi-label">Kebutuhan MPP Loader</div><div class="kpi-value">${targetCBMNeed}</div><div class="kpi-sub">Aktual: ${actualLoader} orang | <span class="kpi-badge ${loaderStatus==='CUKUP'?'badge-success':loaderStatus==='KURANG'?'badge-danger':'badge-warning'}">${loaderStatus}</span></div></div>
-    <div class="kpi"><div class="kpi-label">Kebutuhan MPP Checker</div><div class="kpi-value">${targetCaseNeed}</div><div class="kpi-sub">Aktual: ${actualChecker} orang | <span class="kpi-badge ${checkerStatus==='CUKUP'?'badge-success':checkerStatus==='KURANG'?'badge-danger':'badge-warning'}">${checkerStatus}</span></div></div>
-  `;
-}
+  document.getElementById('checker-kpi').innerHTML=`
+    <div class="kpi blue"><div class="kpi-label">Total Checker</div><div class="kpi-value">${persons.length}</div><div class="kpi-sub">Orang aktif</div></div>
+    <div class="kpi blue"><div class="kpi-label">Total Case ID</div><div class="kpi-value">${total.toLocaleString()}</div><div class="kpi-sub">Seluruh periode</div></div>
+    <div class="kpi ${avgAll>=TARGET_CASE?'green':'orange'}"><div class="kpi-label">Avg Case ID/MPP/Hari</div><div class="kpi-value">${Math.round(avgAll).toLocaleString()}</div><div class="kpi-sub">Target: ${TARGET_CASE}</div></div>
+    <div class="kpi ${good===persons.length&&persons.length>0?'green':'orange'}"><div class="kpi-label">Capai Target</div><div class="kpi-value">${good}/${persons.length}</div><div class="kpi-sub">Orang ≥ 100%</div></div>`;
 
-// ── RENDER LOADER TAB ──
-function renderLoaderTab(){
-  const shift = document.getElementById('f-shift').value;
-  let data = [...filtered];
-  if(shift) data = data.filter(r=>r.shift === shift);
-  
-  // Agregasi per loader
-  const loaderMap = new Map();
-  data.forEach(r=>{
-    if(r.loader && r.loader !== '' && r.cbm > 0){
-      if(!loaderMap.has(r.loader)) loaderMap.set(r.loader, {name:r.loader, total:0, days:new Set()});
-      const l = loaderMap.get(r.loader);
-      l.total += r.cbm;
-      l.days.add(toYMD(r.dt));
-    }
+  const sorted=[...persons].sort((a,b)=>b.avg-a.avg);
+  document.getElementById('checker-rank').innerHTML=sorted.length?sorted.map((p,i)=>{
+    const cls=p.pct>=100?'badge-green':p.pct>=80?'badge-orange':'badge-red';
+    return`<tr><td class="rank-num">${i+1}</td><td class="rank-name">${p.nama}</td><td class="rank-val">${p.total.toLocaleString()}</td><td>${Math.round(p.avg).toLocaleString()}/hari</td><td><span class="badge ${cls}">${p.pct}%</span></td></tr>`;
+  }).join(''):'<tr><td colspan="5" style="text-align:center;padding:20px;color:#9aa0b4">Tidak ada数据</td></tr>';
+
+  const allDates=[...new Set(checkerData.flatMap(p=>Object.keys(p.daily)))].sort((a,b)=>{
+    const mo={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+    const pa=a.split('-'),pb=b.split('-');
+    return(mo[pa[1]]||0)*100+parseInt(pa[0])-(mo[pb[1]]||0)*100-parseInt(pb[0]);
   });
-  
-  const loaders = Array.from(loaderMap.values()).map(l=>({
-    name: l.name,
-    total: l.total,
-    avg: l.total / (l.days.size || 1),
-    pct: Math.round((l.total / (l.days.size || 1)) / TARGET_CBM * 100)
-  })).sort((a,b)=>b.avg - a.avg);
-  
-  document.getElementById('loader-rank').innerHTML = loaders.slice(0,10).map((l,i)=>`
-    <tr><td class="rank-num">${i+1}</td><td class="rank-name">${l.name}</td><td class="rank-val">${formatNumber(l.total)}</td><td>${l.avg.toFixed(1)}/hari</td><td><span class="badge ${l.pct>=100?'badge-green':l.pct>=80?'badge-orange':'badge-red'}">${l.pct}%</span></td></tr>
-  `).join('')||'<tr><td colspan="5" style="text-align:center;padding:20px">Tidak ada data</td></tr>';
-  
-  // Analisis MPP Loader per shift
-  const today = toYMD(new Date());
-  const todayData = data.filter(r=>toYMD(r.dt) === today);
-  let shift1CBM = 0, shift2CBM = 0;
-  todayData.forEach(r=>{
-    if(r.shift === 'SHIFT 1') shift1CBM += r.cbm;
-    if(r.shift === 'SHIFT 2') shift2CBM += r.cbm;
-  });
-  
-  const shift1Need = Math.ceil(shift1CBM / TARGET_CBM);
-  const shift2Need = Math.ceil(shift2CBM / TARGET_CBM);
-  const shift1Actual = new Set(todayData.filter(r=>r.shift==='SHIFT 1' && r.loader).map(r=>r.loader)).size;
-  const shift2Actual = new Set(todayData.filter(r=>r.shift==='SHIFT 2' && r.loader).map(r=>r.loader)).size;
-  
-  document.getElementById('loader-mpp').innerHTML = `
-    <tr><td>SHIFT 1</td><td>${formatNumber(shift1CBM)}</td><td>${formatNumber(shift1CBM)}</td><td>${shift1Need}</td><td><span class="badge ${shift1Need<=shift1Actual?'badge-green':'badge-danger'}">${shift1Need<=shift1Actual?'CUKUP':'KURANG'}</span></td></tr>
-    <tr><td>SHIFT 2</td><td>${formatNumber(shift2CBM)}</td><td>${formatNumber(shift2CBM)}</td><td>${shift2Need}</td><td><span class="badge ${shift2Need<=shift2Actual?'badge-green':'badge-danger'}">${shift2Need<=shift2Actual?'CUKUP':'KURANG'}</span></td></tr>
-  `;
-  
-  // Tren chart 7 hari
-  const last7 = [];
-  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);last7.push(toYMD(d));}
-  const dailyAvg = last7.map(date=>{
-    const dayData = data.filter(r=>toYMD(r.dt)===date);
-    const total = dayData.reduce((a,r)=>a+r.cbm,0);
-    const people = new Set(dayData.filter(r=>r.loader).map(r=>r.loader)).size;
-    return people>0 ? total/people : 0;
-  });
-  
-  if(lTrendChart) lTrendChart.destroy();
-  lTrendChart = new Chart(document.getElementById('loaderTrend').getContext('2d'),{
+  const showP=fName==='ALL'?sorted.slice(0,5):persons;
+  if(cTrendChart)cTrendChart.destroy();
+  cTrendChart=new Chart(document.getElementById('checkerTrend').getContext('2d'),{
     type:'line',
-    data:{labels:last7.map(d=>d.substring(5)), datasets:[
-      {label:'Rata-rata CBM/MPP/Hari', data:dailyAvg, borderColor:'#1a56db', backgroundColor:'#1a56db22', tension:.3, fill:true, pointRadius:4},
-      {label:'Target 25 CBM', data:last7.map(()=>TARGET_CBM), borderColor:'#ef4444', borderDash:[6,3], pointRadius:0, fill:false}
+    data:{labels:allDates,datasets:[
+      ...showP.map((p,i)=>({label:p.nama.split(' ').slice(0,2).join(' '),data:allDates.map(d=>p.daily[d]||null),borderColor:COLORS[i%COLORS.length],backgroundColor:COLORS[i%COLORS.length]+'22',tension:.3,spanGaps:true,pointRadius:3,borderWidth:2})),
+      {label:'Target 800',data:allDates.map(()=>TARGET_CASE),borderColor:'#ef4444',borderDash:[6,3],borderWidth:1.5,pointRadius:0,fill:false}
     ]},
-    options:{responsive:true, maintainAspectRatio:false, plugins:{tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.raw.toFixed(1)}`}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false},ticks:{font:{size:10},maxRotation:45}}}}
+  });
+
+  if(cBarChart)cBarChart.destroy();
+  cBarChart=new Chart(document.getElementById('checkerBar').getContext('2d'),{
+    type:'bar',
+    data:{labels:sorted.map(p=>p.nama.split(' ').slice(0,2).join(' ')),datasets:[{label:'Avg Case/Hari',data:sorted.map(p=>Math.round(p.avg)),backgroundColor:sorted.map(p=>p.pct>=100?'#22c55e99':p.pct>=80?'#f59e0b99':'#ef444499'),borderColor:sorted.map(p=>p.pct>=100?'#22c55e':p.pct>=80?'#f59e0b':'#ef4444'),borderWidth:1.5,borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false},ticks:{font:{size:11},maxRotation:30}}}}
   });
 }
 
-// ── RENDER CHECKER TAB ──
-function renderCheckerTab(){
-  const shift = document.getElementById('f-shift').value;
-  let data = [...filtered];
-  if(shift) data = data.filter(r=>r.shift === shift);
-  
-  const checkerMap = new Map();
-  data.forEach(r=>{
-    if(r.checker && r.checker !== '' && r.caseid > 0){
-      if(!checkerMap.has(r.checker)) checkerMap.set(r.checker, {name:r.checker, total:0, days:new Set()});
-      const c = checkerMap.get(r.checker);
-      c.total += r.caseid;
-      c.days.add(toYMD(r.dt));
-    }
-  });
-  
-  const checkers = Array.from(checkerMap.values()).map(c=>({
-    name: c.name,
-    total: c.total,
-    avg: c.total / (c.days.size || 1),
-    pct: Math.round((c.total / (c.days.size || 1)) / TARGET_CASE * 100)
-  })).sort((a,b)=>b.avg - a.avg);
-  
-  document.getElementById('checker-rank').innerHTML = checkers.slice(0,10).map((c,i)=>`
-    <tr><td class="rank-num">${i+1}</td><td class="rank-name">${c.name}</td><td class="rank-val">${formatNumber(c.total)}</td><td>${formatNumber(Math.round(c.avg))}/hari</td><td><span class="badge ${c.pct>=100?'badge-green':c.pct>=80?'badge-orange':'badge-red'}">${c.pct}%</span></td></tr>
-  `).join('')||'<tr><td colspan="5" style="text-align:center;padding:20px">Tidak ada data</td></tr>';
-  
-  const today = toYMD(new Date());
-  const todayData = data.filter(r=>toYMD(r.dt) === today);
-  let shift1Case = 0, shift2Case = 0;
-  todayData.forEach(r=>{
-    if(r.shift === 'SHIFT 1') shift1Case += r.caseid;
-    if(r.shift === 'SHIFT 2') shift2Case += r.caseid;
-  });
-  
-  const shift1Need = Math.ceil(shift1Case / TARGET_CASE);
-  const shift2Need = Math.ceil(shift2Case / TARGET_CASE);
-  const shift1Actual = new Set(todayData.filter(r=>r.shift==='SHIFT 1' && r.checker).map(r=>r.checker)).size;
-  const shift2Actual = new Set(todayData.filter(r=>r.shift==='SHIFT 2' && r.checker).map(r=>r.checker)).size;
-  
-  document.getElementById('checker-mpp').innerHTML = `
-    <tr><td>SHIFT 1</td><td>${formatNumber(shift1Case)}</td><td>${formatNumber(shift1Case)}</td><td>${shift1Need}</td><td><span class="badge ${shift1Need<=shift1Actual?'badge-green':'badge-danger'}">${shift1Need<=shift1Actual?'CUKUP':'KURANG'}</span></td></tr>
-    <tr><td>SHIFT 2</td><td>${formatNumber(shift2Case)}</td><td>${formatNumber(shift2Case)}</td><td>${shift2Need}</td><td><span class="badge ${shift2Need<=shift2Actual?'badge-green':'badge-danger'}">${shift2Need<=shift2Actual?'CUKUP':'KURANG'}</span></td></tr>
-  `;
-  
-  const last7 = [];
-  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);last7.push(toYMD(d));}
-  const dailyAvg = last7.map(date=>{
-    const dayData = data.filter(r=>toYMD(r.dt)===date);
-    const total = dayData.reduce((a,r)=>a+r.caseid,0);
-    const people = new Set(dayData.filter(r=>r.checker).map(r=>r.checker)).size;
-    return people>0 ? total/people : 0;
-  });
-  
-  if(cTrendChart) cTrendChart.destroy();
-  cTrendChart = new Chart(document.getElementById('checkerTrend').getContext('2d'),{
-    type:'line',
-    data:{labels:last7.map(d=>d.substring(5)), datasets:[
-      {label:'Rata-rata Case/MPP/Hari', data:dailyAvg, borderColor:'#2e7d32', backgroundColor:'#2e7d3222', tension:.3, fill:true, pointRadius:4},
-      {label:'Target 800 Case', data:last7.map(()=>TARGET_CASE), borderColor:'#ef4444', borderDash:[6,3], pointRadius:0, fill:false}
-    ]},
-    options:{responsive:true, maintainAspectRatio:false, plugins:{tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${formatNumber(Math.round(ctx.raw))}`}}}}
-  });
-}
-
-// ── SWITCH TAB ──
-function switchTab(tab, el){
+function resetLoader(){document.getElementById('loader-name').value='ALL';document.getElementById('loader-date').value='';renderLoader();}
+function resetChecker(){document.getElementById('checker-name').value='ALL';const cd=document.getElementById('checker-date');if(cd)cd.value='';renderChecker();}
+function switchTab(name,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  document.getElementById(`tab-${tab}`).classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
 }
 
-// ── SIDEBAR TOGGLE (SMARTPHONE FRIENDLY) ──
+// ── SIDEBAR TOGGLE (FIXED - NO DUPLICATE) ──
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   const main = document.getElementById('main');
+  
   if (window.innerWidth < 768) {
     sidebar.classList.toggle('open');
   } else {
     sidebar.classList.toggle('collapsed');
     main.classList.toggle('expanded');
+    // Save state
     localStorage.setItem('sb_collapsed', sidebar.classList.contains('collapsed') ? '1' : '0');
   }
 }
@@ -680,12 +590,17 @@ function toggleSidebar() {
 function checkMobileMenu() {
   const mobileBtn = document.getElementById('mobileMenuBtn');
   const sidebar = document.getElementById('sidebar');
+  
   if (window.innerWidth < 768) {
     if(mobileBtn) mobileBtn.style.display = 'flex';
-    if(sidebar) sidebar.classList.remove('collapsed');
+    if(sidebar) {
+      sidebar.classList.remove('collapsed');
+      sidebar.classList.remove('open');
+    }
   } else {
     if(mobileBtn) mobileBtn.style.display = 'none';
     if(sidebar) sidebar.classList.remove('open');
+    // Restore saved state for desktop
     const collapsed = localStorage.getItem('sb_collapsed') === '1';
     if(collapsed) {
       sidebar.classList.add('collapsed');
@@ -697,9 +612,24 @@ function checkMobileMenu() {
   }
 }
 
+// Event listeners
 window.addEventListener('resize', checkMobileMenu);
-document.getElementById('mobileMenuBtn')?.addEventListener('click', toggleSidebar);
-window.addEventListener('DOMContentLoaded', () => { checkMobileMenu(); loadData(); });
+if(document.getElementById('mobileMenuBtn')) {
+  document.getElementById('mobileMenuBtn').addEventListener('click', toggleSidebar);
+}
+window.addEventListener('DOMContentLoaded', checkMobileMenu);
+
+// Restore sidebar state on load
+(function(){
+  const collapsed = localStorage.getItem('sb_collapsed') === '1';
+  if(collapsed && window.innerWidth >= 768){
+    document.getElementById('sidebar').classList.add('collapsed');
+    document.getElementById('main').classList.add('expanded');
+  }
+})();
+
+// Auto load saat halaman dibuka
+loadAll();
 </script>
 </body>
 </html>
