@@ -178,6 +178,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
   <p>Memuat data temuan penyimpangan...</p>
 </div>
 
+<!-- Tombol menu untuk HP -->
+<button class="mobile-menu-btn" id="mobileMenuBtn" style="display: none; position: fixed; top: 15px; left: 15px; z-index: 1001; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 18px; box-shadow: var(--shadow);">
+  ☰
+</button>
+  
 <!-- SIDEBAR -->
 <nav class="sidebar" id="sidebar">
   <div class="sb-logo">
@@ -364,10 +369,35 @@ const CHART_COLORS=['#dc2626','#ea580c','#7c3aed','#1a56db','#16a34a','#0891b2',
 let allData=[],filtered=[],curPage=1;
 let donutCh=null,trendCh=null,areaTrendCh=null;
 
-function toggleSidebar(){
-  document.getElementById('sidebar').classList.toggle('collapsed');
-  document.getElementById('main').classList.toggle('expanded');
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const main = document.getElementById('main');
+  
+  if (window.innerWidth < 768) {
+    sidebar.classList.toggle('open');
+  } else {
+    sidebar.classList.toggle('collapsed');
+    main.classList.toggle('expanded');
+  }
 }
+
+function checkMobileMenu() {
+  const mobileBtn = document.getElementById('mobileMenuBtn');
+  const sidebar = document.getElementById('sidebar');
+  
+  if (window.innerWidth < 768) {
+    mobileBtn.style.display = 'flex';
+    sidebar.classList.remove('collapsed');
+    sidebar.classList.remove('open');
+  } else {
+    mobileBtn.style.display = 'none';
+    sidebar.classList.remove('open');
+  }
+}
+
+window.addEventListener('resize', checkMobileMenu);
+document.getElementById('mobileMenuBtn')?.addEventListener('click', toggleSidebar);
+window.addEventListener('DOMContentLoaded', checkMobileMenu);
 
 // ── HELPERS ──
 function parseTgl(s){
