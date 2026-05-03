@@ -1136,18 +1136,25 @@ async function loadData(){
         agingMin=gf(r,I.agingTime);
         hitMiss=g(r,I.hitMiss)||g(r,I.kedatangan);
       }
-      // Hitung kode aging berdasarkan delay
+      // Hitung kode aging berdasarkan delay (dalam menit)
       let kodeAging='';
       if(agingMin!==null&&agingMin>0){
-        const h=agingMin/60;
-        if(h<=1)kodeAging='0–1 jam';
-        else if(h<=4)kodeAging='2–4 jam';
-        else if(h<=6)kodeAging='5–6 jam';
-        else if(h<=24)kodeAging='H+1';
-        else if(h<=48)kodeAging='H+2';
-        else kodeAging='H+3';
+        const h = agingMin / 60; // konversi ke jam
+        if(h <= 1) {
+          kodeAging = '0–1 jam';
+        } else if(h <= 4) {
+          kodeAging = '2–4 jam';
+        } else if(h <= 24) {
+          kodeAging = '>5 jam';   // 5-24 jam tetap masuk >5 jam
+        } else if(h <= 48) {
+          kodeAging = 'H+1';      // 24-48 jam
+        } else if(h <= 72) {
+          kodeAging = 'H+2';      // 48-72 jam
+        } else {
+          kodeAging = 'H+3';      // >72 jam
+        }
       } else if(agingMin!==null&&agingMin<=0){
-        kodeAging='On Time';
+        kodeAging = 'On Time';
       }
       const batch=g(r,I.batchLoading);
 
