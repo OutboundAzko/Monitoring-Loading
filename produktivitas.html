@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
 <title>Produktivitas MPP - Outbound WH</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -55,6 +55,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:var(--shadow)}
 .header-title{font-size:16px;font-weight:700;color:var(--text)}
 .avatar{width:36px;height:36px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+
+/* LOADING OVERLAY */
+#loading-overlay{position:fixed;inset:0;background:rgba(240,243,250,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:14px}
+#loading-overlay .loader{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading-overlay p{font-size:14px;color:var(--text2);font-weight:500}
 
 /* FILTER */
 .filter-wrap{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -113,18 +119,85 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .badge-orange{background:#fff3e0;color:#e65100}
 .badge-red{background:#ffebee;color:#c62828}
 
-/* LOADING */
-#loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px;color:var(--text3);gap:12px;font-size:14px}
-.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+/* ============================================ */
+/* SMARTPHONE FRIENDLY - RESPONSIVE */
+/* ============================================ */
+
+@media (max-width: 992px) {
+  .kpi-row { grid-template-columns: repeat(2, 1fr) !important; gap: 10px; }
+  .grid-2 { gap: 10px; }
+  .tabs { gap: 6px; }
+  .tab { padding: 6px 14px; font-size: 11px; }
+  .filter-wrap { padding: 10px 16px; }
+  .filter-wrap input, .filter-wrap select, .filter-wrap button { font-size: 12px; padding: 6px 10px; }
+  .content { padding: 12px 16px; }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .main {
+    margin-left: 0 !important;
+    width: 100%;
+  }
+  .mobile-menu-btn {
+    display: flex !important;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 18px;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1001;
+    box-shadow: var(--shadow);
+  }
+  .kpi-row { grid-template-columns: 1fr !important; }
+  .kpi { padding: 12px 16px; }
+  .kpi-value { font-size: 24px; }
+  .card { padding: 14px; }
+  .card-title { font-size: 13px; }
+  .header { padding: 0 16px; }
+  .header-title { font-size: 14px; }
+  .avatar { width: 32px; height: 32px; font-size: 12px; }
+  .inner-filter { gap: 6px; flex-direction: column; align-items: stretch; }
+  .inner-filter select, .inner-filter button { width: 100%; }
+  .chart-wrap { height: 200px; }
+  .chart-wrap-lg { height: 240px; }
+  .rank-table th, .rank-table td { padding: 6px 8px; font-size: 10px; }
+}
+
+@media (max-width: 480px) {
+  .header-title { font-size: 12px; }
+  .filter-wrap { gap: 6px; }
+  .filter-wrap input, .filter-wrap select, .filter-wrap button { font-size: 10px; padding: 4px 8px; }
+  .btn-primary, .btn-secondary { padding: 5px 12px; font-size: 11px; }
+  .kpi-label { font-size: 9px; }
+  .kpi-value { font-size: 20px; }
+  .tab { padding: 5px 10px; font-size: 10px; }
+  .rank-table th, .rank-table td { padding: 4px 6px; font-size: 9px; }
+  .badge { padding: 1px 5px; font-size: 9px; }
+}
 </style>
 </head>
 <body>
 
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay" style="display: none;">
+  <div class="loader"></div>
+  <p>Memuat data produktivitas...</p>
+</div>
+
 <!-- Tombol menu untuk HP -->
-<button class="mobile-menu-btn" id="mobileMenuBtn" style="display: none; position: fixed; top: 15px; left: 15px; z-index: 1001; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 18px; box-shadow: var(--shadow);">
-  ☰
-</button>
+<button class="mobile-menu-btn" id="mobileMenuBtn" style="display: none;">☰</button>
 
 <!-- SIDEBAR -->
 <nav class="sidebar" id="sidebar">
@@ -172,11 +245,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
   </div>
 
   <div class="content">
-    <div id="loading" style="display:none">
-      <div class="spinner"></div>
-      <span>Memuat data produktivitas...</span>
-    </div>
-
     <!-- TABS -->
     <div class="tabs">
       <button class="tab active" onclick="switchTab('loader',this)">📦 Loader LD (CBM)</button>
@@ -272,7 +340,8 @@ let lTrendChart=null, lBarChart=null, cTrendChart=null, cBarChart=null;
 
 // ── LOAD DATA ──
 async function loadAll(){
-  document.getElementById('loading').style.display='flex';
+  const overlay = document.getElementById('loading-overlay');
+  if(overlay) overlay.style.display='flex';
   document.getElementById('status-msg').textContent='Memuat data...';
   try{
     await Promise.all([loadLoader(), loadChecker()]);
@@ -284,14 +353,13 @@ async function loadAll(){
     document.getElementById('status-msg').textContent='Error: '+e.message;
     console.error(e);
   }
-  document.getElementById('loading').style.display='none';
+  if(overlay) overlay.style.display='none';
 }
 
 async function loadLoader(){
   const r=await fetch(LOADER_URL+'&cb='+Date.now());
   const txt=await r.text();
   const rows=Papa.parse(txt,{header:false,skipEmptyLines:true}).data;
-  // Cari header row
   const hi=rows.findIndex(r=>r.some(c=>(c||'').trim().toUpperCase()==='TANGGAL'));
   if(hi<0){console.error('Loader header not found');return;}
   const H=rows[hi].map(c=>(c||'').trim().toUpperCase());
@@ -303,7 +371,6 @@ async function loadLoader(){
   const ld2I=H.findIndex(h=>h==='LOADER 2'||h==='LOADER2');
   const mppI=H.indexOf('MPP');
   console.log('[LOADER] H:',H);
-  console.log('[LOADER] idx - tgl:',tI,'cbm:',cbmI,'cbmMpp:',cbmMppI,'chek:',chekI,'ld1:',ld1I,'ld2:',ld2I,'mpp:',mppI);
 
   const isName=v=>v&&v.length>3&&!v.match(/^[\d.,]+$/)&&!['CHEKER','CHECKER','LOADER','NIK','NAMA','MPP','BU','STATUS'].some(k=>v===k);
 
@@ -323,13 +390,12 @@ async function loadLoader(){
     const cbmPerPerson=people.length>0?cbm/people.length:cbmMpp>0?cbmMpp:cbm/mpp;
     return{tgl,cbm,cbmMpp:cbmPerPerson,people};
   });
-  console.log('[LOADER] Records:',loaderData.length,'sample:',loaderData[0]);
+  console.log('[LOADER] Records:',loaderData.length);
 
-  // Populate filter nama
   const names=[...new Set(loaderData.flatMap(r=>r.people))].filter(Boolean).sort();
   const sel=document.getElementById('loader-name');
   sel.innerHTML='<option value="ALL">Semua Orang</option>'+names.map(n=>`<option value="${n}">${n}</option>`).join('');
-  // Populate tanggal
+
   const dates=[...new Set(loaderData.map(r=>r.tgl))].sort((a,b)=>{
     const mo={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
     const pa=a.split('-'),pb=b.split('-');
@@ -344,7 +410,6 @@ async function loadChecker(){
   const r=await fetch(CHECKER_URL+'&cb='+Date.now());
   const txt=await r.text();
   const rows=Papa.parse(txt,{header:false,skipEmptyLines:true}).data;
-  // Cari header row - ada NAMA
   const hi=rows.findIndex(r=>r.some(c=>(c||'').trim().toUpperCase()==='NAMA'));
   if(hi<0){console.error('Checker header not found');return;}
   const H=rows[hi].map(c=>(c||'').trim());
@@ -352,7 +417,6 @@ async function loadChecker(){
   const dateCols=[];
   H.forEach((h,i)=>{if(h.match(/^\d+-[A-Za-z]+/))dateCols.push({i,d:h});});
   const totalI=H.findIndex(h=>h.toUpperCase()==='TOTAL');
-  console.log('[CHECKER] H:',H,'dateCols:',dateCols.length);
 
   checkerData=rows.slice(hi+1).filter(r=>{
     const nama=(r[namaI]||'').trim();
@@ -373,7 +437,7 @@ async function loadChecker(){
 
   const sel=document.getElementById('checker-name');
   sel.innerHTML='<option value="ALL">Semua Orang</option>'+checkerData.map(p=>`<option value="${p.nama}">${p.nama}</option>`).join('');
-  // Populate tanggal checker
+
   const allDatesChecker=[...new Set(checkerData.flatMap(p=>Object.keys(p.daily)))].sort((a,b)=>{
     const mo={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
     const pa=a.split('-'),pb=b.split('-');
@@ -388,7 +452,6 @@ function renderLoader(){
   const fName=document.getElementById('loader-name').value;
   const fDate=document.getElementById('loader-date').value;
 
-  // Agregasi per orang
   const map={};
   loaderData.forEach(row=>{
     if(fDate&&row.tgl!==fDate)return;
@@ -413,21 +476,18 @@ function renderLoader(){
   const avgAll=persons.length?persons.reduce((a,p)=>a+p.avg,0)/persons.length:0;
   const good=persons.filter(p=>p.pct>=100).length;
 
-  // KPI
   document.getElementById('loader-kpi').innerHTML=`
     <div class="kpi blue"><div class="kpi-label">Total Loader</div><div class="kpi-value">${persons.length}</div><div class="kpi-sub">Orang aktif</div></div>
     <div class="kpi blue"><div class="kpi-label">Total CBM</div><div class="kpi-value">${total.toFixed(1)}</div><div class="kpi-sub">Seluruh periode</div></div>
     <div class="kpi ${avgAll>=TARGET_CBM?'green':'orange'}"><div class="kpi-label">Avg CBM/MPP/Hari</div><div class="kpi-value">${avgAll.toFixed(1)}</div><div class="kpi-sub">Target: ${TARGET_CBM} CBM</div></div>
     <div class="kpi ${good===persons.length&&persons.length>0?'green':'orange'}"><div class="kpi-label">Capai Target</div><div class="kpi-value">${good}/${persons.length}</div><div class="kpi-sub">Orang ≥ 100%</div></div>`;
 
-  // Ranking
   const sorted=[...persons].sort((a,b)=>b.avg-a.avg);
   document.getElementById('loader-rank').innerHTML=sorted.length?sorted.map((p,i)=>{
     const cls=p.pct>=100?'badge-green':p.pct>=80?'badge-orange':'badge-red';
     return`<tr><td class="rank-num">${i+1}</td><td class="rank-name">${p.name}</td><td class="rank-val">${p.total.toFixed(1)}</td><td>${p.avg.toFixed(1)}/hari</td><td><span class="badge ${cls}">${p.pct}%</span></td></tr>`;
-  }).join(''):'<tr><td colspan="5" style="text-align:center;padding:20px;color:#9aa0b4">Tidak ada data</td></tr>';
+  }).join(''):'<tr><td colspan="5" style="text-align:center;padding:20px;color:#9aa0b4">Tidak ada数据</td></tr>';
 
-  // Trend chart
   const allDates=[...new Set(loaderData.map(r=>r.tgl))].sort();
   const showP=fName==='ALL'?sorted.slice(0,5):persons;
   if(lTrendChart)lTrendChart.destroy();
@@ -440,7 +500,6 @@ function renderLoader(){
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false},ticks:{font:{size:10},maxRotation:45}}}}
   });
 
-  // Bar chart
   if(lBarChart)lBarChart.destroy();
   lBarChart=new Chart(document.getElementById('loaderBar').getContext('2d'),{
     type:'bar',
@@ -454,10 +513,8 @@ function renderChecker(){
   const fName=document.getElementById('checker-name').value;
   const fDate=document.getElementById('checker-date')?.value||'';
 
-  // Filter berdasarkan tanggal jika dipilih
   let persons;
   if(fDate){
-    // Hitung ulang per orang hanya untuk tanggal yang dipilih
     persons=checkerData.map(p=>{
       const dayVal=p.daily[fDate]||0;
       return{...p,total:dayVal,activeDays:dayVal>0?1:0,avg:dayVal,pct:dayVal>0?Math.round(dayVal/TARGET_CASE*100):0};
@@ -480,7 +537,7 @@ function renderChecker(){
   document.getElementById('checker-rank').innerHTML=sorted.length?sorted.map((p,i)=>{
     const cls=p.pct>=100?'badge-green':p.pct>=80?'badge-orange':'badge-red';
     return`<tr><td class="rank-num">${i+1}</td><td class="rank-name">${p.nama}</td><td class="rank-val">${p.total.toLocaleString()}</td><td>${Math.round(p.avg).toLocaleString()}/hari</td><td><span class="badge ${cls}">${p.pct}%</span></td></tr>`;
-  }).join(''):'<tr><td colspan="5" style="text-align:center;padding:20px;color:#9aa0b4">Tidak ada data</td></tr>';
+  }).join(''):'<tr><td colspan="5" style="text-align:center;padding:20px;color:#9aa0b4">Tidak ada数据</td></tr>';
 
   const allDates=[...new Set(checkerData.flatMap(p=>Object.keys(p.daily)))].sort((a,b)=>{
     const mo={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
@@ -515,9 +572,7 @@ function switchTab(name,el){
   document.getElementById('tab-'+name).classList.add('active');
 }
 
-// Auto load saat halaman dibuka
-loadAll();
-// ── SIDEBAR TOGGLE ──
+// ── SIDEBAR TOGGLE (FIXED - NO DUPLICATE) ──
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   const main = document.getElementById('main');
@@ -527,59 +582,54 @@ function toggleSidebar() {
   } else {
     sidebar.classList.toggle('collapsed');
     main.classList.toggle('expanded');
+    // Save state
+    localStorage.setItem('sb_collapsed', sidebar.classList.contains('collapsed') ? '1' : '0');
   }
 }
 
-function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const main = document.getElementById('main');
-  
-  // Cek apakah di mode mobile (lebar layar < 768px)
-  if (window.innerWidth < 768) {
-    sidebar.classList.toggle('open');
-  } else {
-    sidebar.classList.toggle('collapsed');
-    main.classList.toggle('expanded');
-  }
-}
-
-// Fungsi untuk menampilkan/sembunyikan tombol menu mobile
 function checkMobileMenu() {
   const mobileBtn = document.getElementById('mobileMenuBtn');
   const sidebar = document.getElementById('sidebar');
   
   if (window.innerWidth < 768) {
-    mobileBtn.style.display = 'flex';
-    // Hapus class collapsed di mobile agar sidebar bisa muncul via transform
-    sidebar.classList.remove('collapsed');
-    sidebar.classList.remove('open'); // pastikan sidebar tertutup awalnya
+    if(mobileBtn) mobileBtn.style.display = 'flex';
+    if(sidebar) {
+      sidebar.classList.remove('collapsed');
+      sidebar.classList.remove('open');
+    }
   } else {
-    mobileBtn.style.display = 'none';
-    sidebar.classList.remove('open');
-    // Kembalikan ke mode desktop (collapsed tergantung user preference)
-    if (!sidebar.classList.contains('collapsed')) {
-      // biarkan sesuai preference user
+    if(mobileBtn) mobileBtn.style.display = 'none';
+    if(sidebar) sidebar.classList.remove('open');
+    // Restore saved state for desktop
+    const collapsed = localStorage.getItem('sb_collapsed') === '1';
+    if(collapsed) {
+      sidebar.classList.add('collapsed');
+      document.getElementById('main').classList.add('expanded');
+    } else {
+      sidebar.classList.remove('collapsed');
+      document.getElementById('main').classList.remove('expanded');
     }
   }
 }
 
-// Event listener untuk resize window
+// Event listeners
 window.addEventListener('resize', checkMobileMenu);
-
-// Event listener untuk tombol menu mobile
-document.getElementById('mobileMenuBtn')?.addEventListener('click', toggleSidebar);
-
-// Panggil saat halaman selesai loading
+if(document.getElementById('mobileMenuBtn')) {
+  document.getElementById('mobileMenuBtn').addEventListener('click', toggleSidebar);
+}
 window.addEventListener('DOMContentLoaded', checkMobileMenu);
 
-// Restore sidebar state
+// Restore sidebar state on load
 (function(){
-  const collapsed=localStorage.getItem('sb_collapsed')==='1';
-  if(collapsed){
+  const collapsed = localStorage.getItem('sb_collapsed') === '1';
+  if(collapsed && window.innerWidth >= 768){
     document.getElementById('sidebar').classList.add('collapsed');
     document.getElementById('main').classList.add('expanded');
   }
 })();
+
+// Auto load saat halaman dibuka
+loadAll();
 </script>
 </body>
 </html>
