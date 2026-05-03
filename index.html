@@ -779,22 +779,16 @@ function prepareQWModalData() {
   const under2h = d.filter(r => r.queueMin >= 60 && r.queueMin < 120).length;
   const over2h = d.filter(r => r.queueMin >= 120).length;
   
-  const getWaitClass = (minutes) => {
-    if (minutes < 60) return 'good';
-    if (minutes < 120) return 'warning';
-    return 'danger';
+  const getWaitColor = (minutes) => {
+    if (minutes < 60) return '#2e7d32';
+    if (minutes < 120) return '#ef6c00';
+    return '#c62828';
   };
   
   const getWaitLabel = (minutes) => {
     if (minutes < 60) return '0-1 Jam';
     if (minutes < 120) return '1-2 Jam';
     return '> 2 Jam';
-  };
-  
-  const getWaitColor = (minutes) => {
-    if (minutes < 60) return '#2e7d32';
-    if (minutes < 120) return '#ef6c00';
-    return '#c62828';
   };
   
   // Fungsi untuk ambil stuffing time (jam saja)
@@ -806,33 +800,53 @@ function prepareQWModalData() {
   
   document.getElementById('modalSummary').innerHTML = `
     <div class="modal-summary-item"><span class="label">Total Armada</span><span class="value">${d.length}</span></div>
-    <div class="modal-summary-item"><span class="label">Rata-rata Waiting</span><span class="value">${formatJam(avgWait)}</span></div>
+    <div class="modal-summary-item"><span class="label">Rata-rata Waiting</span><span class="value" style="color:${getWaitColor(avgWait)}">${formatJam(avgWait)}</span></div>
     <div class="modal-summary-item"><span class="label">🟢 0-1 Jam</span><span class="value" style="color:#2e7d32">${under1h}</span></div>
     <div class="modal-summary-item"><span class="label">🟡 1-2 Jam</span><span class="value" style="color:#ef6c00">${under2h}</span></div>
     <div class="modal-summary-item"><span class="label">🔴 > 2 Jam</span><span class="value" style="color:#c62828">${over2h}</span></div>
   `;
   
+  // Pastikan tabel terbentuk dengan benar
+  let tableRows = '';
+  if (d.length > 0) {
+    tableRows = d.map(r => `
+      <tr>
+        <td style="font-weight:600; padding:10px 12px; border-bottom:1px solid #e2e8f4;">${r.transno || '-'}</td>
+        <td style="padding:10px 12px; border-bottom:1px solid #e2e8f4;">${r.carrier || '-'}</td>
+        <td style="padding:10px 12px; border-bottom:1px solid #e2e8f4;">${stuffingOnly(r)}</td>
+        <td style="padding:10px 12px; border-bottom:1px solid #e2e8f4;">${r.checkIn || '-'}</td>
+        <td style="padding:10px 12px; border-bottom:1px solid #e2e8f4;">${r.open || '-'}</td>
+        <td style="padding:10px 12px; border-bottom:1px solid #e2e8f4;"><span style="font-weight:700; color:${getWaitColor(r.queueMin)}">${formatJam(r.queueMin)}</span></td>
+        <td style="padding:10px 12px; border-bottom:1px solid #e2e8f4;"><span style="background:${getWaitColor(r.queueMin)}20; color:${getWaitColor(r.queueMin)}; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600;">${getWaitLabel(r.queueMin)}</span></td>
+        <td style="padding:10px 12px; border-bottom:1px solid #e2e8f4;">${r.shift || '-'}</td>
+        <td style="padding:10px 12px; border-bottom:1px solid #e2e8f4;">${r.tgl || '-'}</td>
+      </tr>
+    `).join('');
+  } else {
+    tableRows = '<tr><td colspan="9" style="text-align:center; padding:40px; color:#9aa0b8;">Tidak ada data queue waiting</td></tr>';
+  }
+  
   document.getElementById('modalContent').innerHTML = `
-    </table>
-      <thead>
-        <tr><th>No. Transaksi</th><th>Carrier</th><th>Stuffing Time</th><th>Check In</th><th>Open</th><th>Waiting Time</th><th>Kategori</th><th>Shift</th><th>Tgl Muat</th></tr>
-      </thead>
-      <tbody>
-        ${d.map(r => `
-          <tr>
-            <td style="font-weight:600">${r.transno || '-'}</td>
-            <td>${r.carrier || '-'}</td>
-            <td>${stuffingOnly(r)}</td>
-            <td>${r.checkIn || '-'}</td>
-            <td>${r.open || '-'}</td>
-            <td><span class="metric-highlight ${getWaitClass(r.queueMin)}" style="color:${getWaitColor(r.queueMin)}">${formatJam(r.queueMin)}</span></td>
-            <td><span class="status-pill" style="background:${getWaitColor(r.queueMin)}20; color:${getWaitColor(r.queueMin)}; font-weight:600">${getWaitLabel(r.queueMin)}</span></td>
-            <td>${r.shift || '-'}</td>
-            <td>${r.tgl || '-'}</td>
+    <div style="overflow-x:auto;">
+      <table style="width:100%; border-collapse:collapse; font-size:13px;">
+        <thead>
+          <tr style="background:#f8fafc;">
+            <th style="position:sticky; top:0; background:#f8fafc; padding:12px; text-align:left; font-size:11px; font-weight:700; color:#5a6480; text-transform:uppercase; border-bottom:2px solid #e2e8f4;">No. Transaksi</th>
+            <th style="position:sticky; top:0; background:#f8fafc; padding:12px; text-align:left; font-size:11px; font-weight:700; color:#5a6480; text-transform:uppercase; border-bottom:2px solid #e2e8f4;">Carrier</th>
+            <th style="position:sticky; top:0; background:#f8fafc; padding:12px; text-align:left; font-size:11px; font-weight:700; color:#5a6480; text-transform:uppercase; border-bottom:2px solid #e2e8f4;">Stuffing Time</th>
+            <th style="position:sticky; top:0; background:#f8fafc; padding:12px; text-align:left; font-size:11px; font-weight:700; color:#5a6480; text-transform:uppercase; border-bottom:2px solid #e2e8f4;">Check In</th>
+            <th style="position:sticky; top:0; background:#f8fafc; padding:12px; text-align:left; font-size:11px; font-weight:700; color:#5a6480; text-transform:uppercase; border-bottom:2px solid #e2e8f4;">Open</th>
+            <th style="position:sticky; top:0; background:#f8fafc; padding:12px; text-align:left; font-size:11px; font-weight:700; color:#5a6480; text-transform:uppercase; border-bottom:2px solid #e2e8f4;">Waiting Time</th>
+            <th style="position:sticky; top:0; background:#f8fafc; padding:12px; text-align:left; font-size:11px; font-weight:700; color:#5a6480; text-transform:uppercase; border-bottom:2px solid #e2e8f4;">Kategori</th>
+            <th style="position:sticky; top:0; background:#f8fafc; padding:12px; text-align:left; font-size:11px; font-weight:700; color:#5a6480; text-transform:uppercase; border-bottom:2px solid #e2e8f4;">Shift</th>
+            <th style="position:sticky; top:0; background:#f8fafc; padding:12px; text-align:left; font-size:11px; font-weight:700; color:#5a6480; text-transform:uppercase; border-bottom:2px solid #e2e8f4;">Tgl Muat</th>
           </tr>
-        `).join('')}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          ${tableRows}
+        </tbody>
+      </table>
+    </div>
   `;
   document.getElementById('modalInfo').innerHTML = `⏱️ Menampilkan ${d.length} data queue waiting (diurutkan berdasarkan Shift)`;
 }
@@ -1191,7 +1205,7 @@ function renderKPI(){
   const avgLTJam=(avgLT/60).toFixed(1);
   const overSLA=ltArr.filter(r=>r.loadingMin>r.targetLoading&&r.targetLoading>0).length;
   const delayRate=ltArr.length>0?Math.round(overSLA/ltArr.length*100):0;
-  const agingArr=d.filter(r=>r.hitMiss==='MISS'&&r.agingMin>0);
+  const agingArr = d.filter(r => r.agingMin > 0);
   const avgAging=agingArr.length?Math.round(agingArr.reduce((a,r)=>a+r.agingMin,0)/agingArr.length):0;
 
   document.getElementById('kpi-grid').innerHTML=`
