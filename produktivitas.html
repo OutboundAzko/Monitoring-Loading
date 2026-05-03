@@ -121,6 +121,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 </head>
 <body>
 
+<!-- Tombol menu untuk HP -->
+<button class="mobile-menu-btn" id="mobileMenuBtn" style="display: none; position: fixed; top: 15px; left: 15px; z-index: 1001; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 18px; box-shadow: var(--shadow);">
+  ☰
+</button>
+
 <!-- SIDEBAR -->
 <nav class="sidebar" id="sidebar">
   <div class="sidebar-logo">
@@ -513,13 +518,35 @@ function switchTab(name,el){
 // Auto load saat halaman dibuka
 loadAll();
 // ── SIDEBAR TOGGLE ──
-function toggleSidebar(){
-  const sb=document.getElementById('sidebar');
-  const mn=document.getElementById('main');
-  sb.classList.toggle('collapsed');
-  mn.classList.toggle('expanded');
-  localStorage.setItem('sb_collapsed', sb.classList.contains('collapsed')?'1':'0');
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const main = document.getElementById('main');
+  
+  if (window.innerWidth < 768) {
+    sidebar.classList.toggle('open');
+  } else {
+    sidebar.classList.toggle('collapsed');
+    main.classList.toggle('expanded');
+  }
 }
+
+function checkMobileMenu() {
+  const mobileBtn = document.getElementById('mobileMenuBtn');
+  const sidebar = document.getElementById('sidebar');
+  
+  if (window.innerWidth < 768) {
+    mobileBtn.style.display = 'flex';
+    sidebar.classList.remove('collapsed');
+    sidebar.classList.remove('open');
+  } else {
+    mobileBtn.style.display = 'none';
+    sidebar.classList.remove('open');
+  }
+}
+
+window.addEventListener('resize', checkMobileMenu);
+document.getElementById('mobileMenuBtn')?.addEventListener('click', toggleSidebar);
+window.addEventListener('DOMContentLoaded', checkMobileMenu);
 // Restore sidebar state
 (function(){
   const collapsed=localStorage.getItem('sb_collapsed')==='1';
