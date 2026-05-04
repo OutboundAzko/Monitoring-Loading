@@ -191,13 +191,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
   </div>
 
   <div class="content">
-    <!-- KPI CARDS (HARI INI - TANPA FILTER) -->
     <div class="kpi-grid" id="kpiContainer"></div>
-
-    <!-- ALERT HARI INI -->
     <div class="alert-panel" id="alertContainer"></div>
 
-    <!-- TABEL RINGKASAN PER BATCH (HARI INI) -->
     <div class="card">
       <div class="card-title">📋 Ringkasan Produktivitas per Batch (Hari Ini)</div>
       <div style="overflow-x:auto">
@@ -208,13 +204,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       </div>
     </div>
 
-    <!-- TREND CHART (DENGAN FILTER) -->
     <div class="card">
       <div class="card-title">📈 Trend Produktivitas (7 Hari Terakhir)</div>
       <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
     </div>
 
-    <!-- HEATMAP PRODUKTIVITAS PER SHIFT -->
     <div class="grid-2">
       <div class="card">
         <div class="card-title">🔥 Heatmap Loader (%)</div>
@@ -226,7 +220,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       </div>
     </div>
 
-    <!-- RANKING TOP 11 -->
     <div class="grid-2">
       <div class="card">
         <div class="card-title">🏆 Top 11 Loader (CBM/MPP)</div>
@@ -248,7 +241,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       </div>
     </div>
 
-    <!-- TABEL DETAIL -->
     <div class="card">
       <div class="card-title">📋 Detail Produktivitas Loader & Checker</div>
       <div style="overflow-x:auto">
@@ -273,14 +265,59 @@ const CHECKER_RANK_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT1YwO
 const TARGET_CBM = 25;
 const TARGET_CASE = 800;
 
-let mppData = [];           // dari gid=1543732572
-let transData = [];         // dari gid=435013118
-let loaderRankData = [];    // dari gid=1638374890
-let checkerRankData = [];   // dari gid=855868867
+let mppData = [];
+let transData = [];
+let loaderRankData = [];
+let checkerRankData = [];
 let filteredRank = [];
-
 let selectedPeriodes = [];
 let trendChart = null;
+
+// ============================================
+// FIX: HELPER FUNCTIONS DIPINDAH KE ATAS
+// supaya tersedia saat loadAllData() dipanggil
+// ============================================
+
+function parseDate(s) {
+  if (!s) return null;
+  s = s.trim();
+
+  // Format DD/MM/YYYY atau DD-MM-YYYY
+  let parts = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (parts) return new Date(parseInt(parts[3]), parseInt(parts[2]) - 1, parseInt(parts[1]));
+
+  // Format YYYY-MM-DD
+  parts = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (parts) return new Date(parseInt(parts[1]), parseInt(parts[2]) - 1, parseInt(parts[3]));
+
+  // Format "1 Jan 2025" atau "01 January 2025" (termasuk Bahasa Indonesia)
+  const months = {
+    jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11,
+    mei:4, ags:7, okt:9, des:11,
+    january:0, february:1, march:2, april:3, june:5, july:6, august:7,
+    september:8, october:9, november:10, december:11,
+    januari:0, februari:1, maret:2, juni:5, juli:6, agustus:7,
+    september:8, oktober:9, november:10, desember:11
+  };
+  parts = s.match(/^(\d{1,2})\s+(\w+)\s+(\d{4})$/);
+  if (parts) {
+    const m = months[parts[2].toLowerCase()];
+    if (m !== undefined) return new Date(parseInt(parts[3]), m, parseInt(parts[1]));
+  }
+
+  // Fallback ke Date constructor
+  const dt = new Date(s);
+  return isNaN(dt) ? null : dt;
+}
+
+function toYMD(d) {
+  if (!d) return '';
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function formatNumber(n) {
+  return n.toLocaleString('id-ID');
+}
 
 // ============================================
 // LOAD ALL DATA
@@ -310,20 +347,24 @@ async function loadMPPData() {
   const rows = Papa.parse(txt, { header: false, skipEmptyLines: true }).data;
   const headerRow = rows.findIndex(r => r.some(c => (c || '').toUpperCase() === 'NAMA'));
   if (headerRow < 0) return;
-  
+
   for (let i = headerRow + 1; i < rows.length; i++) {
     const r = rows[i];
     const nama = (r[5] || '').trim();
     if (!nama || nama === 'NAMA') continue;
-    
+
     let dateStr = (r[3] || '').trim();
-    let tanggal = null;
-    const dateMatch = dateStr.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/);
-    if (dateMatch) {
-      const months = { Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11 };
-      tanggal = new Date(parseInt(dateMatch[3]), months[dateMatch[2]], parseInt(dateMatch[1]));
+    let tanggal = parseDate(dateStr);
+
+    // Fallback untuk format "DD MMM YYYY" tanpa parseDate
+    if (!tanggal) {
+      const dateMatch = dateStr.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/);
+      if (dateMatch) {
+        const months = { Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11 };
+        tanggal = new Date(parseInt(dateMatch[3]), months[dateMatch[2]], parseInt(dateMatch[1]));
+      }
     }
-    
+
     const jobdesk = (r[6] || '').trim().toUpperCase();
     const shift = (r[7] || '').trim();
     const countST = parseFloat((r[8] || '0').replace(/,/g, '')) || 0;
@@ -331,11 +372,8 @@ async function loadMPPData() {
     const countLD = parseFloat((r[10] || '0').replace(/,/g, '')) || 0;
     const totalCount = parseFloat((r[11] || '0').replace(/,/g, '')) || 0;
     const cbm = parseFloat((r[12] || '0').replace(/,/g, '')) || 0;
-    
-    mppData.push({
-      tanggal, nama, jobdesk, shift,
-      countST, countBR, countLD, totalCount, cbm
-    });
+
+    mppData.push({ tanggal, nama, jobdesk, shift, countST, countBR, countLD, totalCount, cbm });
   }
   console.log('MPP Data:', mppData.length);
 }
@@ -350,17 +388,17 @@ async function loadTransactionData() {
   const stuffingIdx = H.findIndex(h => h.includes('STUFFING TIME') || h === 'STUFFING');
   const cbmIdx = H.findIndex(h => h === 'TOTAL CBM');
   const caseIdx = H.findIndex(h => h === 'AKTUAL CASEID');
-  
+
   for (let i = 1; i < rows.length; i++) {
     const r = rows[i];
     const tglStr = (r[tglIdx] || '').trim();
     if (!tglStr || tglStr.toUpperCase().includes('TANGGAL')) continue;
     const tanggal = parseDate(tglStr);
     if (!tanggal) continue;
-    
+
     let shift = (r[shiftIdx] || '').trim();
     shift = shift.includes('1') ? '1' : (shift.includes('2') ? '2' : shift);
-    
+
     const stuffingTime = (r[stuffingIdx] || '').trim();
     let batch = 0;
     const hourMatch = stuffingTime.match(/(\d{1,2})/);
@@ -371,10 +409,10 @@ async function loadTransactionData() {
       else if (hour >= 16 && hour < 19) batch = 3;
       else if (hour >= 19 || hour < 8) batch = 4;
     }
-    
+
     const cbm = parseFloat((r[cbmIdx] || '0').replace(/,/g, '')) || 0;
     const caseId = parseFloat((r[caseIdx] || '0').replace(/,/g, '')) || 0;
-    
+
     transData.push({ tanggal, shift, batch, cbm, caseId });
   }
   console.log('Transaction Data:', transData.length);
@@ -389,7 +427,7 @@ async function loadLoaderRankData() {
   const namaIdx = H.findIndex(h => h === 'NAMA' || h === 'LOADER');
   const cbmIdx = H.findIndex(h => h === 'CBM');
   const mppIdx = H.findIndex(h => h === 'MPP');
-  
+
   for (let i = 1; i < rows.length; i++) {
     const r = rows[i];
     const tglStr = (r[tglIdx] || '').trim();
@@ -413,7 +451,7 @@ async function loadCheckerRankData() {
   const namaIdx = H.findIndex(h => h === 'NAMA');
   const caseIdx = H.findIndex(h => h === 'TOTAL COUNT');
   const mppIdx = H.findIndex(h => h === 'MPP');
-  
+
   for (let i = 1; i < rows.length; i++) {
     const r = rows[i];
     const tglStr = (r[tglIdx] || '').trim();
@@ -426,32 +464,6 @@ async function loadCheckerRankData() {
     if (nama) checkerRankData.push({ tanggal, nama, caseId, mpp });
   }
   console.log('Checker Rank:', checkerRankData.length);
-}
-
-function parseDate(s) {
-  if (!s) return null;
-  s = s.trim();
-  
-  // Format DD/MM/YYYY atau DD-MM-YYYY
-  let parts = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
-  if (parts) return new Date(parseInt(parts[3]), parseInt(parts[2])-1, parseInt(parts[1]));
-  
-  // Format YYYY-MM-DD
-  parts = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (parts) return new Date(parseInt(parts[1]), parseInt(parts[2])-1, parseInt(parts[3]));
-  
-  // Format "1 Jan 2025" atau "01 January 2025"
-  const months = { jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11,
-                   mei:4,ags:7,okt:9,des:11 };
-  parts = s.match(/^(\d{1,2})\s+(\w+)\s+(\d{4})$/);
-  if (parts) {
-    const m = months[parts[2].toLowerCase().substring(0,3)];
-    if (m !== undefined) return new Date(parseInt(parts[3]), m, parseInt(parts[1]));
-  }
-  
-  // Fallback
-  const dt = new Date(s);
-  return isNaN(dt) ? null : dt;
 }
 
 // ============================================
@@ -473,8 +485,13 @@ function populatePeriode() {
   document.querySelectorAll('#periode-chips input').forEach(cb => {
     cb.addEventListener('change', function() {
       const lbl = this.closest('label');
-      if (this.checked) { lbl.classList.add('checked'); if (!selectedPeriodes.includes(this.value)) selectedPeriodes.push(this.value); }
-      else { lbl.classList.remove('checked'); selectedPeriodes = selectedPeriodes.filter(v => v !== this.value); }
+      if (this.checked) {
+        lbl.classList.add('checked');
+        if (!selectedPeriodes.includes(this.value)) selectedPeriodes.push(this.value);
+      } else {
+        lbl.classList.remove('checked');
+        selectedPeriodes = selectedPeriodes.filter(v => v !== this.value);
+      }
       document.getElementById('periode-badge').textContent = selectedPeriodes.length;
       document.getElementById('periode-badge').style.display = selectedPeriodes.length ? 'inline' : 'none';
     });
@@ -489,25 +506,34 @@ function getFilteredData() {
   const fDate = document.getElementById('f-date').value;
   const fShift = document.getElementById('f-shift').value;
   let periodeSet = null;
+
   if (selectedPeriodes.length > 0) {
     const today = new Date(); today.setHours(0,0,0,0);
     periodeSet = new Set();
     selectedPeriodes.forEach(p => {
       if (p === '7') {
         for (let i=0; i<7; i++) { const d = new Date(today); d.setDate(d.getDate()-i); periodeSet.add(toYMD(d)); }
-      } else { periodeSet.add('m:'+p); }
+      } else {
+        periodeSet.add('m:'+p);
+      }
     });
   }
-  
+
   let filtered = [...mppData];
-  if (fDate) filtered = filtered.filter(d => toYMD(d.tanggal) === fDate);
-  if (periodeSet) filtered = filtered.filter(d => {
-    const ymd = toYMD(d.tanggal);
-    const ym = ymd.substring(0,7);
-    return periodeSet.has(ymd) || periodeSet.has('m:'+ym);
-  });
+
+  // FIX: kalau ada fDate, clear periode supaya tidak bentrok
+  if (fDate) {
+    filtered = filtered.filter(d => toYMD(d.tanggal) === fDate);
+  } else if (periodeSet) {
+    filtered = filtered.filter(d => {
+      const ymd = toYMD(d.tanggal);
+      const ym = ymd.substring(0,7);
+      return periodeSet.has(ymd) || periodeSet.has('m:'+ym);
+    });
+  }
+
   if (fShift) filtered = filtered.filter(d => d.shift === fShift);
-  
+
   return filtered;
 }
 
@@ -527,10 +553,10 @@ function renderAll() {
 function renderKPIToday() {
   const today = toYMD(new Date());
   const todayData = mppData.filter(d => toYMD(d.tanggal) === today);
-  
+
   let checkerTotalCount = 0, checkerMPP = 0;
   let loaderTotalCBM = 0, loaderMPP = 0;
-  
+
   todayData.forEach(d => {
     if (d.jobdesk.includes('CHEKER') || d.jobdesk.includes('CHECKER')) {
       checkerTotalCount += d.totalCount;
@@ -540,15 +566,14 @@ function renderKPIToday() {
       loaderMPP++;
     }
   });
-  
+
   const checkerProd = checkerMPP > 0 ? checkerTotalCount / checkerMPP : 0;
   const loaderProd = loaderMPP > 0 ? loaderTotalCBM / loaderMPP : 0;
-  
-  // Total output dari transaksi hari ini
+
   const todayTrans = transData.filter(d => toYMD(d.tanggal) === today);
   const totalCaseToday = todayTrans.reduce((a,b) => a + b.caseId, 0);
   const totalCBMToday = todayTrans.reduce((a,b) => a + b.cbm, 0);
-  
+
   document.getElementById('kpiContainer').innerHTML = `
     <div class="kpi-card"><div class="kpi-label">✅ CHECKER PRODUCTIVITY</div><div class="kpi-value">${Math.round(checkerProd).toLocaleString()}</div><div class="kpi-sub">Case/MPP | Target: ${TARGET_CASE}</div></div>
     <div class="kpi-card"><div class="kpi-label">📦 LOADER PRODUCTIVITY</div><div class="kpi-value">${loaderProd.toFixed(1)}</div><div class="kpi-sub">CBM/MPP | Target: ${TARGET_CBM}</div></div>
@@ -562,11 +587,11 @@ function renderAlerts() {
   const todayData = mppData.filter(d => toYMD(d.tanggal) === today);
   const shift1Loader = todayData.filter(d => d.jobdesk.includes('LOADER') && d.shift === '1');
   const shift1LoaderProd = shift1Loader.length ? shift1Loader.reduce((a,b)=>a+b.cbm,0) / shift1Loader.length : 0;
-  
+
   const alerts = [];
   if (shift1LoaderProd < TARGET_CBM) alerts.push({ type: 'danger', icon: '⚠️', text: `Loader Shift 1 produktivitas rendah: ${shift1LoaderProd.toFixed(1)} CBM/MPP (Target ${TARGET_CBM})` });
   if (shift1LoaderProd >= TARGET_CBM) alerts.push({ type: 'success', icon: '✅', text: `Loader Shift 1 optimal: ${shift1LoaderProd.toFixed(1)} CBM/MPP` });
-  
+
   document.getElementById('alertContainer').innerHTML = `
     <div class="alert-title">🔔 ALERT HARI INI</div>
     <div class="alert-list">
@@ -579,7 +604,7 @@ function renderBatchSummary() {
   const today = toYMD(new Date());
   const todayTrans = transData.filter(d => toYMD(d.tanggal) === today);
   const batchMap = new Map();
-  
+
   todayTrans.forEach(t => {
     const key = `${t.batch}|${t.shift}`;
     if (!batchMap.has(key)) batchMap.set(key, { batch: t.batch, shift: t.shift, caseId: 0, cbm: 0, mpp: 0 });
@@ -587,8 +612,7 @@ function renderBatchSummary() {
     item.caseId += t.caseId;
     item.cbm += t.cbm;
   });
-  
-  // Hitung MPP dari data MPP
+
   const todayMPP = mppData.filter(d => toYMD(d.tanggal) === today);
   todayMPP.forEach(d => {
     const key = `${d.batch}|${d.shift}`;
@@ -596,14 +620,14 @@ function renderBatchSummary() {
       batchMap.get(key).mpp++;
     }
   });
-  
+
   const batches = Array.from(batchMap.values()).map(b => {
     const prodChecker = b.mpp > 0 ? b.caseId / b.mpp : 0;
     const prodLoader = b.mpp > 0 ? b.cbm / b.mpp : 0;
     const status = (prodChecker >= TARGET_CASE && prodLoader >= TARGET_CBM) ? 'Good' : (prodChecker < TARGET_CASE/2 || prodLoader < TARGET_CBM/2) ? 'Under Target' : 'Average';
     return { ...b, prodChecker, prodLoader, status };
   }).sort((a,b) => a.batch - b.batch);
-  
+
   document.getElementById('batchSummaryTable').innerHTML = `
     <thead><tr><th>Batch</th><th>Shift</th><th>Total Case</th><th>Total CBM</th><th>Total MPP</th><th>Prod Checker</th><th>Prod Loader</th><th>Status</th></tr></thead>
     <tbody>${batches.map(b => `
@@ -616,21 +640,21 @@ function renderTrendChart() {
   const filtered = getFilteredData();
   const last7 = [];
   for (let i=6; i>=0; i--) { const d = new Date(); d.setDate(d.getDate()-i); last7.push(toYMD(d)); }
-  
+
   const loaderDaily = last7.map(date => {
     const dayData = filtered.filter(d => toYMD(d.tanggal) === date && d.jobdesk.includes('LOADER'));
     const totalCBM = dayData.reduce((a,b)=>a+b.cbm,0);
     const mpp = dayData.length;
     return mpp > 0 ? totalCBM / mpp : 0;
   });
-  
+
   const checkerDaily = last7.map(date => {
     const dayData = filtered.filter(d => toYMD(d.tanggal) === date && (d.jobdesk.includes('CHECKER') || d.jobdesk.includes('CHEKER')));
     const totalCase = dayData.reduce((a,b)=>a+b.totalCount,0);
     const mpp = dayData.length;
     return mpp > 0 ? totalCase / mpp : 0;
   });
-  
+
   if (trendChart) trendChart.destroy();
   trendChart = new Chart(document.getElementById('trendChart').getContext('2d'), {
     type: 'line',
@@ -652,7 +676,7 @@ function renderHeatmaps() {
   const shifts = ['1', '2'];
   const loaderHeat = {};
   const checkerHeat = {};
-  
+
   shifts.forEach(s => {
     const loaderData = filtered.filter(d => d.jobdesk.includes('LOADER') && d.shift === s);
     const checkerData = filtered.filter(d => (d.jobdesk.includes('CHECKER') || d.jobdesk.includes('CHEKER')) && d.shift === s);
@@ -661,9 +685,9 @@ function renderHeatmaps() {
     loaderHeat[s] = { val: loaderAvg, pct: Math.min(100, Math.round(loaderAvg / TARGET_CBM * 100)) };
     checkerHeat[s] = { val: checkerAvg, pct: Math.min(100, Math.round(checkerAvg / TARGET_CASE * 100)) };
   });
-  
+
   const getColor = (pct) => `background: linear-gradient(90deg, #22c55e ${pct}%, #e2e8f0 ${pct}%)`;
-  
+
   document.getElementById('heatmapLoader').innerHTML = `
     <tr><th>Shift</th><th>Loader (CBM/MPP)</th><th>Achievement</th></tr>
     ${shifts.map(s => `<tr><td>Shift ${s}</td><td>${loaderHeat[s].val.toFixed(1)}</td><td style="${getColor(loaderHeat[s].pct)}; font-weight:700">${loaderHeat[s].pct}%</td></tr>`).join('')}
@@ -676,10 +700,7 @@ function renderHeatmaps() {
 
 function renderRankings() {
   const filtered = getFilteredData();
-  const fDate = document.getElementById('f-date').value;
-  const fShift = document.getElementById('f-shift').value;
-  
-  // Loader ranking dari data MPP
+
   const loaderMap = new Map();
   filtered.forEach(d => {
     if (d.jobdesk.includes('LOADER') && d.nama) {
@@ -690,8 +711,7 @@ function renderRankings() {
     }
   });
   const loaders = Array.from(loaderMap.values()).map(l => ({ ...l, prod: l.totalCBM / l.mpp, pct: Math.round((l.totalCBM / l.mpp) / TARGET_CBM * 100) })).sort((a,b) => b.prod - a.prod).slice(0,11);
-  
-  // Checker ranking dari data MPP
+
   const checkerMap = new Map();
   filtered.forEach(d => {
     if ((d.jobdesk.includes('CHECKER') || d.jobdesk.includes('CHEKER')) && d.nama) {
@@ -702,7 +722,7 @@ function renderRankings() {
     }
   });
   const checkers = Array.from(checkerMap.values()).map(c => ({ ...c, prod: c.totalCase / c.mpp, pct: Math.round((c.totalCase / c.mpp) / TARGET_CASE * 100) })).sort((a,b) => b.prod - a.prod).slice(0,11);
-  
+
   document.getElementById('loaderRankTable').innerHTML = `
     <thead><tr><th>#</th><th>Nama</th><th>Total CBM</th><th>MPP</th><th>Prod</th><th>%Target</th></tr></thead>
     <tbody>${loaders.map((l,i) => `<tr><td class="rank-num">${i+1}</td><td class="rank-name">${l.nama}</td><td>${l.totalCBM.toFixed(1)}</td><td>${l.mpp}</td><td class="rank-val">${l.prod.toFixed(1)}</td><td><span class="badge ${l.pct>=100?'badge-green':l.pct>=80?'badge-orange':'badge-red'}">${l.pct}%</span></td></tr>`).join('')}</tbody>
@@ -718,11 +738,10 @@ function renderDetailTable() {
   const details = filtered.map(d => ({
     tanggal: toYMD(d.tanggal), nama: d.nama, jobdesk: d.jobdesk.includes('LOADER') ? 'Loader' : 'Checker',
     shift: d.shift, value: d.jobdesk.includes('LOADER') ? d.cbm : d.totalCount,
-    prod: d.jobdesk.includes('LOADER') ? d.cbm : d.totalCount,
     pct: d.jobdesk.includes('LOADER') ? Math.round(d.cbm / TARGET_CBM * 100) : Math.round(d.totalCount / TARGET_CASE * 100)
   }));
   details.sort((a,b) => b.tanggal.localeCompare(a.tanggal));
-  
+
   document.getElementById('detailTable').innerHTML = `
     <thead><tr><th>Tanggal</th><th>Nama</th><th>Jobdesk</th><th>Shift</th><th>Count/CBM</th><th>MPP</th><th>Prod</th><th>%Target</th></tr></thead>
     <tbody>${details.slice(0,100).map(d => `<tr><td>${d.tanggal}</td><td>${d.nama}</td><td>${d.jobdesk}</td><td>Shift ${d.shift}</td><td>${d.jobdesk==='Loader'?d.value.toFixed(1):formatNumber(d.value)}</td><td>1</td><td>${d.jobdesk==='Loader'?d.value.toFixed(1):formatNumber(d.value)}</td><td><span class="badge ${d.pct>=100?'badge-green':d.pct>=80?'badge-orange':'badge-red'}">${d.pct}%</span></td></tr>`).join('')}</tbody>
