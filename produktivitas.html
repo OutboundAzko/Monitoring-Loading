@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Produktivitas MPP - Outbound WH</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -16,7 +16,7 @@
   --radius:14px;--radius-sm:8px;
   --shadow:0 1px 4px rgba(28,34,52,.08);
   --shadow-md:0 4px 16px rgba(28,34,52,.10);
-  --blue:#1a56db;--green:#2e7d32;--orange:#e65100;--red:#c62828;--purple:#7c3aed;--teal:#0891b2;
+  --blue:#1a56db;--green:#2e7d32;--orange:#e65100;--red:#c62828;
   --navy:#1a1f36;
 }
 body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh;display:flex}
@@ -26,22 +26,25 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .sidebar.collapsed{width:64px}
 .sidebar-logo{padding:0 20px;height:64px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,0.08);flex-shrink:0}
 .sidebar-logo-icon{width:34px;height:34px;border-radius:8px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:white;flex-shrink:0}
-.sidebar-logo-text{font-size:13px;font-weight:700;color:white;line-height:1.3}
-.sidebar-logo-text span{display:block;font-size:10px;font-weight:400;color:rgba(255,255,255,0.45)}
-.sidebar-toggle{margin-left:auto;width:26px;height:26px;border-radius:6px;background:rgba(255,255,255,0.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.6);font-size:13px}
+.sidebar-logo-text{font-size:13px;font-weight:700;color:white;line-height:1.3;white-space:nowrap;overflow:hidden}
+.sidebar-logo-text span{display:block;font-size:10px;font-weight:400;color:rgba(255,255,255,0.45);margin-top:1px}
+.sidebar-toggle{margin-left:auto;width:26px;height:26px;border-radius:6px;background:rgba(255,255,255,0.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.6);font-size:13px;flex-shrink:0;transition:background 0.15s}
 .sidebar-toggle:hover{background:rgba(255,255,255,0.15)}
-.sidebar-section{padding:16px 12px 8px;font-size:10px;font-weight:700;letter-spacing:0.1em;color:rgba(255,255,255,0.3);text-transform:uppercase}
+.sidebar-section{padding:16px 12px 8px;font-size:10px;font-weight:700;letter-spacing:0.1em;color:rgba(255,255,255,0.3);text-transform:uppercase;white-space:nowrap;overflow:hidden}
 .sidebar.collapsed .sidebar-section{opacity:0}
-.sidebar-menu{flex:1;overflow-y:auto;padding:4px 8px}
-.menu-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;cursor:pointer;text-decoration:none;margin-bottom:2px}
+.sidebar-menu{flex:1;overflow-y:auto;overflow-x:hidden;padding:4px 8px}
+.sidebar-menu::-webkit-scrollbar{width:4px}
+.sidebar-menu::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px}
+.menu-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background 0.15s;margin-bottom:2px;text-decoration:none;white-space:nowrap;overflow:hidden}
 .menu-item:hover{background:rgba(255,255,255,0.08)}
 .menu-item.active{background:var(--blue)}
-.mi-icon{font-size:16px;width:20px;text-align:center}
-.mi-label{font-size:13px;font-weight:500;color:rgba(255,255,255,0.75)}
+.menu-item .mi-icon{font-size:16px;flex-shrink:0;width:20px;text-align:center}
+.menu-item .mi-label{font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);white-space:nowrap;overflow:hidden}
 .menu-item.active .mi-label{color:white;font-weight:600}
 .sidebar-bottom{padding:12px 8px;border-top:1px solid rgba(255,255,255,0.08)}
 .sidebar.collapsed .mi-label,.sidebar.collapsed .sidebar-logo-text,.sidebar.collapsed .sidebar-section{display:none}
 .sidebar.collapsed .sidebar-logo{padding:0 15px;justify-content:center}
+.sidebar.collapsed .sidebar-logo-icon{margin:0}
 .sidebar.collapsed .menu-item{justify-content:center;padding:10px}
 
 /* MAIN */
@@ -53,721 +56,530 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .header-title{font-size:16px;font-weight:700;color:var(--text)}
 .avatar{width:36px;height:36px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
 
-/* LOADING OVERLAY */
-#loading-overlay{position:fixed;inset:0;background:rgba(240,243,250,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:14px}
-.loader{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* FILTER BAR */
-.filter-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.filter-bar input,.filter-bar select{padding:7px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg)}
-.btn{padding:8px 18px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}
+/* FILTER */
+.filter-wrap{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 28px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.filter-wrap input,.filter-wrap select{padding:7px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);color:var(--text);background:var(--bg)}
+.filter-wrap input:focus,.filter-wrap select:focus{outline:none;border-color:var(--blue)}
+.btn{padding:8px 18px;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer}
 .btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{opacity:.88}
 .btn-secondary{background:var(--bg);color:var(--text2);border:1px solid var(--border)}
-.periode-btn{display:flex;align-items:center;gap:6px;padding:7px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);cursor:pointer}
-.periode-badge{background:var(--blue);color:#fff;border-radius:20px;padding:0 7px;font-size:11px}
-.periode-panel{display:none;background:var(--surface);border-bottom:1px solid var(--border);padding:12px 28px}
-.periode-panel.open{display:block}
-.periode-chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
-.periode-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;border:1px solid var(--border);cursor:pointer;font-size:12px}
-.periode-chip.checked{border-color:var(--blue);background:#e8f0fe;color:var(--blue)}
+#last-update{font-size:11px;color:var(--text3);margin-left:auto}
 
 /* CONTENT */
 .content{padding:20px 28px;flex:1}
 
-/* KPI GRID */
-.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
-@media(max-width:1000px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:768px){.kpi-grid{grid-template-columns:1fr}}
-.kpi-card{background:white;border-radius:var(--radius);padding:16px 20px;box-shadow:var(--shadow);border:1px solid var(--border)}
-.kpi-label{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text3);margin-bottom:6px}
-.kpi-value{font-size:28px;font-weight:800}
-.kpi-sub{font-size:11px;color:var(--text2);margin-top:6px}
-.kpi-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
-.badge-success{background:#e8f5e9;color:#2e7d32}
-.badge-warning{background:#fff3e0;color:#e65100}
-.badge-danger{background:#ffebee;color:#c62828}
-.badge-info{background:#e3f2fd;color:#1565c0}
+/* TABS */
+.tabs{display:flex;gap:8px;margin-bottom:20px}
+.tab{padding:9px 22px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);font-family:var(--font);transition:all .15s}
+.tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.tab-content{display:none}
+.tab-content.active{display:block}
 
-/* ALERT PANEL */
-.alert-panel{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:16px 20px;margin-bottom:20px}
-.alert-title{font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.alert-list{display:flex;flex-direction:column;gap:10px}
-.alert-item{display:flex;align-items:center;gap:12px;padding:10px;background:#fef2f2;border-radius:10px;border-left:3px solid var(--red)}
-.alert-item.warning{background:#fff3e0;border-left-color:var(--orange)}
-.alert-item.success{background:#e8f5e9;border-left-color:var(--green)}
-.alert-icon{font-size:18px}
-.alert-text{font-size:12px;flex:1}
-.alert-text strong{color:var(--text)}
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:16px 20px;box-shadow:var(--shadow)}
+.kpi-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:8px}
+.kpi-value{font-size:30px;font-weight:800;line-height:1;margin-bottom:4px}
+.kpi-sub{font-size:12px;color:var(--text2)}
+.kpi.blue .kpi-value{color:var(--blue)}
+.kpi.green .kpi-value{color:var(--green)}
+.kpi.orange .kpi-value{color:var(--orange)}
 
-/* TABLES */
-.data-table{width:100%;border-collapse:collapse}
-.data-table th{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;padding:10px 12px;background:#f8fafc;border-bottom:2px solid var(--border);text-align:left}
-.data-table td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px}
-.data-table tr:hover td{background:#f7f9ff}
+/* FILTER BAR */
+.inner-filter{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:12px 16px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border)}
+.inner-filter label{font-size:12px;font-weight:600;color:var(--text2)}
+.inner-filter select,.inner-filter input{padding:6px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font);background:var(--bg);color:var(--text)}
 
-/* CARDS */
-.card{background:white;border-radius:var(--radius);border:1px solid var(--border);padding:20px;margin-bottom:20px}
-.card-title{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.chart-wrap{height:280px;position:relative}
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
-@media(max-width:900px){.grid-2{grid-template-columns:1fr}}
+/* GRID */
+.grid-2{display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-bottom:16px}
+@media(max-width:1000px){.grid-2{grid-template-columns:1fr}}
+.card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:20px;box-shadow:var(--shadow)}
+.card-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px}
+.chart-wrap{position:relative;height:260px}
+.chart-wrap-lg{position:relative;height:300px}
 
-/* BADGE */
-.badge{display:inline-flex;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700}
+/* TABLE */
+.rank-table{width:100%;border-collapse:collapse}
+.rank-table th{font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--text3);text-transform:uppercase;padding:8px 12px;background:var(--bg);border-bottom:2px solid var(--border);text-align:left}
+.rank-table td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12.5px;font-weight:500}
+.rank-table tr:last-child td{border-bottom:none}
+.rank-table tr:hover td{background:#f7f9ff}
+.rank-num{color:var(--text3);font-weight:700}
+.rank-name{font-weight:600}
+.rank-val{font-weight:700;color:var(--blue)}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700}
 .badge-green{background:#e8f5e9;color:#2e7d32}
 .badge-orange{background:#fff3e0;color:#e65100}
 .badge-red{background:#ffebee;color:#c62828}
-.badge-blue{background:#e3f2fd;color:#1565c0}
 
-/* HEATMAP TABLE */
-.heatmap-table{width:100%;border-collapse:collapse}
-.heatmap-table td{padding:12px;text-align:center;border:1px solid var(--border);font-weight:600}
-.heatmap-table th{padding:12px;background:#f8fafc;font-size:12px}
-
-/* RANKING */
-.rank-num{font-weight:700;color:var(--text3)}
-.rank-name{font-weight:600}
-.rank-val{font-weight:700;color:var(--blue)}
-
-/* RESPONSIVE */
-@media (max-width: 768px){
-  .sidebar{transform:translateX(-100%);transition:transform 0.3s;z-index:1000}
-  .sidebar.open{transform:translateX(0)}
-  .main{margin-left:0 !important;width:100%}
-  .mobile-menu-btn{display:flex !important;position:fixed;top:15px;left:15px;z-index:1001;background:white;border:1px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:18px}
-  .filter-bar{padding:10px 16px}
-  .content{padding:12px 16px}
-  .kpi-value{font-size:22px}
-  .data-table th,.data-table td{padding:6px 8px;font-size:10px}
-}
-@media (max-width: 480px){
-  .header-title{font-size:13px}
-  .kpi-label{font-size:9px}
-  .kpi-value{font-size:18px}
-}
+/* LOADING */
+#loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px;color:var(--text3);gap:12px;font-size:14px}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
-<div id="loading-overlay" style="display:flex"><div class="loader"></div><p>Memuat data produktivitas...</p></div>
+<!-- Tombol menu untuk HP -->
+<button class="mobile-menu-btn" id="mobileMenuBtn" style="display: none; position: fixed; top: 15px; left: 15px; z-index: 1001; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 18px; box-shadow: var(--shadow);">
+  ☰
+</button>
 
-<button class="mobile-menu-btn" id="mobileMenuBtn" style="display:none;">☰</button>
-
+<!-- SIDEBAR -->
 <nav class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <div class="sidebar-logo-icon">OB</div>
     <div class="sidebar-logo-text">Outbound WH<span>Operational System</span></div>
-    <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+    <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">☰</button>
   </div>
   <div class="sidebar-menu">
     <div class="sidebar-section">Menu</div>
-    <a class="menu-item" href="index.html"><span class="mi-icon">📦</span><span class="mi-label">Monitoring Loading</span></a>
-    <a class="menu-item active" href="produktivitas.html"><span class="mi-icon">📊</span><span class="mi-label">Produktivitas MPP</span></a>
-    <a class="menu-item" href="temuan.html"><span class="mi-icon">🔍</span><span class="mi-label">Temuan Penyimpangan</span></a>
+    <a class="menu-item" href="index.html">
+      <span class="mi-icon">📦</span>
+      <span class="mi-label">Monitoring Loading</span>
+    </a>
+    <a class="menu-item active" href="produktivitas.html">
+      <span class="mi-icon">📊</span>
+      <span class="mi-label">Produktivitas MPP</span>
+    </a>
+    <a class="menu-item" href="temuan.html">
+      <span class="mi-icon">🔍</span>
+      <span class="mi-label">Temuan Penyimpangan</span>
+    </a>
   </div>
   <div class="sidebar-bottom">
-    <div class="menu-item" style="cursor:default"><span class="mi-icon">👤</span><span class="mi-label">Admin</span></div>
+    <div class="menu-item" style="cursor:default">
+      <span class="mi-icon">👤</span>
+      <span class="mi-label" style="font-size:12px;color:rgba(255,255,255,0.5)">Admin</span>
+    </div>
   </div>
 </nav>
 
+<!-- MAIN -->
 <div class="main" id="main">
   <header class="header">
     <div class="header-title">📊 Produktivitas MPP</div>
-    <div style="display:flex;align-items:center;gap:12px"><span id="last-update"></span><div class="avatar">AD</div></div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <span id="last-update"></span>
+      <div class="avatar">AD</div>
+    </div>
   </header>
 
-  <div class="filter-bar">
-    <input type="date" id="f-date">
-    <button class="periode-btn" id="btn-periode" onclick="togglePeriodePanel()">📆 Periode <span class="periode-badge" id="periode-badge" style="display:none">0</span></button>
-    <select id="f-shift"><option value="">Semua Shift</option><option value="1">Shift 1</option><option value="2">Shift 2</option></select>
-    <button class="btn btn-primary" onclick="applyFilter()">Apply</button>
-    <button class="btn btn-secondary" onclick="loadAllData()">🔄 Refresh</button>
-  </div>
-
-  <div class="periode-panel" id="periode-panel">
-    <div class="periode-chips" id="periode-chips"></div>
-    <div style="margin-top:10px"><button class="btn btn-secondary" onclick="applyPeriode()">Terapkan</button></div>
+  <div class="filter-wrap">
+    <button class="btn btn-primary" onclick="loadAll()">🔄 Refresh Data</button>
+    <span id="status-msg" style="font-size:12px;color:var(--text2)">Klik Refresh Data untuk memuat data</span>
   </div>
 
   <div class="content">
-    <div class="kpi-grid" id="kpiContainer"></div>
-    <div class="alert-panel" id="alertContainer"></div>
-
-    <div class="card">
-      <div class="card-title">📋 Ringkasan Produktivitas per Batch (Hari Ini)</div>
-      <div style="overflow-x:auto">
-        <table class="data-table" id="batchSummaryTable">
-          <thead><tr><th>Batch</th><th>Shift</th><th>Total Case</th><th>Total CBM</th><th>Total MPP</th><th>Prod Checker</th><th>Prod Loader</th><th>Status</th></tr></thead>
-          <tbody><tr><td colspan="8" style="text-align:center">Memuat data...</td></tr></tbody>
-        </table>
-      </div>
+    <div id="loading" style="display:none">
+      <div class="spinner"></div>
+      <span>Memuat data produktivitas...</span>
     </div>
 
-    <div class="card">
-      <div class="card-title">📈 Trend Produktivitas (7 Hari Terakhir)</div>
-      <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('loader',this)">📦 Loader LD (CBM)</button>
+      <button class="tab" onclick="switchTab('checker',this)">✅ Checker ST+BR (Case ID)</button>
     </div>
 
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">🔥 Heatmap Loader (%)</div>
-        <table class="heatmap-table" id="heatmapLoader"></table>
+    <!-- TAB LOADER -->
+    <div class="tab-content active" id="tab-loader">
+      <div class="kpi-row" id="loader-kpi">
+        <div class="kpi blue"><div class="kpi-label">Total Loader</div><div class="kpi-value">-</div><div class="kpi-sub">Orang aktif</div></div>
+        <div class="kpi blue"><div class="kpi-label">Total CBM</div><div class="kpi-value">-</div><div class="kpi-sub">Seluruh periode</div></div>
+        <div class="kpi orange"><div class="kpi-label">Avg CBM/MPP/Hari</div><div class="kpi-value">-</div><div class="kpi-sub">Target: 25 CBM</div></div>
+        <div class="kpi orange"><div class="kpi-label">Capai Target</div><div class="kpi-value">-</div><div class="kpi-sub">Orang ≥ 100%</div></div>
       </div>
-      <div class="card">
-        <div class="card-title">🔥 Heatmap Checker (%)</div>
-        <table class="heatmap-table" id="heatmapChecker"></table>
+      <div class="inner-filter">
+        <label>Filter Nama:</label>
+        <select id="loader-name" onchange="renderLoader()"><option value="ALL">Semua Orang</option></select>
+        <label>Filter Tanggal:</label>
+        <select id="loader-date" onchange="renderLoader()" style="min-width:140px">
+          <option value="">Semua Tanggal</option>
+        </select>
+        <button class="btn btn-secondary" onclick="resetLoader()">Reset</button>
       </div>
-    </div>
-
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">🏆 Top 11 Loader (CBM/MPP)</div>
-        <div style="overflow-y:auto;max-height:400px">
-          <table class="data-table" id="loaderRankTable">
-            <thead><tr><th>#</th><th>Nama</th><th>Total CBM</th><th>MPP</th><th>Prod</th><th>%Target</th></tr></thead>
-            <tbody><tr><td colspan="6" style="text-align:center">Memuat data...</td></tr></tbody>
-          </table>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">📈 Trend CBM/MPP Harian (Top 5)</div>
+          <div class="chart-wrap"><canvas id="loaderTrend"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🏆 Ranking Loader</div>
+          <div style="overflow-y:auto;max-height:280px">
+            <table class="rank-table">
+              <thead><tr><th>#</th><th>Nama</th><th>Total CBM</th><th>Avg/Hari</th><th>%Target</th></tr></thead>
+              <tbody id="loader-rank"></tbody>
+            </table>
+          </div>
         </div>
       </div>
       <div class="card">
-        <div class="card-title">🏆 Top 11 Checker (Case/MPP)</div>
-        <div style="overflow-y:auto;max-height:400px">
-          <table class="data-table" id="checkerRankTable">
-            <thead><tr><th>#</th><th>Nama</th><th>Total Case</th><th>MPP</th><th>Prod</th><th>%Target</th></tr></thead>
-            <tbody><tr><td colspan="6" style="text-align:center">Memuat data...</td></tr></tbody>
-          </table>
-        </div>
+        <div class="card-title">📊 Perbandingan CBM/MPP Semua Loader</div>
+        <div class="chart-wrap-lg"><canvas id="loaderBar"></canvas></div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-title">📋 Detail Produktivitas Loader & Checker</div>
-      <div style="overflow-x:auto">
-        <table class="data-table" id="detailTable">
-          <thead><tr><th>Tanggal</th><th>Nama</th><th>Jobdesk</th><th>Shift</th><th>Count/CBM</th><th>MPP</th><th>Prod</th><th>%Target</th></tr></thead>
-          <tbody><tr><td colspan="8" style="text-align:center">Memuat data...</td></tr></tbody>
-        </table>
+    <!-- TAB CHECKER -->
+    <div class="tab-content" id="tab-checker">
+      <div class="kpi-row" id="checker-kpi">
+        <div class="kpi blue"><div class="kpi-label">Total Checker</div><div class="kpi-value">-</div><div class="kpi-sub">Orang aktif</div></div>
+        <div class="kpi blue"><div class="kpi-label">Total Case ID</div><div class="kpi-value">-</div><div class="kpi-sub">Seluruh periode</div></div>
+        <div class="kpi orange"><div class="kpi-label">Avg Case ID/MPP/Hari</div><div class="kpi-value">-</div><div class="kpi-sub">Target: 800 Case</div></div>
+        <div class="kpi orange"><div class="kpi-label">Capai Target</div><div class="kpi-value">-</div><div class="kpi-sub">Orang ≥ 100%</div></div>
+      </div>
+      <div class="inner-filter">
+        <label>Filter Nama:</label>
+        <select id="checker-name" onchange="renderChecker()"><option value="ALL">Semua Orang</option></select>
+        <label>Filter Tanggal:</label>
+        <select id="checker-date" onchange="renderChecker()" style="min-width:140px">
+          <option value="">Semua Tanggal</option>
+        </select>
+        <button class="btn btn-secondary" onclick="resetChecker()">Reset</button>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">📈 Trend Case ID/MPP Harian (Top 5)</div>
+          <div class="chart-wrap"><canvas id="checkerTrend"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">🏆 Ranking Checker</div>
+          <div style="overflow-y:auto;max-height:280px">
+            <table class="rank-table">
+              <thead><tr><th>#</th><th>Nama</th><th>Total Case</th><th>Avg/Hari</th><th>%Target</th></tr></thead>
+              <tbody id="checker-rank"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📊 Perbandingan Case ID Semua Checker</div>
+        <div class="chart-wrap-lg"><canvas id="checkerBar"></canvas></div>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-// ============================================
-// URL SHEET (sudah dipublikasi)
-// ============================================
-const MPP_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT1YwOyPQa1twBR3ms6LrmdxwMeGJ8K3xLmYsPkoO6g5ngC6F5ZhpJhwNPx8_cNhzbszqcIhAR-vGxf/pub?gid=1543732572&single=true&output=csv';
-const TRANSACTION_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT1YwOyPQa1twBR3ms6LrmdxwMeGJ8K3xLmYsPkoO6g5ngC6F5ZhpJhwNPx8_cNhzbszqcIhAR-vGxf/pub?gid=435013118&single=true&output=csv';
-const LOADER_RANK_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT1YwOyPQa1twBR3ms6LrmdxwMeGJ8K3xLmYsPkoO6g5ngC6F5ZhpJhwNPx8_cNhzbszqcIhAR-vGxf/pub?gid=1638374890&single=true&output=csv';
-const CHECKER_RANK_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT1YwOyPQa1twBR3ms6LrmdxwMeGJ8K3xLmYsPkoO6g5ngC6F5ZhpJhwNPx8_cNhzbszqcIhAR-vGxf/pub?gid=855868867&single=true&output=csv';
+const LOADER_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vT1YwOyPQa1twBR3ms6LrmdxwMeGJ8K3xLmYsPkoO6g5ngC6F5ZhpJhwNPx8_cNhzbszqcIhAR-vGxf/pub?gid=1638374890&single=true&output=csv';
+const CHECKER_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vT1YwOyPQa1twBR3ms6LrmdxwMeGJ8K3xLmYsPkoO6g5ngC6F5ZhpJhwNPx8_cNhzbszqcIhAR-vGxf/pub?gid=855868867&single=true&output=csv';
+const TARGET_CBM=25, TARGET_CASE=800;
+const COLORS=['#1a56db','#22c55e','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#84cc16','#ec4899','#14b8a6'];
 
-const TARGET_CBM = 25;
-const TARGET_CASE = 800;
+let loaderData=[], checkerData=[];
+let lTrendChart=null, lBarChart=null, cTrendChart=null, cBarChart=null;
 
-let mppData = [];
-let transData = [];
-let loaderRankData = [];
-let checkerRankData = [];
-let filteredRank = [];
-let selectedPeriodes = [];
-let trendChart = null;
-
-// ============================================
-// FIX: HELPER FUNCTIONS DIPINDAH KE ATAS
-// supaya tersedia saat loadAllData() dipanggil
-// ============================================
-
-function parseDate(s) {
-  if (!s) return null;
-  s = s.trim();
-
-  // Format DD/MM/YYYY atau DD-MM-YYYY
-  let parts = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
-  if (parts) return new Date(parseInt(parts[3]), parseInt(parts[2]) - 1, parseInt(parts[1]));
-
-  // Format YYYY-MM-DD
-  parts = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (parts) return new Date(parseInt(parts[1]), parseInt(parts[2]) - 1, parseInt(parts[3]));
-
-  // Format "1 Jan 2025" atau "01 January 2025" (termasuk Bahasa Indonesia)
-  const months = {
-    jan:0, feb:1, mar:2, apr:3, may:4, jun:5, jul:6, aug:7, sep:8, oct:9, nov:10, dec:11,
-    mei:4, ags:7, okt:9, des:11,
-    january:0, february:1, march:2, april:3, june:5, july:6, august:7,
-    september:8, october:9, november:10, december:11,
-    januari:0, februari:1, maret:2, juni:5, juli:6, agustus:7,
-    september:8, oktober:9, november:10, desember:11
-  };
-  parts = s.match(/^(\d{1,2})\s+(\w+)\s+(\d{4})$/);
-  if (parts) {
-    const m = months[parts[2].toLowerCase()];
-    if (m !== undefined) return new Date(parseInt(parts[3]), m, parseInt(parts[1]));
-  }
-
-  // Fallback ke Date constructor
-  const dt = new Date(s);
-  return isNaN(dt) ? null : dt;
-}
-
-function toYMD(d) {
-  if (!d) return '';
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-}
-
-function formatNumber(n) {
-  return n.toLocaleString('id-ID');
-}
-
-// ============================================
-// LOAD ALL DATA
-// ============================================
-async function loadAllData() {
-  document.getElementById('loading-overlay').style.display = 'flex';
-  try {
-    await Promise.all([
-      loadMPPData(),
-      loadTransactionData(),
-      loadLoaderRankData(),
-      loadCheckerRankData()
-    ]);
-    document.getElementById('last-update').textContent = 'Update: ' + new Date().toLocaleTimeString('id-ID');
-    populatePeriode();
-    applyFilter();
-  } catch(e) {
+// ── LOAD DATA ──
+async function loadAll(){
+  document.getElementById('loading').style.display='flex';
+  document.getElementById('status-msg').textContent='Memuat data...';
+  try{
+    await Promise.all([loadLoader(), loadChecker()]);
+    document.getElementById('last-update').textContent='Update: '+new Date().toLocaleTimeString('id-ID');
+    document.getElementById('status-msg').textContent='Data berhasil dimuat ✅';
+    renderLoader();
+    renderChecker();
+  }catch(e){
+    document.getElementById('status-msg').textContent='Error: '+e.message;
     console.error(e);
-    alert('Error: ' + e.message);
   }
-  document.getElementById('loading-overlay').style.display = 'none';
+  document.getElementById('loading').style.display='none';
 }
 
-async function loadMPPData() {
-  const res = await fetch(MPP_URL + '&cb=' + Date.now());
-  const txt = await res.text();
-  const rows = Papa.parse(txt, { header: false, skipEmptyLines: true }).data;
-  const headerRow = rows.findIndex(r => r.some(c => (c || '').toUpperCase() === 'NAMA'));
-  if (headerRow < 0) return;
+async function loadLoader(){
+  const r=await fetch(LOADER_URL+'&cb='+Date.now());
+  const txt=await r.text();
+  const rows=Papa.parse(txt,{header:false,skipEmptyLines:true}).data;
+  // Cari header row
+  const hi=rows.findIndex(r=>r.some(c=>(c||'').trim().toUpperCase()==='TANGGAL'));
+  if(hi<0){console.error('Loader header not found');return;}
+  const H=rows[hi].map(c=>(c||'').trim().toUpperCase());
+  const tI=H.indexOf('TANGGAL');
+  const cbmI=H.indexOf('CBM');
+  const cbmMppI=H.findIndex(h=>h.includes('CBM')&&h.includes('MPP'));
+  const chekI=H.findIndex(h=>h==='CHEKER'||h==='CHECKER');
+  const ld1I=H.findIndex(h=>h==='LOADER 1'||h==='LOADER1');
+  const ld2I=H.findIndex(h=>h==='LOADER 2'||h==='LOADER2');
+  const mppI=H.indexOf('MPP');
+  console.log('[LOADER] H:',H);
+  console.log('[LOADER] idx - tgl:',tI,'cbm:',cbmI,'cbmMpp:',cbmMppI,'chek:',chekI,'ld1:',ld1I,'ld2:',ld2I,'mpp:',mppI);
 
-  for (let i = headerRow + 1; i < rows.length; i++) {
-    const r = rows[i];
-    const nama = (r[5] || '').trim();
-    if (!nama || nama === 'NAMA') continue;
+  const isName=v=>v&&v.length>3&&!v.match(/^[\d.,]+$/)&&!['CHEKER','CHECKER','LOADER','NIK','NAMA','MPP','BU','STATUS'].some(k=>v===k);
 
-    let dateStr = (r[3] || '').trim();
-    let tanggal = parseDate(dateStr);
+  loaderData=rows.slice(hi+1).filter(r=>{
+    const tgl=(r[tI]||'').trim();
+    const cbm=parseFloat((r[cbmI]||'').replace(/,/g,''))||0;
+    return tgl.length>2&&cbm>0;
+  }).map(r=>{
+    const tgl=(r[tI]||'').trim();
+    const cbm=parseFloat((r[cbmI]||'').replace(/,/g,''))||0;
+    const cbmMpp=cbmMppI>=0?parseFloat((r[cbmMppI]||'').replace(/,/g,''))||0:0;
+    const mpp=parseFloat((r[mppI]||'2'))||2;
+    const people=[];
+    if(chekI>=0){const v=(r[chekI]||'').trim();if(isName(v))people.push(v);}
+    if(ld1I>=0){const v=(r[ld1I]||'').trim();if(isName(v)&&!people.includes(v))people.push(v);}
+    if(ld2I>=0){const v=(r[ld2I]||'').trim();if(isName(v)&&!people.includes(v))people.push(v);}
+    const cbmPerPerson=people.length>0?cbm/people.length:cbmMpp>0?cbmMpp:cbm/mpp;
+    return{tgl,cbm,cbmMpp:cbmPerPerson,people};
+  });
+  console.log('[LOADER] Records:',loaderData.length,'sample:',loaderData[0]);
 
-    // Fallback untuk format "DD MMM YYYY" tanpa parseDate
-    if (!tanggal) {
-      const dateMatch = dateStr.match(/(\d{1,2})\s+(\w+)\s+(\d{4})/);
-      if (dateMatch) {
-        const months = { Jan:0, Feb:1, Mar:2, Apr:3, May:4, Jun:5, Jul:6, Aug:7, Sep:8, Oct:9, Nov:10, Dec:11 };
-        tanggal = new Date(parseInt(dateMatch[3]), months[dateMatch[2]], parseInt(dateMatch[1]));
-      }
-    }
-
-    const jobdesk = (r[6] || '').trim().toUpperCase();
-    const shift = (r[7] || '').trim();
-    const countST = parseFloat((r[8] || '0').replace(/,/g, '')) || 0;
-    const countBR = parseFloat((r[9] || '0').replace(/,/g, '')) || 0;
-    const countLD = parseFloat((r[10] || '0').replace(/,/g, '')) || 0;
-    const totalCount = parseFloat((r[11] || '0').replace(/,/g, '')) || 0;
-    const cbm = parseFloat((r[12] || '0').replace(/,/g, '')) || 0;
-
-    mppData.push({ tanggal, nama, jobdesk, shift, countST, countBR, countLD, totalCount, cbm });
-  }
-  console.log('MPP Data:', mppData.length);
+  // Populate filter nama
+  const names=[...new Set(loaderData.flatMap(r=>r.people))].filter(Boolean).sort();
+  const sel=document.getElementById('loader-name');
+  sel.innerHTML='<option value="ALL">Semua Orang</option>'+names.map(n=>`<option value="${n}">${n}</option>`).join('');
+  // Populate tanggal
+  const dates=[...new Set(loaderData.map(r=>r.tgl))].sort((a,b)=>{
+    const mo={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+    const pa=a.split('-'),pb=b.split('-');
+    const ya=pa[2]?parseInt(pa[2]):2026,yb=pb[2]?parseInt(pb[2]):2026;
+    return ya*10000+(mo[pa[1]]||0)*100+parseInt(pa[0])-(yb*10000+(mo[pb[1]]||0)*100+parseInt(pb[0]));
+  });
+  const dateSel=document.getElementById('loader-date');
+  dateSel.innerHTML='<option value="">Semua Tanggal</option>'+dates.map(d=>`<option value="${d}">${d}</option>`).join('');
 }
 
-async function loadTransactionData() {
-  const res = await fetch(TRANSACTION_URL + '&cb=' + Date.now());
-  const txt = await res.text();
-  const rows = Papa.parse(txt, { header: false, skipEmptyLines: true }).data;
-  const H = rows[0].map(c => (c || '').trim().toUpperCase());
-  const tglIdx = H.findIndex(h => h === 'TANGGAL MUAT' || h === 'TGL');
-  const shiftIdx = H.findIndex(h => h === 'PENYELESAIAN');
-  const stuffingIdx = H.findIndex(h => h.includes('STUFFING TIME') || h === 'STUFFING');
-  const cbmIdx = H.findIndex(h => h === 'TOTAL CBM');
-  const caseIdx = H.findIndex(h => h === 'AKTUAL CASEID');
+async function loadChecker(){
+  const r=await fetch(CHECKER_URL+'&cb='+Date.now());
+  const txt=await r.text();
+  const rows=Papa.parse(txt,{header:false,skipEmptyLines:true}).data;
+  // Cari header row - ada NAMA
+  const hi=rows.findIndex(r=>r.some(c=>(c||'').trim().toUpperCase()==='NAMA'));
+  if(hi<0){console.error('Checker header not found');return;}
+  const H=rows[hi].map(c=>(c||'').trim());
+  const namaI=H.findIndex(h=>h.toUpperCase()==='NAMA');
+  const dateCols=[];
+  H.forEach((h,i)=>{if(h.match(/^\d+-[A-Za-z]+/))dateCols.push({i,d:h});});
+  const totalI=H.findIndex(h=>h.toUpperCase()==='TOTAL');
+  console.log('[CHECKER] H:',H,'dateCols:',dateCols.length);
 
-  for (let i = 1; i < rows.length; i++) {
-    const r = rows[i];
-    const tglStr = (r[tglIdx] || '').trim();
-    if (!tglStr || tglStr.toUpperCase().includes('TANGGAL')) continue;
-    const tanggal = parseDate(tglStr);
-    if (!tanggal) continue;
+  checkerData=rows.slice(hi+1).filter(r=>{
+    const nama=(r[namaI]||'').trim();
+    return nama.length>2&&!nama.toUpperCase().includes('TOTAL')&&nama.toUpperCase()!=='NAMA';
+  }).map(r=>{
+    const nama=(r[namaI]||'').trim();
+    const daily={};
+    dateCols.forEach(d=>{
+      const v=parseFloat((r[d.i]||'').replace(/,/g,''))||0;
+      if(v>0)daily[d.d]=v;
+    });
+    const total=totalI>=0?parseFloat((r[totalI]||'').replace(/,/g,''))||0:Object.values(daily).reduce((a,b)=>a+b,0);
+    const activeDays=Object.values(daily).filter(v=>v>0).length;
+    const avg=activeDays>0?total/activeDays:0;
+    return{nama,daily,total,activeDays,avg,pct:avg>0?Math.round(avg/TARGET_CASE*100):0};
+  }).filter(r=>r.total>0);
+  console.log('[CHECKER] Records:',checkerData.length);
 
-    let shift = (r[shiftIdx] || '').trim();
-    shift = shift.includes('1') ? '1' : (shift.includes('2') ? '2' : shift);
-
-    const stuffingTime = (r[stuffingIdx] || '').trim();
-    let batch = 0;
-    const hourMatch = stuffingTime.match(/(\d{1,2})/);
-    if (hourMatch) {
-      const hour = parseInt(hourMatch[1]);
-      if (hour >= 8 && hour < 13) batch = 1;
-      else if (hour >= 13 && hour < 16) batch = 2;
-      else if (hour >= 16 && hour < 19) batch = 3;
-      else if (hour >= 19 || hour < 8) batch = 4;
-    }
-
-    const cbm = parseFloat((r[cbmIdx] || '0').replace(/,/g, '')) || 0;
-    const caseId = parseFloat((r[caseIdx] || '0').replace(/,/g, '')) || 0;
-
-    transData.push({ tanggal, shift, batch, cbm, caseId });
-  }
-  console.log('Transaction Data:', transData.length);
+  const sel=document.getElementById('checker-name');
+  sel.innerHTML='<option value="ALL">Semua Orang</option>'+checkerData.map(p=>`<option value="${p.nama}">${p.nama}</option>`).join('');
+  // Populate tanggal checker
+  const allDatesChecker=[...new Set(checkerData.flatMap(p=>Object.keys(p.daily)))].sort((a,b)=>{
+    const mo={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+    const pa=a.split('-'),pb=b.split('-');
+    return(mo[pa[1]]||0)*100+parseInt(pa[0])-(mo[pb[1]]||0)*100-parseInt(pb[0]);
+  });
+  const dateSel=document.getElementById('checker-date');
+  if(dateSel)dateSel.innerHTML='<option value="">Semua Tanggal</option>'+allDatesChecker.map(d=>`<option value="${d}">${d}</option>`).join('');
 }
 
-async function loadLoaderRankData() {
-  const res = await fetch(LOADER_RANK_URL + '&cb=' + Date.now());
-  const txt = await res.text();
-  const rows = Papa.parse(txt, { header: false, skipEmptyLines: true }).data;
-  const H = rows[0].map(c => (c || '').trim().toUpperCase());
-  const tglIdx = H.findIndex(h => h === 'TANGGAL');
-  const namaIdx = H.findIndex(h => h === 'NAMA' || h === 'LOADER');
-  const cbmIdx = H.findIndex(h => h === 'CBM');
-  const mppIdx = H.findIndex(h => h === 'MPP');
+// ── RENDER LOADER ──
+function renderLoader(){
+  const fName=document.getElementById('loader-name').value;
+  const fDate=document.getElementById('loader-date').value;
 
-  for (let i = 1; i < rows.length; i++) {
-    const r = rows[i];
-    const tglStr = (r[tglIdx] || '').trim();
-    if (!tglStr) continue;
-    const tanggal = parseDate(tglStr);
-    if (!tanggal) continue;
-    const nama = (r[namaIdx] || '').trim();
-    const cbm = parseFloat((r[cbmIdx] || '0').replace(/,/g, '')) || 0;
-    const mpp = parseFloat((r[mppIdx] || '1')) || 1;
-    if (nama) loaderRankData.push({ tanggal, nama, cbm, mpp });
-  }
-  console.log('Loader Rank:', loaderRankData.length);
-}
-
-async function loadCheckerRankData() {
-  const res = await fetch(CHECKER_RANK_URL + '&cb=' + Date.now());
-  const txt = await res.text();
-  const rows = Papa.parse(txt, { header: false, skipEmptyLines: true }).data;
-  const H = rows[0].map(c => (c || '').trim().toUpperCase());
-  const tglIdx = H.findIndex(h => h === 'TANGGAL');
-  const namaIdx = H.findIndex(h => h === 'NAMA');
-  const caseIdx = H.findIndex(h => h === 'TOTAL COUNT');
-  const mppIdx = H.findIndex(h => h === 'MPP');
-
-  for (let i = 1; i < rows.length; i++) {
-    const r = rows[i];
-    const tglStr = (r[tglIdx] || '').trim();
-    if (!tglStr) continue;
-    const tanggal = parseDate(tglStr);
-    if (!tanggal) continue;
-    const nama = (r[namaIdx] || '').trim();
-    const caseId = parseFloat((r[caseIdx] || '0').replace(/,/g, '')) || 0;
-    const mpp = parseFloat((r[mppIdx] || '1')) || 1;
-    if (nama) checkerRankData.push({ tanggal, nama, caseId, mpp });
-  }
-  console.log('Checker Rank:', checkerRankData.length);
-}
-
-// ============================================
-// PERIODE FUNCTIONS
-// ============================================
-function populatePeriode() {
-  const dates = mppData.map(d => d.tanggal).filter(Boolean).sort((a,b)=>a-b);
-  if (!dates.length) return;
-  const mo = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Ags','Sep','Okt','Nov','Des'];
-  let html = `<label class="periode-chip"><input type="checkbox" value="7"><span>7 Hari Terakhir</span></label>`;
-  let y = dates[0].getFullYear(), m = dates[0].getMonth();
-  const last = dates[dates.length-1];
-  while (y < last.getFullYear() || (y === last.getFullYear() && m <= last.getMonth())) {
-    const val = `${y}-${String(m+1).padStart(2,'0')}`;
-    html += `<label class="periode-chip"><input type="checkbox" value="${val}"><span>${mo[m]} ${y}</span></label>`;
-    m++; if (m>11) { m=0; y++; }
-  }
-  document.getElementById('periode-chips').innerHTML = html;
-  document.querySelectorAll('#periode-chips input').forEach(cb => {
-    cb.addEventListener('change', function() {
-      const lbl = this.closest('label');
-      if (this.checked) {
-        lbl.classList.add('checked');
-        if (!selectedPeriodes.includes(this.value)) selectedPeriodes.push(this.value);
-      } else {
-        lbl.classList.remove('checked');
-        selectedPeriodes = selectedPeriodes.filter(v => v !== this.value);
-      }
-      document.getElementById('periode-badge').textContent = selectedPeriodes.length;
-      document.getElementById('periode-badge').style.display = selectedPeriodes.length ? 'inline' : 'none';
+  // Agregasi per orang
+  const map={};
+  loaderData.forEach(row=>{
+    if(fDate&&row.tgl!==fDate)return;
+    if(!row.people.length)return;
+    const cbmPP=row.cbm/row.people.length;
+    row.people.forEach(name=>{
+      if(fName!=='ALL'&&name!==fName)return;
+      if(!map[name])map[name]={name,daily:{},total:0};
+      if(!map[name].daily[row.tgl])map[name].daily[row.tgl]=0;
+      map[name].daily[row.tgl]+=cbmPP;
+      map[name].total+=cbmPP;
     });
   });
+
+  const persons=Object.values(map).map(p=>{
+    const days=Object.values(p.daily).filter(v=>v>0).length;
+    const avg=days>0?p.total/days:0;
+    return{...p,days,avg,pct:avg>0?Math.round(avg/TARGET_CBM*100):0};
+  });
+
+  const total=persons.reduce((a,p)=>a+p.total,0);
+  const avgAll=persons.length?persons.reduce((a,p)=>a+p.avg,0)/persons.length:0;
+  const good=persons.filter(p=>p.pct>=100).length;
+
+  // KPI
+  document.getElementById('loader-kpi').innerHTML=`
+    <div class="kpi blue"><div class="kpi-label">Total Loader</div><div class="kpi-value">${persons.length}</div><div class="kpi-sub">Orang aktif</div></div>
+    <div class="kpi blue"><div class="kpi-label">Total CBM</div><div class="kpi-value">${total.toFixed(1)}</div><div class="kpi-sub">Seluruh periode</div></div>
+    <div class="kpi ${avgAll>=TARGET_CBM?'green':'orange'}"><div class="kpi-label">Avg CBM/MPP/Hari</div><div class="kpi-value">${avgAll.toFixed(1)}</div><div class="kpi-sub">Target: ${TARGET_CBM} CBM</div></div>
+    <div class="kpi ${good===persons.length&&persons.length>0?'green':'orange'}"><div class="kpi-label">Capai Target</div><div class="kpi-value">${good}/${persons.length}</div><div class="kpi-sub">Orang ≥ 100%</div></div>`;
+
+  // Ranking
+  const sorted=[...persons].sort((a,b)=>b.avg-a.avg);
+  document.getElementById('loader-rank').innerHTML=sorted.length?sorted.map((p,i)=>{
+    const cls=p.pct>=100?'badge-green':p.pct>=80?'badge-orange':'badge-red';
+    return`<tr><td class="rank-num">${i+1}</td><td class="rank-name">${p.name}</td><td class="rank-val">${p.total.toFixed(1)}</td><td>${p.avg.toFixed(1)}/hari</td><td><span class="badge ${cls}">${p.pct}%</span></td></tr>`;
+  }).join(''):'<tr><td colspan="5" style="text-align:center;padding:20px;color:#9aa0b4">Tidak ada data</td></tr>';
+
+  // Trend chart
+  const allDates=[...new Set(loaderData.map(r=>r.tgl))].sort();
+  const showP=fName==='ALL'?sorted.slice(0,5):persons;
+  if(lTrendChart)lTrendChart.destroy();
+  lTrendChart=new Chart(document.getElementById('loaderTrend').getContext('2d'),{
+    type:'line',
+    data:{labels:allDates,datasets:[
+      ...showP.map((p,i)=>({label:p.name.split(' ').slice(0,2).join(' '),data:allDates.map(d=>p.daily[d]?+p.daily[d].toFixed(1):null),borderColor:COLORS[i%COLORS.length],backgroundColor:COLORS[i%COLORS.length]+'22',tension:.3,spanGaps:true,pointRadius:3,borderWidth:2})),
+      {label:'Target 25',data:allDates.map(()=>TARGET_CBM),borderColor:'#ef4444',borderDash:[6,3],borderWidth:1.5,pointRadius:0,fill:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false},ticks:{font:{size:10},maxRotation:45}}}}
+  });
+
+  // Bar chart
+  if(lBarChart)lBarChart.destroy();
+  lBarChart=new Chart(document.getElementById('loaderBar').getContext('2d'),{
+    type:'bar',
+    data:{labels:sorted.map(p=>p.name.split(' ').slice(0,2).join(' ')),datasets:[{label:'Avg CBM/Hari',data:sorted.map(p=>+p.avg.toFixed(1)),backgroundColor:sorted.map(p=>p.pct>=100?'#22c55e99':p.pct>=80?'#f59e0b99':'#ef444499'),borderColor:sorted.map(p=>p.pct>=100?'#22c55e':p.pct>=80?'#f59e0b':'#ef4444'),borderWidth:1.5,borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},annotation:{annotations:{target:{type:'line',yMin:TARGET_CBM,yMax:TARGET_CBM,borderColor:'red',borderDash:[6,3],borderWidth:1.5}}}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false},ticks:{font:{size:11},maxRotation:30}}}}
+  });
 }
 
-function togglePeriodePanel() { document.getElementById('periode-panel').classList.toggle('open'); }
-function applyPeriode() { document.getElementById('periode-panel').classList.remove('open'); applyFilter(); }
-function applyFilter() { renderAll(); }
+// ── RENDER CHECKER ──
+function renderChecker(){
+  const fName=document.getElementById('checker-name').value;
+  const fDate=document.getElementById('checker-date')?.value||'';
 
-function getFilteredData() {
-  const fDate = document.getElementById('f-date').value;
-  const fShift = document.getElementById('f-shift').value;
-  let periodeSet = null;
-
-  if (selectedPeriodes.length > 0) {
-    const today = new Date(); today.setHours(0,0,0,0);
-    periodeSet = new Set();
-    selectedPeriodes.forEach(p => {
-      if (p === '7') {
-        for (let i=0; i<7; i++) { const d = new Date(today); d.setDate(d.getDate()-i); periodeSet.add(toYMD(d)); }
-      } else {
-        periodeSet.add('m:'+p);
-      }
-    });
+  // Filter berdasarkan tanggal jika dipilih
+  let persons;
+  if(fDate){
+    // Hitung ulang per orang hanya untuk tanggal yang dipilih
+    persons=checkerData.map(p=>{
+      const dayVal=p.daily[fDate]||0;
+      return{...p,total:dayVal,activeDays:dayVal>0?1:0,avg:dayVal,pct:dayVal>0?Math.round(dayVal/TARGET_CASE*100):0};
+    }).filter(p=>fName==='ALL'?p.total>0:p.nama===fName);
+  } else {
+    persons=fName==='ALL'?checkerData:checkerData.filter(p=>p.nama===fName);
   }
 
-  let filtered = [...mppData];
+  const total=persons.reduce((a,p)=>a+p.total,0);
+  const avgAll=persons.length?persons.reduce((a,p)=>a+p.avg,0)/persons.length:0;
+  const good=persons.filter(p=>p.pct>=100).length;
 
-  // FIX: kalau ada fDate, clear periode supaya tidak bentrok
-  if (fDate) {
-    filtered = filtered.filter(d => toYMD(d.tanggal) === fDate);
-  } else if (periodeSet) {
-    filtered = filtered.filter(d => {
-      const ymd = toYMD(d.tanggal);
-      const ym = ymd.substring(0,7);
-      return periodeSet.has(ymd) || periodeSet.has('m:'+ym);
-    });
-  }
+  document.getElementById('checker-kpi').innerHTML=`
+    <div class="kpi blue"><div class="kpi-label">Total Checker</div><div class="kpi-value">${persons.length}</div><div class="kpi-sub">Orang aktif</div></div>
+    <div class="kpi blue"><div class="kpi-label">Total Case ID</div><div class="kpi-value">${total.toLocaleString()}</div><div class="kpi-sub">Seluruh periode</div></div>
+    <div class="kpi ${avgAll>=TARGET_CASE?'green':'orange'}"><div class="kpi-label">Avg Case ID/MPP/Hari</div><div class="kpi-value">${Math.round(avgAll).toLocaleString()}</div><div class="kpi-sub">Target: ${TARGET_CASE}</div></div>
+    <div class="kpi ${good===persons.length&&persons.length>0?'green':'orange'}"><div class="kpi-label">Capai Target</div><div class="kpi-value">${good}/${persons.length}</div><div class="kpi-sub">Orang ≥ 100%</div></div>`;
 
-  if (fShift) filtered = filtered.filter(d => d.shift === fShift);
+  const sorted=[...persons].sort((a,b)=>b.avg-a.avg);
+  document.getElementById('checker-rank').innerHTML=sorted.length?sorted.map((p,i)=>{
+    const cls=p.pct>=100?'badge-green':p.pct>=80?'badge-orange':'badge-red';
+    return`<tr><td class="rank-num">${i+1}</td><td class="rank-name">${p.nama}</td><td class="rank-val">${p.total.toLocaleString()}</td><td>${Math.round(p.avg).toLocaleString()}/hari</td><td><span class="badge ${cls}">${p.pct}%</span></td></tr>`;
+  }).join(''):'<tr><td colspan="5" style="text-align:center;padding:20px;color:#9aa0b4">Tidak ada data</td></tr>';
 
-  return filtered;
-}
-
-// ============================================
-// RENDER ALL
-// ============================================
-function renderAll() {
-  renderKPIToday();
-  renderAlerts();
-  renderBatchSummary();
-  renderTrendChart();
-  renderHeatmaps();
-  renderRankings();
-  renderDetailTable();
-}
-
-function renderKPIToday() {
-  const today = toYMD(new Date());
-  const todayData = mppData.filter(d => toYMD(d.tanggal) === today);
-
-  let checkerTotalCount = 0, checkerMPP = 0;
-  let loaderTotalCBM = 0, loaderMPP = 0;
-
-  todayData.forEach(d => {
-    if (d.jobdesk.includes('CHEKER') || d.jobdesk.includes('CHECKER')) {
-      checkerTotalCount += d.totalCount;
-      checkerMPP++;
-    } else if (d.jobdesk.includes('LOADER')) {
-      loaderTotalCBM += d.cbm;
-      loaderMPP++;
-    }
+  const allDates=[...new Set(checkerData.flatMap(p=>Object.keys(p.daily)))].sort((a,b)=>{
+    const mo={Jan:1,Feb:2,Mar:3,Apr:4,May:5,Jun:6,Jul:7,Aug:8,Sep:9,Oct:10,Nov:11,Dec:12};
+    const pa=a.split('-'),pb=b.split('-');
+    return(mo[pa[1]]||0)*100+parseInt(pa[0])-(mo[pb[1]]||0)*100-parseInt(pb[0]);
+  });
+  const showP=fName==='ALL'?sorted.slice(0,5):persons;
+  if(cTrendChart)cTrendChart.destroy();
+  cTrendChart=new Chart(document.getElementById('checkerTrend').getContext('2d'),{
+    type:'line',
+    data:{labels:allDates,datasets:[
+      ...showP.map((p,i)=>({label:p.nama.split(' ').slice(0,2).join(' '),data:allDates.map(d=>p.daily[d]||null),borderColor:COLORS[i%COLORS.length],backgroundColor:COLORS[i%COLORS.length]+'22',tension:.3,spanGaps:true,pointRadius:3,borderWidth:2})),
+      {label:'Target 800',data:allDates.map(()=>TARGET_CASE),borderColor:'#ef4444',borderDash:[6,3],borderWidth:1.5,pointRadius:0,fill:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false},ticks:{font:{size:10},maxRotation:45}}}}
   });
 
-  const checkerProd = checkerMPP > 0 ? checkerTotalCount / checkerMPP : 0;
-  const loaderProd = loaderMPP > 0 ? loaderTotalCBM / loaderMPP : 0;
-
-  const todayTrans = transData.filter(d => toYMD(d.tanggal) === today);
-  const totalCaseToday = todayTrans.reduce((a,b) => a + b.caseId, 0);
-  const totalCBMToday = todayTrans.reduce((a,b) => a + b.cbm, 0);
-
-  document.getElementById('kpiContainer').innerHTML = `
-    <div class="kpi-card"><div class="kpi-label">✅ CHECKER PRODUCTIVITY</div><div class="kpi-value">${Math.round(checkerProd).toLocaleString()}</div><div class="kpi-sub">Case/MPP | Target: ${TARGET_CASE}</div></div>
-    <div class="kpi-card"><div class="kpi-label">📦 LOADER PRODUCTIVITY</div><div class="kpi-value">${loaderProd.toFixed(1)}</div><div class="kpi-sub">CBM/MPP | Target: ${TARGET_CBM}</div></div>
-    <div class="kpi-card"><div class="kpi-label">👥 KEBUTUHAN MPP</div><div class="kpi-value">Checker: ${Math.ceil(totalCaseToday/TARGET_CASE)} | Loader: ${Math.ceil(totalCBMToday/TARGET_CBM)}</div><div class="kpi-sub">Berdasarkan target hari ini</div></div>
-    <div class="kpi-card"><div class="kpi-label">📊 TOTAL OUTPUT HARI INI</div><div class="kpi-value">Case: ${formatNumber(totalCaseToday)}<br>CBM: ${totalCBMToday.toFixed(1)}</div><div class="kpi-sub">Dari transaksi armada</div></div>
-  `;
-}
-
-function renderAlerts() {
-  const today = toYMD(new Date());
-  const todayData = mppData.filter(d => toYMD(d.tanggal) === today);
-  const shift1Loader = todayData.filter(d => d.jobdesk.includes('LOADER') && d.shift === '1');
-  const shift1LoaderProd = shift1Loader.length ? shift1Loader.reduce((a,b)=>a+b.cbm,0) / shift1Loader.length : 0;
-
-  const alerts = [];
-  if (shift1LoaderProd < TARGET_CBM) alerts.push({ type: 'danger', icon: '⚠️', text: `Loader Shift 1 produktivitas rendah: ${shift1LoaderProd.toFixed(1)} CBM/MPP (Target ${TARGET_CBM})` });
-  if (shift1LoaderProd >= TARGET_CBM) alerts.push({ type: 'success', icon: '✅', text: `Loader Shift 1 optimal: ${shift1LoaderProd.toFixed(1)} CBM/MPP` });
-
-  document.getElementById('alertContainer').innerHTML = `
-    <div class="alert-title">🔔 ALERT HARI INI</div>
-    <div class="alert-list">
-      ${alerts.map(a => `<div class="alert-item ${a.type}"><span class="alert-icon">${a.icon}</span><span class="alert-text">${a.text}</span></div>`).join('')}
-    </div>
-  `;
-}
-
-function renderBatchSummary() {
-  const today = toYMD(new Date());
-  const todayTrans = transData.filter(d => toYMD(d.tanggal) === today);
-  const batchMap = new Map();
-
-  todayTrans.forEach(t => {
-    const key = `${t.batch}|${t.shift}`;
-    if (!batchMap.has(key)) batchMap.set(key, { batch: t.batch, shift: t.shift, caseId: 0, cbm: 0, mpp: 0 });
-    const item = batchMap.get(key);
-    item.caseId += t.caseId;
-    item.cbm += t.cbm;
-  });
-
-  const todayMPP = mppData.filter(d => toYMD(d.tanggal) === today);
-  todayMPP.forEach(d => {
-    const key = `${d.batch}|${d.shift}`;
-    if (batchMap.has(key) && (d.jobdesk.includes('LOADER') || d.jobdesk.includes('CHECKER'))) {
-      batchMap.get(key).mpp++;
-    }
-  });
-
-  const batches = Array.from(batchMap.values()).map(b => {
-    const prodChecker = b.mpp > 0 ? b.caseId / b.mpp : 0;
-    const prodLoader = b.mpp > 0 ? b.cbm / b.mpp : 0;
-    const status = (prodChecker >= TARGET_CASE && prodLoader >= TARGET_CBM) ? 'Good' : (prodChecker < TARGET_CASE/2 || prodLoader < TARGET_CBM/2) ? 'Under Target' : 'Average';
-    return { ...b, prodChecker, prodLoader, status };
-  }).sort((a,b) => a.batch - b.batch);
-
-  document.getElementById('batchSummaryTable').innerHTML = `
-    <thead><tr><th>Batch</th><th>Shift</th><th>Total Case</th><th>Total CBM</th><th>Total MPP</th><th>Prod Checker</th><th>Prod Loader</th><th>Status</th></tr></thead>
-    <tbody>${batches.map(b => `
-      <tr><td>Batch ${b.batch}</td><td>Shift ${b.shift}</td><td>${formatNumber(b.caseId)}</td><td>${b.cbm.toFixed(1)}</td><td>${b.mpp}</td><td>${Math.round(b.prodChecker).toLocaleString()}</td><td>${b.prodLoader.toFixed(1)}</td><td><span class="badge ${b.status==='Good'?'badge-green':b.status==='Under Target'?'badge-red':'badge-orange'}">${b.status}</span></td></tr>
-    `).join('')}</tbody>
-  `;
-}
-
-function renderTrendChart() {
-  const filtered = getFilteredData();
-  const last7 = [];
-  for (let i=6; i>=0; i--) { const d = new Date(); d.setDate(d.getDate()-i); last7.push(toYMD(d)); }
-
-  const loaderDaily = last7.map(date => {
-    const dayData = filtered.filter(d => toYMD(d.tanggal) === date && d.jobdesk.includes('LOADER'));
-    const totalCBM = dayData.reduce((a,b)=>a+b.cbm,0);
-    const mpp = dayData.length;
-    return mpp > 0 ? totalCBM / mpp : 0;
-  });
-
-  const checkerDaily = last7.map(date => {
-    const dayData = filtered.filter(d => toYMD(d.tanggal) === date && (d.jobdesk.includes('CHECKER') || d.jobdesk.includes('CHEKER')));
-    const totalCase = dayData.reduce((a,b)=>a+b.totalCount,0);
-    const mpp = dayData.length;
-    return mpp > 0 ? totalCase / mpp : 0;
-  });
-
-  if (trendChart) trendChart.destroy();
-  trendChart = new Chart(document.getElementById('trendChart').getContext('2d'), {
-    type: 'line',
-    data: {
-      labels: last7.map(d => d.substring(5)),
-      datasets: [
-        { label: 'Loader (CBM/MPP)', data: loaderDaily, borderColor: '#f59e0b', backgroundColor: '#f59e0b22', tension: 0.3, fill: true },
-        { label: 'Checker (Case/MPP)', data: checkerDaily, borderColor: '#1a56db', backgroundColor: '#1a56db22', tension: 0.3, fill: true },
-        { label: 'Target Loader 25', data: last7.map(()=>TARGET_CBM), borderColor: '#ef4444', borderDash: [6,3], pointRadius: 0, fill: false },
-        { label: 'Target Checker 800', data: last7.map(()=>TARGET_CASE), borderColor: '#ef4444', borderDash: [6,3], pointRadius: 0, fill: false }
-      ]
-    },
-    options: { responsive: true, maintainAspectRatio: false, plugins: { tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw.toFixed(1)}` } } } }
+  if(cBarChart)cBarChart.destroy();
+  cBarChart=new Chart(document.getElementById('checkerBar').getContext('2d'),{
+    type:'bar',
+    data:{labels:sorted.map(p=>p.nama.split(' ').slice(0,2).join(' ')),datasets:[{label:'Avg Case/Hari',data:sorted.map(p=>Math.round(p.avg)),backgroundColor:sorted.map(p=>p.pct>=100?'#22c55e99':p.pct>=80?'#f59e0b99':'#ef444499'),borderColor:sorted.map(p=>p.pct>=100?'#22c55e':p.pct>=80?'#f59e0b':'#ef4444'),borderWidth:1.5,borderRadius:6}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false},ticks:{font:{size:11},maxRotation:30}}}}
   });
 }
 
-function renderHeatmaps() {
-  const filtered = getFilteredData();
-  const shifts = ['1', '2'];
-  const loaderHeat = {};
-  const checkerHeat = {};
-
-  shifts.forEach(s => {
-    const loaderData = filtered.filter(d => d.jobdesk.includes('LOADER') && d.shift === s);
-    const checkerData = filtered.filter(d => (d.jobdesk.includes('CHECKER') || d.jobdesk.includes('CHEKER')) && d.shift === s);
-    const loaderAvg = loaderData.length ? loaderData.reduce((a,b)=>a+b.cbm,0) / loaderData.length : 0;
-    const checkerAvg = checkerData.length ? checkerData.reduce((a,b)=>a+b.totalCount,0) / checkerData.length : 0;
-    loaderHeat[s] = { val: loaderAvg, pct: Math.min(100, Math.round(loaderAvg / TARGET_CBM * 100)) };
-    checkerHeat[s] = { val: checkerAvg, pct: Math.min(100, Math.round(checkerAvg / TARGET_CASE * 100)) };
-  });
-
-  const getColor = (pct) => `background: linear-gradient(90deg, #22c55e ${pct}%, #e2e8f0 ${pct}%)`;
-
-  document.getElementById('heatmapLoader').innerHTML = `
-    <tr><th>Shift</th><th>Loader (CBM/MPP)</th><th>Achievement</th></tr>
-    ${shifts.map(s => `<tr><td>Shift ${s}</td><td>${loaderHeat[s].val.toFixed(1)}</td><td style="${getColor(loaderHeat[s].pct)}; font-weight:700">${loaderHeat[s].pct}%</td></tr>`).join('')}
-  `;
-  document.getElementById('heatmapChecker').innerHTML = `
-    <tr><th>Shift</th><th>Checker (Case/MPP)</th><th>Achievement</th></tr>
-    ${shifts.map(s => `<tr><td>Shift ${s}</td><td>${Math.round(checkerHeat[s].val).toLocaleString()}</td><td style="${getColor(checkerHeat[s].pct)}; font-weight:700">${checkerHeat[s].pct}%</td></tr>`).join('')}
-  `;
+function resetLoader(){document.getElementById('loader-name').value='ALL';document.getElementById('loader-date').value='';renderLoader();}
+function resetChecker(){document.getElementById('checker-name').value='ALL';const cd=document.getElementById('checker-date');if(cd)cd.value='';renderChecker();}
+function switchTab(name,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
 }
 
-function renderRankings() {
-  const filtered = getFilteredData();
-
-  const loaderMap = new Map();
-  filtered.forEach(d => {
-    if (d.jobdesk.includes('LOADER') && d.nama) {
-      if (!loaderMap.has(d.nama)) loaderMap.set(d.nama, { nama: d.nama, totalCBM: 0, mpp: 0 });
-      const l = loaderMap.get(d.nama);
-      l.totalCBM += d.cbm;
-      l.mpp++;
-    }
-  });
-  const loaders = Array.from(loaderMap.values()).map(l => ({ ...l, prod: l.totalCBM / l.mpp, pct: Math.round((l.totalCBM / l.mpp) / TARGET_CBM * 100) })).sort((a,b) => b.prod - a.prod).slice(0,11);
-
-  const checkerMap = new Map();
-  filtered.forEach(d => {
-    if ((d.jobdesk.includes('CHECKER') || d.jobdesk.includes('CHEKER')) && d.nama) {
-      if (!checkerMap.has(d.nama)) checkerMap.set(d.nama, { nama: d.nama, totalCase: 0, mpp: 0 });
-      const c = checkerMap.get(d.nama);
-      c.totalCase += d.totalCount;
-      c.mpp++;
-    }
-  });
-  const checkers = Array.from(checkerMap.values()).map(c => ({ ...c, prod: c.totalCase / c.mpp, pct: Math.round((c.totalCase / c.mpp) / TARGET_CASE * 100) })).sort((a,b) => b.prod - a.prod).slice(0,11);
-
-  document.getElementById('loaderRankTable').innerHTML = `
-    <thead><tr><th>#</th><th>Nama</th><th>Total CBM</th><th>MPP</th><th>Prod</th><th>%Target</th></tr></thead>
-    <tbody>${loaders.map((l,i) => `<tr><td class="rank-num">${i+1}</td><td class="rank-name">${l.nama}</td><td>${l.totalCBM.toFixed(1)}</td><td>${l.mpp}</td><td class="rank-val">${l.prod.toFixed(1)}</td><td><span class="badge ${l.pct>=100?'badge-green':l.pct>=80?'badge-orange':'badge-red'}">${l.pct}%</span></td></tr>`).join('')}</tbody>
-  `;
-  document.getElementById('checkerRankTable').innerHTML = `
-    <thead><tr><th>#</th><th>Nama</th><th>Total Case</th><th>MPP</th><th>Prod</th><th>%Target</th></tr></thead>
-    <tbody>${checkers.map((c,i) => `<tr><td class="rank-num">${i+1}</td><td class="rank-name">${c.nama}</td><td>${formatNumber(c.totalCase)}</td><td>${c.mpp}</td><td class="rank-val">${Math.round(c.prod).toLocaleString()}</td><td><span class="badge ${c.pct>=100?'badge-green':c.pct>=80?'badge-orange':'badge-red'}">${c.pct}%</span></td></tr>`).join('')}</tbody>
-  `;
-}
-
-function renderDetailTable() {
-  const filtered = getFilteredData();
-  const details = filtered.map(d => ({
-    tanggal: toYMD(d.tanggal), nama: d.nama, jobdesk: d.jobdesk.includes('LOADER') ? 'Loader' : 'Checker',
-    shift: d.shift, value: d.jobdesk.includes('LOADER') ? d.cbm : d.totalCount,
-    pct: d.jobdesk.includes('LOADER') ? Math.round(d.cbm / TARGET_CBM * 100) : Math.round(d.totalCount / TARGET_CASE * 100)
-  }));
-  details.sort((a,b) => b.tanggal.localeCompare(a.tanggal));
-
-  document.getElementById('detailTable').innerHTML = `
-    <thead><tr><th>Tanggal</th><th>Nama</th><th>Jobdesk</th><th>Shift</th><th>Count/CBM</th><th>MPP</th><th>Prod</th><th>%Target</th></tr></thead>
-    <tbody>${details.slice(0,100).map(d => `<tr><td>${d.tanggal}</td><td>${d.nama}</td><td>${d.jobdesk}</td><td>Shift ${d.shift}</td><td>${d.jobdesk==='Loader'?d.value.toFixed(1):formatNumber(d.value)}</td><td>1</td><td>${d.jobdesk==='Loader'?d.value.toFixed(1):formatNumber(d.value)}</td><td><span class="badge ${d.pct>=100?'badge-green':d.pct>=80?'badge-orange':'badge-red'}">${d.pct}%</span></td></tr>`).join('')}</tbody>
-  `;
-}
-
-// ============================================
-// SIDEBAR TOGGLE
-// ============================================
+// Auto load saat halaman dibuka
+loadAll();
+// ── SIDEBAR TOGGLE ──
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   const main = document.getElementById('main');
-  if (window.innerWidth < 768) sidebar.classList.toggle('open');
-  else { sidebar.classList.toggle('collapsed'); main.classList.toggle('expanded'); }
+  
+  if (window.innerWidth < 768) {
+    sidebar.classList.toggle('open');
+  } else {
+    sidebar.classList.toggle('collapsed');
+    main.classList.toggle('expanded');
+  }
 }
 
-function checkMobileMenu() {
-  const btn = document.getElementById('mobileMenuBtn');
+function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
-  if (window.innerWidth < 768) { if(btn) btn.style.display = 'flex'; if(sidebar) sidebar.classList.remove('collapsed'); }
-  else { if(btn) btn.style.display = 'none'; if(sidebar) sidebar.classList.remove('open'); }
+  const main = document.getElementById('main');
+  
+  // Cek apakah di mode mobile (lebar layar < 768px)
+  if (window.innerWidth < 768) {
+    sidebar.classList.toggle('open');
+  } else {
+    sidebar.classList.toggle('collapsed');
+    main.classList.toggle('expanded');
+  }
 }
 
+// Fungsi untuk menampilkan/sembunyikan tombol menu mobile
+function checkMobileMenu() {
+  const mobileBtn = document.getElementById('mobileMenuBtn');
+  const sidebar = document.getElementById('sidebar');
+  
+  if (window.innerWidth < 768) {
+    mobileBtn.style.display = 'flex';
+    // Hapus class collapsed di mobile agar sidebar bisa muncul via transform
+    sidebar.classList.remove('collapsed');
+    sidebar.classList.remove('open'); // pastikan sidebar tertutup awalnya
+  } else {
+    mobileBtn.style.display = 'none';
+    sidebar.classList.remove('open');
+    // Kembalikan ke mode desktop (collapsed tergantung user preference)
+    if (!sidebar.classList.contains('collapsed')) {
+      // biarkan sesuai preference user
+    }
+  }
+}
+
+// Event listener untuk resize window
 window.addEventListener('resize', checkMobileMenu);
+
+// Event listener untuk tombol menu mobile
 document.getElementById('mobileMenuBtn')?.addEventListener('click', toggleSidebar);
-window.addEventListener('DOMContentLoaded', () => { checkMobileMenu(); loadAllData(); });
+
+// Panggil saat halaman selesai loading
+window.addEventListener('DOMContentLoaded', checkMobileMenu);
+
+// Restore sidebar state
+(function(){
+  const collapsed=localStorage.getItem('sb_collapsed')==='1';
+  if(collapsed){
+    document.getElementById('sidebar').classList.add('collapsed');
+    document.getElementById('main').classList.add('expanded');
+  }
+})();
 </script>
 </body>
 </html>
