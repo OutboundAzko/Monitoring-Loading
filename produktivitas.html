@@ -430,16 +430,29 @@ async function loadCheckerRankData() {
 
 function parseDate(s) {
   if (!s) return null;
+  s = s.trim();
+  
+  // Format DD/MM/YYYY atau DD-MM-YYYY
+  let parts = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if (parts) return new Date(parseInt(parts[3]), parseInt(parts[2])-1, parseInt(parts[1]));
+  
+  // Format YYYY-MM-DD
+  parts = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (parts) return new Date(parseInt(parts[1]), parseInt(parts[2])-1, parseInt(parts[3]));
+  
+  // Format "1 Jan 2025" atau "01 January 2025"
+  const months = { jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11,
+                   mei:4,ags:7,okt:9,des:11 };
+  parts = s.match(/^(\d{1,2})\s+(\w+)\s+(\d{4})$/);
+  if (parts) {
+    const m = months[parts[2].toLowerCase().substring(0,3)];
+    if (m !== undefined) return new Date(parseInt(parts[3]), m, parseInt(parts[1]));
+  }
+  
+  // Fallback
   const dt = new Date(s);
-  if (!isNaN(dt)) return dt;
-  const parts = s.match(/(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);
-  if (parts) return new Date(parts[3], parts[2]-1, parts[1]);
-  return null;
+  return isNaN(dt) ? null : dt;
 }
-
-function toYMD(d) { return d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` : ''; }
-
-function formatNumber(n) { return n.toLocaleString('id-ID'); }
 
 // ============================================
 // PERIODE FUNCTIONS
